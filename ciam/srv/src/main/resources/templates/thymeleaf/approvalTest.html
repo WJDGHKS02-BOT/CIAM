@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval Test Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form_container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+
+        .form_list6 {
+            margin-bottom: 15px;
+        }
+
+        dt {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        dd {
+            margin: 0;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        .submit_btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .submit_btn:hover {
+            background-color: #45a049;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .required {
+            color: red;
+        }
+
+        .description {
+            font-size: 12px;
+            color: gray;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form_container">
+    <h2>Approval Test Form</h2>
+    <form id="approvalTestForm" method="POST" th:action="@{'/approvalTest'}">
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Channel<span class="required">*</span></dt>
+                    <dd>
+                        <select name="channel" id="channel" class="select wid_ty4" required>
+                            <option th:each="curChannel: ${channels}"
+                                    th:if="${curChannel != null}"
+                                    th:value="${curChannel.channelName}"
+                                    th:utext="${curChannel.channelDisplayName}">
+                            </option>
+                        </select>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Request Type<span class="required">*</span></dt>
+                    <dd>
+                        <select name="requestType" id="requestType" class="select wid_ty4" required>
+                            <option th:each="curRequestType: ${requestTypes}"
+                                    th:if="${curRequestType != null}"
+                                    th:value="${curRequestType.code}"
+                                    th:utext="${curRequestType.name}">
+                            </option>
+                        </select>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Country<span class="required">*</span></dt>
+                    <dd>
+                        <select name="location" id="location" class="select wid_ty4" required>
+                            <option value=""></option>
+                            <option th:each="curLocation: ${location}"
+                                    th:if="${curLocation != null}"
+                                    th:value="${curLocation.countryCode}"
+                                    th:utext="${curLocation.nameEn}">
+                            </option>
+                        </select>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Subsidiary<span class="required">*</span></dt>
+                    <dd>
+                        <select name="subsidiary" id="subsidiary" class="select wid_ty4" required>
+                            <option value=""></option>
+                            <option th:each="curSubsidiary: ${subsidiary}"
+                                    th:if="${curSubsidiary != null}"
+                                    th:value="${curSubsidiary}"
+                                    th:utext="${curSubsidiary}">
+                            </option>
+                        </select>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Division<span class="required">*</span></dt>
+                    <dd>
+                        <select name="division" id="division" class="select wid_ty4" required>
+                            <option value=""></option>
+                            <option th:each="division: ${divisions}"
+                                    th:if="${division != null}"
+                                    th:value="${division.value}"
+                                    th:utext="${division.name}">
+                            </option>
+                        </select>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Company Code</dt>
+                    <dd>
+                        <input class="input"
+                               id="bpId"
+                               maxlength="100"
+                               name="bpId"
+                               placeholder="Enter Company Code"
+                               type="text">
+                        <p class="description">(미입력 시 기본값: A020147124)</p>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Email</dt>
+                    <dd>
+                        <input class="input"
+                               id="email"
+                               maxlength="100"
+                               name="email"
+                               placeholder="Enter EMAIL"
+                               type="text">
+                        <p class="description">(미입력 시 랜덤 test*.yopmail.com 생성)</p>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="list_wrap1">
+            <div>
+                <button type="submit" class="submit_btn">Submit</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

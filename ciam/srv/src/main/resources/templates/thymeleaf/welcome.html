@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <link th:href="@{/theme/assets/img/favicon.png}" rel="icon">
+
+    <!-- Vendor CSS Files -->
+    <link th:href="@{/theme/assets/vendor/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link th:href="@{/theme/assets/css/style.css}" rel="stylesheet">
+
+    <link href="https://cdn.datatables.net/v/bs5/dt-1.13.6/r-2.5.0/datatables.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #ffffff;
+        }
+
+        button {
+            margin-bottom: 25px;
+            width: 100%;
+        }
+    </style>
+
+    <!-- <meta name="csrf-token" content="{{_csrf.token}}" /> -->
+
+</head>
+
+<body>
+<header id="header" class="header fixed-top d-flex align-items-center">
+    <a th:href="@{/}" class="logo d-flex align-items-center">
+        <img th:src="@{/theme/assets/img/samsungb2b-logo.png}" alt="">
+    </a>
+</header>
+<main id='main'>
+    <div class="container">
+        <h2>Demo</h2>
+        <hr>
+        <h3>Self Registration</h3>
+        <div class="row">
+            <!--<div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /selfRegistration/signup('toolmate') }">
+                    <button class="btn btn-primary">
+                        TOOLMATE
+                    </button>
+                </a>
+            </div>-->
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ registration/partnerhub }">
+                <button class="btn btn-primary">
+                    PARTNERHUB
+                </button>
+                </a>
+                <!-- <a th:href="@{ /registration/signup/partnerhub }">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <button class="btn btn-primary">
+                    MMP
+                </button>
+                <!-- <a th:href="@{ /registration/signup('mmp') }">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ registration/e2e }">
+                    <button class="btn btn-primary">
+                        E2E
+                    </button>
+                </a>
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /registration/ets }">
+                    <button class="btn btn-primary">
+                        ETS
+                    </button>
+                </a>
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /registration/edo }">
+                <button class="btn btn-primary">
+                    EDO
+                </button>
+                </a>
+                <!-- <a th:href="@{ /selfRegistration/signup('edo') }">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /registration/gmapvd }">
+                    <button class="btn btn-primary">
+                        gmapvd
+                    </button>
+                </a>
+                <!-- <a th:href="@{ /selfRegistration/signup('edo') }">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /registration/gmapda }">
+                    <button class="btn btn-primary">
+                        gmapda
+                    </button>
+                </a>
+                <!-- <a th:href="@{ /selfRegistration/signup('edo') }">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /registration/sba }">
+                    <button class="btn btn-primary">
+                        SBA
+                    </button>
+                </a>
+                <!-- <a th:href="@{ /selfRegistration/signup('edo') }">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /registration/tnp }">
+                    <button class="btn btn-primary">
+                        TNP
+                    </button>
+                </a>
+                <!-- <a th:href="@{ /selfRegistration/signup('edo') }">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /registration/toolmate }">
+                    <button class="btn btn-primary">
+                        TOOLMATE
+                    </button>
+                </a>
+                <!-- <a th:href="@{ /selfRegistration/signup('edo') }">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /registration/gmapmx }">
+                    <button class="btn btn-primary">
+                        GMAPMX
+                    </button>
+                </a>
+                <!-- <a th:href="@{ /selfRegistration/signup('edo') }">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /registration/jcext }">
+                    <button class="btn btn-primary">
+                        jcext
+                    </button>
+                </a>
+                <!-- <a th:href="@{ /selfRegistration/signup('edo') }">
+                </a> -->
+            </div>
+        </div>
+
+        <h3>Request to Invite</h3>
+        <div class="row">
+            <div class="col-sm-12 col-lg-4">
+                <button class="btn btn-primary">
+                    TOOLMATE
+                </button>
+                <!-- <a th:href="@{ /invitation/index('toolmate') }">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <button class="btn btn-primary">
+                    PARTNERHUB
+                </button>
+                <!-- <a th:href="@{ /invitation/index('partnerhub') }">
+                </a> -->
+            </div>
+        </div>
+
+        <h3>Conversion (CIAM login page)</h3>
+        <div class="row">
+            <div class="col-sm-12 col-lg-4">
+                <button class="btn btn-primary">
+                    TOOLMATE
+                </button>
+                <!-- <a th:href="@{ /conversion/convertAdd('toolmate') }">
+                </a> -->
+            </div>
+        </div>
+
+        <h3>Conversion (temp POST tester)</h3>
+        <div class="row">
+            <!-- Add content here if needed -->
+        </div>
+
+        <h3>DAP Portal</h3>
+        <div class="row">
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ / }">
+                <button class="btn btn-primary">
+                    Login
+                </button>
+                <!-- <a th:href="@{/}">
+                </a> -->
+            </div>
+
+            <div class="col-sm-12 col-lg-4">
+                <a th:href="@{ /sso/logout }">
+                <button class="btn btn-primary">
+                    Logout
+                </button>
+                <!-- <a th:href="@{/sso/logout}">
+                </a> -->
+            </div>
+        </div>
+
+        <h3>Conversion</h3>
+        <div class="row">
+        </div>
+    </div>
+
+</main><!-- End #main -->
+
+<!-- ======= Footer ======= -->
+<div class="container copyright text-center mt-4">
+    <div class="copyright">
+        &copy; Samsung
+    </div>
+</div><!-- End Footer -->
+
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+        class="bi bi-arrow-up-short"></i></a>
+
+<!-- Vendor JS Files -->
+<script th:src="@{/theme/assets/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<!-- Template Main JS File -->
+<script th:src="@{/theme/assets/js/main.js}"></script>
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/v/bs5/dt-1.13.6/r-2.5.0/datatables.min.js"></script>
+
+</body>
+
+</html>

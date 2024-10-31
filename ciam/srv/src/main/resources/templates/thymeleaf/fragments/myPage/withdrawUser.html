@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="withdrawUser">
+    <h2>Account Deletion</h2>
+    <form method="POST" class="content_ty3" th:action="@{/myPage/deleteWithdrawUser}">
+        <div id="withdrawFields" class="inner_pad">
+            <dl class="form_list5">
+                <dt th:text="#{myPage.withdrawUser.notice}"></dt>
+                <dd th:utext="#{myPage.withdrawUser.deleteGuide}">
+                </dd>
+                <dt th:text="#{myPage.withdrawUser.withdrawReason}"></dt>
+                <dd>
+                    <textarea id="reason" cols="50" rows="2" class="input required" th:placeholder="#{myPage.withdrawUser.placeholder.reason}" required></textarea>
+                </dd>
+                <dd>
+                    <span class="check">
+                        <input class="required" type="checkbox" name="agreement" id="agreement" required>
+                        <label for="agreement"><span th:text="#{myPage.withdrawUser.agree}"></span></label>
+                    </span>
+                </dd>
+            </dl>
+        </div>
+
+        <div class="wrap_btn2"> 
+            <button type="button" class="btn_l" onclick="clickedConfirmBtn()">Confirm</button>
+        </div>
+        <!-- Hidden Fields Start -->
+        <button id="submit" type="submit"></button>
+        <!-- Hidden Fields End -->
+    </form>
+    <script th:inline="javascript">
+        let requiredFieldsValidation = {};
+
+        const alertMessage = [[#{myPage.withdrawUser.alertText}]];
+        const changeSuccessText= [[#{myPage.withdrawUser.changeSuccessText}]];
+        const submitBtn = document.getElementById('submit');
+        const socialProviders = /*[[${socialProviders}]]*/ '';
+
+        const errorMessages = {
+            "reason": [[#{myPage.withdrawUser.errorMessage.reason}]],
+            "agreement": [[#{myPage.withdrawUser.errorMessage.agreement}]]
+        }
+
+        function changeSuccessFunction() {
+            submitBtn.click();
+        }
+
+        function nextConfirm() {
+            executeReAuthentication(changeSuccessText, changeSuccessFunction);
+        }
+
+        async function clickedConfirmBtn() {
+            if (!requiredFieldsValidation) {
+                return;
+            }
+            for await (const [key, value] of Object.entries(requiredFieldsValidation)) {
+                if (!value) {
+                    openModal('alert', '', errorMessages[key]);
+                    return;
+                }
+            }
+            if (socialProviders.includes('saml-samsung-ad')) {
+
+                // API key를 동적으로 포함하는 스크립트 추가
+                const g = document.createElement("script");
+                var apiKey = /*[[${apiKey}]]*/ 'defaultApiKey';  // apiKey 변수는 서버에서 전달된 값을 사용
+                g.type = "text/javascript";
+                g.src = `https://cdns.au1.gigya.com/JS/gigya.js?apiKey=${apiKey}`;
+
+                loading("open");
+
+                // gigya.js가 로드된 후 로그인 호출
+                g.onload = function() {
+                    debugger;
+                    gigya.accounts.socialLogin({
+                        provider: 'saml-samsung-ad',
+                        authFlow: 'popup',
+                        ignoreInterruptions: true,
+                        callback: function(sl) {
+                            loading("close");
+                            // 콜백 함수에서 필요한 로직 실행
+                            executeSamsungVerifyingAccount();
+                        }
+                    });
+                };
+
+                // 스크립트를 head에 추가
+                document.head.appendChild(g);
+            } else {
+                openModal('alert', nextConfirm, alertMessage);
+            }
+        }
+
+        async function checkFieldsIsEmpty() {
+            const checkRequiredfields = document.querySelector("#withdrawFields").querySelectorAll(".required");
+
+            for await (const [key, value] of Object.entries(checkRequiredfields)) {
+                const type = checkRequiredfields[key].type;
+                const id = value.id;
+
+                if (type == 'checkbox') {
+                    requiredFieldsValidation[id] = value.checked;
+                } else {
+                    requiredFieldsValidation[id] = value.value;
+                }
+            }
+        }
+
+        $(document).on('input', ".required", async (event) => {
+            const target = event.target;
+            const type = target.type;
+            const id = target.id;
+            
+            let value = '';
+
+            if (type == 'checkbox') {
+                value = target.checked;
+            } else {
+                value = target.value;
+            }
+
+            requiredFieldsValidation[id] = value;
+        });
+
+        $(document).ready(async () => {
+            await checkFieldsIsEmpty();
+
+            if ((typeof responseErrorCode) != 'string') {
+                let modalType = '';
+                let modalText = '';
+                const setResponseTextPromise = new Promise((resolve, reject) => {
+                    if (!!responseErrorCode) {
+                        modalType = 'error';
+                        modalText = serverErrorText;
+                    } else {
+                        modalType = 'success';
+                        modalText = changeSuccessText;
+                    }
+                    if (!!modalText) {
+                        resolve();
+                    }
+                });
+
+                Promise.all([setResponseTextPromise]).then(() => {
+                    openModal(modalType, '', modalText);
+                });
+            }
+        });
+    </script>
+</th:block>
+</html>

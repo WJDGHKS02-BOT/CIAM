@@ -1,0 +1,252 @@
+spring:
+  devtools:
+    restart:
+      enabled: true  # devtools의 리스타트 기능 활성화 (기본값: true)
+    livereload:
+      enabled: true  # Livereload 기능 활성화 (기본값: true)
+    thymeleaf:
+      cache: false  # Thymeleaf 템플릿 캐싱 비활성화
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+      tracking-modes: cookie
+  main:
+    allow-bean-definition-overriding: true
+  web:
+    resources:
+      static-locations: classpath:/static/
+  locale:
+    default: en
+    resolver: session
+  datasource:
+    embedded-database-connection: none
+    driver-class-name: org.postgresql.Driver
+    #url: jdbc:postgresql://localhost:1775/kGArOcNEXAOs
+    #username: d0c5f77e181f
+    #password: 330f299c3cd5ea06522367a05ca4afb3
+    #   기존 개발 DB
+    url: jdbc:postgresql://localhost:1625/xniXqDOdrvZo
+    username: a4a77124550f
+    password: c1ed569d02c942ec
+  #   Java Test DB
+  #    url: jdbc:postgresql://postgres-5e4a2791-0ac8-4552-8bda-11d73d1cacfe.cu2h3ll9ayju.ap-northeast-2.rds.amazonaws.com:1775/kGArOcNEXAOs
+  #    username: d0c5f77e181f
+  #    password: 330f299c3cd5ea06522367a05ca4afb3
+  jpa:
+    database: postgresql
+    open-in-view: false
+    hibernate:
+      ddl-auto: none # or update, create-drop, validate
+      naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+  thymeleaf:
+    cache: false
+    check-template-location: true
+    prefix: classpath:templates/thymeleaf/
+    suffix: .html
+    enabled: true
+  messages:
+    basename: messages/messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+    always-use-message-format: false
+
+gigya:
+  channels:
+    default:
+      apiKey: "4_lMgx5eUigEBzUwBvUv_Xdw"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    btp:
+      apiKey: "4_lMgx5eUigEBzUwBvUv_Xdw"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    gmapda:
+      apiKey: "4_07m4trTc690nw4ETK1AanA"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    gmapvd:
+      apiKey: "4_V4HXSja5EfsInS6O6j3H7A"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    toolmate:
+      apiKey: "4_i_C6Habj4Mige9MKUtogfg"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    sba:
+      apiKey: "4_7dCC2lctQpMA85pAGriswQ"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    partnerhub:
+      apiKey: "4_dr4wsjFVmeyyioZGZONQVg"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    e2e:
+      apiKey: "4_rs8eX994RAoaLGhCYnBm6A"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    mmp:
+      apiKey: "4_YgecsrrPedUDYddkNaZ8yQ"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    ets:
+      apiKey: "4_Lsvb0HdsDNTQFMVELpSIcA"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    edo:
+      apiKey: "4_qcCzYKZZ3D-IyyaCwsU2UA"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    tnp:
+      apiKey: "4_HsKk4fAOeFH-ztZWtH7Jng"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    ebiz:
+      apiKey: "4_Yo1WDEZKObC9rXzDxnuuMA"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    gmapmx:
+      apiKey: "4_1VqwxemTl86uKpFb3AilOg"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+    jcext:
+      apiKey: "4_NkvZGj4SBaoMDFU8NDYcqA"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
+
+loginPage:
+  channels:
+    toolmate:
+      landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
+    gmapvd:
+      landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
+    gmapda:
+      landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
+    sba:
+      landing-page: https://samsung-pilot.csod.com/client/Samsung/default.aspx
+    partnerhub:
+      landing-page: https://sec-b2b--fs.sandbox.my.site.com/globalpartnertest/s/home
+    edo:
+      landing-page: https://sec-b2b--fs.sandbox.my.site.com/eu/it/
+    mmp:
+      landing-page: https://sec-b2b--fs.sandbox.my.site.com/MMP/s/login/
+    e2e:
+      landing-page: https://sec-b2b--fs.sandbox.my.site.com/enterprisecustomer/s/login/
+    ets:
+      landing-page: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/s/login/
+    tnp:
+      landing-page: http://tnpd.secbuy.com/supplier/jsp/taps/comm/supplier_main.jsp
+    gmapmx:
+      landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
+    jcext:
+      landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
+
+acsUrl:
+  channels:
+    toolmate:
+      url: https://toolmateqa.sec.samsung.net/smartpro/adsso/ciammain.jsp
+    gmapvd:
+      url: https://devvdo.sec.samsung.net:448/jsp/common/ciam/acs.jsp
+    gmapda:
+      url: https://devdao.sec.samsung.net:441/jsp/common/ciam/acs.jsp
+    sba:
+      url: https://samsung-pilot.csod.com/samldefault.aspx?ouid=18
+    partnerhub:
+      url: https://sec-b2b--fs.sandbox.my.site.com/globalpartnertest/s/home
+    edo:
+      url: https://sec-b2b--fs.sandbox.my.site.com/eu/it/
+    mmp:
+      url: https://sec-b2b--fs.sandbox.my.site.com/MMP/s/login/
+    e2e:
+      url: https://sec-b2b--fs.sandbox.my.site.com/enterprisecustomer/s/login/
+    ets:
+      url: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/s/login/
+    tnp:
+      url: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/s/login/
+
+cpi:
+  url: https://development-sec.it-cpi015-rt.cfapps.ap12.hana.ondemand.com
+  accountSerachUrl: /http/restapi/extension/sec/account/search
+  findSimilarUrl: /http/restapi/extension/sec/account/findsimilar
+  createContactUrl: /http/restapi/extension/sec/contact/simpleuse
+  createAccountUrl: /http/restapi/extension/sec/account/create
+  provisioningUrl: /http/restapi/extension/sec/channel/v2/userprovisioning
+  updateContactUrl: /http/restapi/extension/sec/contact/simpleuse
+
+encrypt:
+  appKey: kOpHl0VGrA1LZtcIgx02dtZtynl7RPO7dKZ17G/90cg
+
+cds:
+  data-source.auto-config.enabled: false
+
+email:
+  service:
+    url: https://emailsrv-optimistic-shark-ny.cfapps.ap12.hana.ondemand.com
+    login: admin
+    password: Welcome01
+
+marketing:
+  kr:
+    id: 36
+  other:
+    id: 58
+
+cdc:
+  temp-reg-pwd: JOk89ji7gHG
+
+app:
+  base:
+    url: localhost:8080
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+
+onelogin:
+  saml:
+    config-file: config/onelogin.saml-local.properties
+
+server: local
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # 모든 엔드포인트를 노출
+  endpoint:
+    health:
+      show-details: always  # Health 엔드포인트에서 상세 정보 표시
+
+hostURL:
+  php: https://dev-active-eland-sy.cfapps.ap12.hana.ondemand.com
+  java: https://sec-dev-ciam.cfapps.ap12.hana.ondemand.com
+
+redirectChannelLoginPageURL:
+  toolmate: https://toolmateqa.sec.samsung.net/smartpro/adsso/ciammain.jsp
+  gmapvd: https://devvdo.sec.samsung.net:448/jsp/common/ciam/acs.jsp
+  gmapda: https://devdao.sec.samsung.net:441/jsp/common/ciam/acs.jsp
+  gmapmx: https://gmapdev.samsungmobile.com/jsp/common/ciam/acs.jsp
+  sba: https://samsung-pilot.csod.com/samldefault.aspx?ouid=18
+  partnerhub: https://sec-b2b--fs.sandbox.my.site.com/globalpartnertest/s/home
+  #  partnerhub: https://sec-b2b--fs.sandbox.my.site.com/globalpartnertest/login?so=00DF4000004vNX9
+  edo: https://sec-b2b--fs.sandbox.my.site.com/eu/it/
+  #  edo: https://sec-b2b--fs.sandbox.my.site.com/euvforcesite/login?so=00DF4000004vNX9
+  mmp: https://sec-b2b--fs.sandbox.my.site.com/MMP/s/login/
+  #  mmp: https://sec-b2b--fs.sandbox.my.site.com/MMP/login?so=00DF4000004vNX9
+  e2e: https://sec-b2b--fs.sandbox.my.site.com/enterprisecustomer/s/login/
+  #  e2e: https://sec-b2b--fs.sandbox.my.site.com/enterprisecustomer/login?so=00DF4000004vNX9
+  ets: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/s/login/
+  #  ets: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/login?so=00DF4000004vNX9
+  tnp: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/s/login/
+  #  tnp: http://tnpd.secbuy.com/supplier/adSSOFw.jsp
+  btp: https://sec-dev-ciam.cfapps.ap12.hana.ondemand.com
+
+samsungInstanceURL: "https://samsung-b2b.apimanagement.ap12.hana.ondemand.com"
+gigyaInstanceURL: "https://accounts.au1.gigya.com"

@@ -1,0 +1,268 @@
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>Sign-In to CIAM</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+    <link href="/_styles/_index.css" rel="stylesheet" />
+    <link href="/_pages/login/login-page.css" rel="stylesheet" />
+
+    <script
+      th:inline="javascript"
+      th:src="|https://cdns.gigya.com/js/gigya.js?apikey=${apiKey}|"
+    ></script>
+    <script src="/_apis/gigya/gigya-add-event-handlers.js"></script>
+
+    <script src="/_components/input/field-input-box.js"></script>
+    <script src="/_components/spinner/loading-spinner.js"></script>
+    <script src="/_scripts/debounce.js"></script>
+    <script src="/_scripts/regex.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/_apis/_instance/gigya-instance.js"></script>
+    <script src="/_apis/_instance/samsung-instance.js"></script>
+
+    <script type="module" src="/_apis/gigya/accounts.js"></script>
+    <script type="module" src="/_apis/gigya/socialize.js"></script>
+    <script src="/_apis/samsung/samsung.js"></script>
+    <script src="/_apis/gigya/ERROR_CODES.js"></script>
+    <script src="/_apis/gigya/continueSSO.js"></script>
+
+    <script src="/_pages/login/sign-in-session.js"></script>
+    <script src="/_pages/login/components/show-login-page-response-messages.js"></script>
+    <script src="/_pages/login/components/add-login-form-event.js"></script>
+    <script src="/_apis/is-update-consent.js"></script>
+
+    <script th:inline="javascript">
+      const samsungInstanceURL = [[${samsungInstanceURL}]];
+      const gigyaInstanceURL = [[${gigyaInstanceURL}]];
+      const GIGYA_API_KEY = [[${apiKey}]];
+      const GIGYA_PARENT_KEYS = [[${parentKeys}]];
+      const HOST_URL = [[${hostUrl}]];
+      const CHANNEL = [[${channel}]];
+      const isBtpLogin = CHANNEL === 'btp'
+      const isAdLogin = new URLSearchParams(location.search).get('adLogin');
+
+      async function handleSubmitForm() {
+        try {
+          showLoadingSpinner();
+
+          const email = document.querySelector('input[name="field-email"]').value;
+          const password = document.querySelector('input[name="field-password"]').value;
+
+          const loginResponse = await accounts.login({email, password, captchaToken});
+
+          if (loginResponse === 'REQUIRED_AUTHENTICATION') {
+            const {data: userTfaSettings} = await samsung.getUserTfaSettings();
+            const IS_TFA_OTP = userTfaSettings.tfaMethods.gigyaTotp;
+
+            // btp 로그인이 아닌 경우
+            // await accounts.tfa.getProviders();
+            // await accounts.tfa.initTFA({provider: 'gigyaEmail', isSetGigyaAssertion: true});
+            // await accounts.tfa.getEmails();
+
+            if (IS_TFA_OTP) return location.assign(`${location.pathname}/tfa/otp${location.search}`);
+            return location.assign(`${location.pathname}/tfa/email${location.search}`);
+          }
+        } catch(err) {
+          console.error(err);
+        } finally {
+          hideLoadingSpinner();
+        }
+      }
+
+      function redirectSamsungEmployeeLogin () {
+        return accounts.socialLogin({provider: 'saml-samsung-ad'});
+      }
+
+      function redirectForgotPasswordPage () {
+        return location.assign(`${location.pathname}/forgot-password${location.search}`);
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        showLoadingSpinner();
+
+        samsungInstance.defaults.baseURL = samsungInstanceURL;
+        gigyaInstance.defaults.baseURL = gigyaInstanceURL;
+        initializeLoginForm();
+        updateSamsungEmployeeLoginButtonVisibility(CHANNEL);
+
+        hideLoadingSpinner();
+      })
+
+      function initializeLoginForm () {
+        const form = document.querySelector('.form');
+        const submitButton = document.querySelector('#formSubmitButton');
+        const VALIDITY = {
+          email: false,
+          password: false,
+        }
+
+        addLoginFormEvent({
+          form: form,
+          submitButton: submitButton,
+          validity: VALIDITY,
+          enterKeyFunc: handleSubmitForm,
+          inputFunc: (e) => {
+            const FIELD_NAME = e.target.name;
+            const FIELD_VALUE = e.target.value;
+
+            if (FIELD_NAME === 'field-email') {
+              if(FIELD_VALUE === '') {
+                setMessageFieldInputBox({
+                  inputElement: e.target,
+                  type: 'error',
+                  message: 'Please enter an email address.'
+                });
+                VALIDITY.email = false;
+              } else if(isEmail(FIELD_VALUE) === false) {
+                setMessageFieldInputBox({
+                  inputElement: e.target,
+                  type: 'error',
+                  message: 'Please enter an valid email address or a format.'
+                });
+                VALIDITY.email = false;
+              } else {
+                VALIDITY.email = true;
+                resetFieldInputBox({inputElement: e.target});
+              }
+            } else if (FIELD_NAME === 'field-password') {
+              if(FIELD_VALUE) {
+                VALIDITY.password = true;
+                resetFieldInputBox({inputElement: e.target});
+              } else {
+                VALIDITY.password = false;
+                setMessageFieldInputBox({
+                  inputElement: e.target,
+                  type: 'error',
+                  message: 'Please enter password.'
+                });
+              }
+            }
+          }});
+      }
+
+      function updateSamsungEmployeeLoginButtonVisibility(currentChannel) {
+        const samsungEmployeeLoginButton = document.querySelector('.samsung-employee-login-link');
+        const channelsToHideButton = ['gmapad', 'gmapvd'];
+
+        samsungEmployeeLoginButton.style.display = channelsToHideButton.includes(currentChannel) ? 'none' : 'block';
+      }
+    </script>
+
+    <style>
+      .main {
+        align-items: center;
+      }
+
+      .title {
+        font: var(--samsung-700-32);
+        color: var(--color-black);
+        margin-top: 200px;
+      }
+
+      .sub-title {
+        font: var(--samsung-400-16);
+        color: var(--color-gray-03);
+        margin: 10px 0 48px 0;
+        text-align: center;
+      }
+
+      .form {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 600px;
+        padding: 24px;
+        margin: 0 auto;
+        border: 1px solid var(--color-gray-04);
+        border-radius: 8px;
+      }
+
+      .forget-password-button {
+        font: var(--samsung-400-14);
+        color: var(--color-point);
+        margin: -14px 0 24px auto;
+        z-index: 1;
+      }
+
+      .samsung-employee-login-link {
+        text-decoration: none;
+        text-align: center;
+        font: var(--samsung-400-14);
+        color: var(--color-point);
+        margin-top: 20px;
+      }
+
+
+
+      @media screen and (max-width: 768px) {
+        .title {
+          margin-top: 80px;
+        }
+        .form {
+          border: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <th:block th:replace="_components/layout/header :: header"></th:block>
+
+    <th:block th:replace="_components/layout/main :: main(~{::content})">
+      <th:block th:fragment="content">
+        <h2 class="title" th:utext="#{login-page.title}">Login</h2>
+        <p class="sub-title" th:utext="#{login-page.subTitle}">
+          Log in with your Login ID and password
+        </p>
+        <form class="form">
+          <th:block
+            th:replace="_components/input/field-input-box :: field-input-box('email', #{login-page.form.field.loginID}, 'field-email', _, 50, true, false, false, _, _, #{login-page.form.field.loginID.placeholder})"
+          ></th:block>
+          <th:block
+            th:replace="_components/input/field-input-box :: field-input-box('password', #{login-page.form.field.password}, 'field-password', _, 50, true, false, false, _, _, #{login-page.form.field.password.placeholder})"
+          ></th:block>
+          <button
+            class="forget-password-button"
+            onclick="redirectForgotPasswordPage()"
+            th:utext="#{login-page.form.link.forgotPassword}"
+            type="button"
+          >
+            Forgot Password?
+          </button>
+
+          <th:block
+            th:replace="_pages/login/components/login-page-response-messages :: login-page-response-messages"
+          ></th:block>
+
+          <th:block th:replace="_pages/login/components/captcha :: captcha"></th:block>
+
+          <button
+            id="formSubmitButton"
+            class="button button-size--m button-theme--white"
+            onclick="handleSubmitForm()"
+            disabled
+            th:utext="#{login-page.form.submitButton}"
+            type="button"
+          >
+            Sign In
+          </button>
+
+          <button
+            type="button"
+            class="samsung-employee-login-link"
+            onclick="redirectSamsungEmployeeLogin()"
+            th:utext="#{login-page.form.link.samsungEmployeeLogin}"
+          >
+            Samsung Employee Login
+          </button>
+        </form>
+      </th:block>
+    </th:block>
+    <th:block th:replace="_components/layout/footer :: footer"></th:block>
+    <th:block
+      th:replace="_components/spinner/loading-spinner :: loading-spinner"
+    ></th:block>
+  </body>
+</html>
+
+

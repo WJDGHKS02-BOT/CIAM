@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <!--
+        params: type(String)
+        Expected value of 'type' = "registration" or "mypage" or etc..
+    -->
+    <th:block th:fragment="header(type)">
+        <h1>
+            <img alt="SAMSUNG"
+                 src="/images/Samsung_Orig_Wordmark_BLACK_RGB.png"
+                 style="width: 180px; height: 46px; margin-right: 0;">
+            Business Account
+        </h1>
+
+      <!-- visible only on mypage-->
+        <div th:if="${type == 'mypage'}">
+            <button class="btn_l btn_underline_blue"
+                    onclick="redirectChannel()"
+                    th:if="${channelHeader != null && channelHeader['channelDisplayName'] != null}"
+                    th:text="${channelHeader['channelDisplayName']}"
+                    th:value="${channelHeader['channelName']}"
+                    type="button"></button>
+<!--            <button class="btn_l btn_underline_blue"-->
+<!--                    onclick="redirectChannel()"-->
+<!--                    th:if="${channelHeader != null && channelHeader['isMultiChannel'] != null && channelHeader['isMultiChannel'] == 'Y'}"-->
+<!--                    type="button">Select Channel</button>-->
+          <!-- th:if="${channel != null}" -->
+            <button class="btn_l voc"
+                    onclick="window.location.href='https://itvoc.sec.samsung.net/it4u/voc/vocReg?directCode=23D03700000001'"
+                    type="button">IT-VOC</button>
+            <button class="btn_l logout"
+                    id="logoutBtn"
+                    type="button">Logout</button>
+        </div>
+
+        <script th:inline="javascript">
+            function goToSelectChannel() {
+              // SSO Access 화면으로 이동
+              window.location.href = '/myPage/ssoAccess';
+            }
+
+            function redirectChannel() {
+                // SSO Access 화면으로 이동
+                window.location.href = '/myPage/selectChannel';
+            }
+
+            function logout() {
+              // 로그아웃
+              window.location.href = '/sso/logout';
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+              const headerLogoutBtn = document.getElementById('logoutBtn');
+              if (!!headerLogoutBtn) {
+                headerLogoutBtn.addEventListener('click', function () {
+                  logout();
+                });
+              }
+            });
+
+
+        </script>
+    </th:block>
+
+
+</html>

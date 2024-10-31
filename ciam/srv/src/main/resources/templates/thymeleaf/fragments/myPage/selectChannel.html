@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="selectChannel">
+    <h2>Select Channel</h2>
+    <form method="POST" class="content_ty3" th:action="@{/myPage/selectedChannel}">
+        <ul class="form_list1">
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit requ">Channels</p>
+                        <select name="channel" id="channel" class="select">
+                            <option th:each="channel : ${channels}"
+                                    th:value="${channel.channelName}"
+                                    th:text="${channel.channelDisplayName}"
+                                    th:selected="${(channelHeader != null && channelHeader['channelName'] != null) ? channelHeader['channelName'] == channel.channelName : false}">
+                            </option>
+                        </select>
+                        <input type="hidden" name="selectedText" id="selectedText" value="" />
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        <div class="wrap_btn2">
+            <button type="button" class="btn_l" onclick="clickedSelectChannelBtn()">Select</button>
+        </div>
+        <button type="submit" id="submit"></button>
+    </form>
+    <script>
+        const submitBtn = document.getElementById('submit');
+        function clickedSelectChannelBtn() {
+            // ModalOpen("#loadingPopup");
+            updateSelectedText();
+        }
+        function updateSelectedText() {
+            var selectElement = document.getElementById('channel');
+            var selectedTextElement = document.getElementById('selectedText');
+
+            var selectedChannelText = selectElement.options[selectElement.selectedIndex].text;
+            selectedTextElement.value = selectedChannelText;
+
+            submitBtn.click();
+        }
+    </script>
+</th:block>
+</html>

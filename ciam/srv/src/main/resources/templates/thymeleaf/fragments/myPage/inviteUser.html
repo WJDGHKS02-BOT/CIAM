@@ -1,0 +1,448 @@
+<!--
+    accountObject
+          - codes
+          - divisions
+          - secCountries
+          - languages
+          - roles
+    companyObject
+        - bpid
+        - source
+        - type
+        - validStatus
+        - zip_code
+        - vendorcode
+        - name
+        - country
+        - state
+        - city
+        - street_address
+        - phonenumber1
+        - fax
+        - email
+        - bizregno1
+        - representative
+        - vendorcode
+        - zip_code
+        - validStatus
+        - type
+        - source
+        - bpid
+    companySearchEnabled
+    channelString
+    countries
+    companyData
+    countryReadOnly
+    channels
+    role
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+    <style>
+        #invitationUserResult {
+            height: 520px;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            > dt {
+                min-width: 0;
+                padding-right: 0;
+            }
+            > dd {
+                flex: 1;
+            }
+        }
+
+        .form_list6 {
+            gap: 24px;
+        }
+    </style>
+
+    <th:block th:fragment="inviteUser">
+        <div th:unless="${channelHeader['myRole'] == 'General User'}">
+            <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+    
+            <h2>Invite User</h2>
+            <div class="content_ty4">
+                <div class="list_wrap1">
+                    <div style="width: 100%; display: flex; flex-direction: column; row-gap: 12px;">
+                        <dl class="form_list6">
+                            <div class="menu" style="width: 180px;">
+                                <dt>Channel</dt>
+                                <dd>
+                                    <select name="channel" id="channelSelect" class="select" th:aria-readonly="${channelHeader['myRole']} == 'CIAM Admin' ? false : true" >
+                                        <option th:each="channel : ${channels}"
+                                            th:value="${channel.channelName}"
+                                            th:text="${channel.channelDisplayName}"></option>
+                                    </select>
+                                </dd>
+                            </div>
+    
+                            <div class="menu" style="width: 180px;">
+                            <dt>Role</dt>
+                                <dd>
+                                    <input type="text" th:value="${role}" placeholder="" class="input role-input" disabled>
+                                </dd>
+                            </div>
+    
+                            <div class="menu" style="margin-left: auto; width: 200px;">
+                                <dt>Type</dt>
+                                <dd style="width: 160px !important;">
+                                    <select name="typeSelect" id="typeSelect" class="select" onchange="handleChangeEvent(this, 'type'); checkType();">
+                                        <option value="pending">Pending</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="rejected">Rejected</option>
+                                        <option value="all">All</option>
+                                    </select>
+                                </dd>
+                            </div>
+                        </dl>
+    
+                        <dl class="form_list6">
+                            <div class="menu">
+                                <dt>Show</dt>
+                                <dd>
+                                    <select name="entries" class="select" th:value="${entries}" onchange="handleChangeEvent(this, 'showEntries');" >
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </dd>
+                                <dt style="padding: 0 0 0 4px; margin-left: 0;">entries</dt>
+                            </div>
+    
+                            <div class="menu" style="margin-left: auto;">
+                                <button id="createButton" class="btn_table_s blue" style="margin-right: 8px;" onclick="redirectToCreate()">Create</button>
+                                <dt>Search</dt>
+                                <dd style="width: 160px !important;">
+                                    <input type="text" id="searchInput" class="input" oninput="handleChangeSearchInput(this)" >
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+    
+                <!-- Grid Data Table : START -->
+                <div id="invitationUserResult" class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center"></div>
+                <!-- Grid Data Table : END -->
+            </div>
+        </div>
+        <!-- i18n 메시지 변수들 -->
+        <script th:inline="javascript">
+            const resendAlertMessage = [[#{myPage.inviteUser.resendAlertMessage}]];
+            const resendSuccessMessage = [[#{myPage.inviteUser.resendSuccessMessage}]];
+            const resendErrorMessage = [[#{myPage.inviteUser.resendErrorMessage}]];
+            const deleteAlertMessage = [[#{myPage.inviteUser.deleteAlertMessage}]];
+            const deleteSuccessMessage = [[#{myPage.inviteUser.deleteSuccessMessage}]];
+            const deleteErrorMessage = [[#{myPage.inviteUser.deleteErrorMessage}]];
+        </script>
+        <!-- 컬럼 데이터 스크립트 -->
+        <script th:inline="javascript">
+            console.log([[${role}]]);
+            const columnDefaultOptions = {
+                cellStyle: { textAlign: 'center' },
+                unSortIcon: true,
+                headerClass: 'ag-header-cell-center',
+                suppressSizeToFit: true,
+                flex: 1,
+            }
+            // 모든 로컬 컬럼 목록
+            const allLocalColumnsDefs = [
+                {
+                    headerName: 'ID',
+                    field: 'id',
+                    hide: true
+                },
+                {
+                    headerName: 'Login ID',
+                    field: 'loginId',
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Requestor ID',
+                    field: 'requestorId',
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Company',
+                    field: 'companyName',
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'status',
+                    field: 'status',
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'invited Date',
+                    field: 'createdAt',
+                    valueFormatter: function(params) {
+                        if (params.value) {
+                            const date = new Date(params.value);
+                            return `${date.getFullYear()}.${('0' + (date.getMonth() + 1)).slice(-2)}.${('0' + date.getDate()).slice(-2)}`;
+                        }
+                        return '';
+                    },
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Expired Date',
+                    field: 'expiry',
+                    valueFormatter: function(params) {
+                        if (params.value) {
+                            const date = new Date(params.value);
+                            return `${date.getFullYear()}.${('0' + (date.getMonth() + 1)).slice(-2)}.${('0' + date.getDate()).slice(-2)}`;
+                        }
+                        return '';
+                    },
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Resend',
+                    field: 'resend',
+                    cellRenderer: function(params) {
+                        if (params.data.status === 'pending') {
+                            return `<button class="btn_table_s blue" onclick="handleClickCellButton('${params.data.id}', 'resend')">Resend</button>`;
+                        }
+                    },
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Delete',
+                    field: 'delete',
+                    cellRenderer: function(params) {
+                        if (params.data.status != 'rejected') {
+                            return `<button class="btn_table_s blue" onclick="handleClickCellButton('${params.data.id}', 'delete')">Delete</button>`;
+                        }
+                    },
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                },
+                {
+                    headerName: 'Rejected Date',
+                    field: 'rejectedDate',
+                    valueFormatter: function(params) {
+                        if (params.value) {
+                            const date = new Date(params.value);
+                            return `${date.getFullYear()}.${('0' + (date.getMonth() + 1)).slice(-2)}.${('0' + date.getDate()).slice(-2)}`;
+                        }
+                        return '';
+                    },
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Rejected Reason',
+                    field: 'rejectedReason',
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Rejected ID',
+                    field: 'rejectedId',
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Approved Date',
+                    field: 'approvedDate',
+                    valueFormatter: function(params) {
+                        if (params.value) {
+                            const date = new Date(params.value);
+                            return `${date.getFullYear()}.${('0' + (date.getMonth() + 1)).slice(-2)}.${('0' + date.getDate()).slice(-2)}`;
+                        }
+                        return '';
+                    },
+                    ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Approved ID',
+                    field: 'approvedId',
+                    ...columnDefaultOptions
+                },
+            ];
+        </script>
+
+
+        <script th:inline="javascript">
+            let isGridReady = false; // 그리드 준비 여부
+            let invitationUserGridResult = null; // agGrid 생성, 삭제를 위한 변수
+            let gridData = {
+                rowData: [],
+                visibleHeaders: [],
+            };
+            let columnDefs = [];
+            let gridOptions = {};
+
+            const channelInfo = [[${channels}]]; // 채널 정보
+
+            const selectedField = {
+                type: 'pending',
+                channel: channelInfo[0].channelName,
+                showEntries: '10',
+                searchText: '',
+            }
+
+            const blackListRole = [
+                "General User",  
+            ];
+
+            const gridElement = document.querySelector('#invitationUserResult'); // 그리드 element
+
+            // 타입이 Pending일 때만 Create 버튼 활성화
+            function checkType() {
+                const createButton = document.querySelector('#createButton');
+                if (selectedField.type === 'pending') {
+                    createButton.style.display = 'inline';
+                } else {
+                    createButton.style.display = 'none';
+                }
+            }
+
+            // 데이터를 얻기 위한 AJAX 통신
+            function getGridData () {
+                $.ajax({
+                    url: '/myPage/inviteList',
+                    type: 'POST',
+                    data: JSON.stringify(selectedField),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: (res) => {
+                        gridData.rowData = res.result;
+                        gridData.visibleHeaders = res.visibleHeaders;
+
+                        columnDefs = allLocalColumnsDefs.filter(col => gridData.visibleHeaders.includes(col.field));
+
+                        if(isGridReady) {
+                            refreshInvitationGridElement();
+                        } else {
+                            createInvitationGridElement();
+                            isGridReady = true;
+                        }
+                    },
+                    error: (err) => {
+                        console.log(err);
+                    }
+                })
+            }
+
+            // 초대 그리드 생성
+            function createInvitationGridElement () {
+                gridOptions = {
+                    rowData: gridData.rowData,
+                    columnDefs: columnDefs,
+                    rowSelection: 'single',
+                    pagination: true,
+                    paginationPageSize: selectedField.showEntries,
+                    paginationPageSizeSelector: false,
+                    domLayout: 'normal', // 자동 높이 조정
+                    localeText: {
+                        noRowsToShow: ""  // 'No Rows To Show' 메시지를 'No Match Found'로 변경
+                    },
+                    onGridReady: function (params) {
+                        params.api.sizeColumnsToFit(); // 열 너비를 그리드 너비에 맞춤
+                    }
+                };
+
+                invitationGridElement = agGrid.createGrid(gridElement, gridOptions);
+            }
+
+            // 초대 그리드 새로고침
+            function refreshInvitationGridElement () {
+                invitationGridElement.destroy();
+                createInvitationGridElement();
+            }
+
+            // Search Field 변경 이벤트를 제외한 모든 변경 이벤트
+            function handleChangeEvent(e, field) {
+                selectedField[field] = e.value;
+
+                if(field === 'showEntries') gridOptions.paginationPageSize = selectedField.showEntries;
+
+                getGridData();
+            }
+
+            // Search 변경 시
+            let debounceTimeout;
+            function handleChangeSearchInput(e) {
+                debounceTimeout && clearTimeout(debounceTimeout);
+
+                debounceTimeout = setTimeout(() => {
+                    // const inputElement = document.querySelector('input#searchInput');
+                    selectedField.searchText = e.value;
+
+                    getGridData();
+                }, 500);
+            }
+
+            // Grid 안 Resend / Delete 버튼 클릭 시
+            function handleClickCellButton (id, type) {
+                openModal('alert',
+                    () => {
+                        ModalAlertOpen("#loadingPopup");
+                        $.ajax({
+                            url: type === 'resend' ? '/myPage/resend' : '/myPage/cancel',
+                            type: 'POST',
+                            data: JSON.stringify({ invitationId: id }),
+                            contentType: "application/json; charset=utf-8",
+                            dataType: 'text',
+                            success: () => {
+                                type === 'resend'
+                                    ? openModal('success', '', resendSuccessMessage)
+                                    : openModal('success', '', deleteSuccessMessage);
+                            },
+                            error: (error) => {
+                                type === 'resend'
+                                    ? openModal('error', '', resendErrorMessage)
+                                    : openModal('error', '', deleteErrorMessage);
+                            },
+                            complete: () => ModalAlertClose("#loadingPopup")
+                        })
+                    },
+                    type === 'resend'
+                        ? resendAlertMessage
+                        : deleteAlertMessage);
+            }
+
+            function redirectToCreate () {
+                const channelSelect = document.querySelector('#channelSelect');
+                location.href = `/myPage/inviteinfomationCreate?param=${channelSelect.value}`;
+            }
+        </script>
+
+        <script th:inline="javascript">
+            $(document).ready(() => {
+                // 권한 별 접근 제어
+                if (blackListRole.includes([[${channelHeader['myRole']}]])) {
+                    accessDenied();
+                    return;
+                }
+                getGridData();
+
+                if ((typeof responseErrorCode) != 'string') {
+                    let modalType = '';
+                    let modalText = '';
+                    const setResponseTextPromise = new Promise((resolve, reject) => {
+                        if (!!responseErrorCode) {
+                            modalType = 'error';
+                            modalText = serverErrorText;
+                        } else {
+                            modalType = 'success';
+                            modalText = changeSuccessText;
+                        }
+                        if (!!modalText) {
+                            resolve();
+                        }
+                    });
+
+                    Promise.all([setResponseTextPromise]).then(() => {
+                        openModal(modalType, '', modalText);
+                    });
+                }
+            });
+        </script>
+    </th:block>
+</html>

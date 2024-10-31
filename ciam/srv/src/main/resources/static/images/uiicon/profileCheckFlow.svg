@@ -1,0 +1,14 @@
+<svg
+  class="progress-icons"
+  width="25"
+  height="25"
+  viewBox="0 0 25 25"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <circle cx="12.8535" cy="12.1816" r="12" fill="#006BEA" />
+  <path
+    d="M10.5466 17.4399L5.17773 12.4551L6.51994 11.209L10.5466 14.9475L19.1885 6.92383L20.5307 8.17001L10.5466 17.4399Z"
+    fill="white"
+  />
+</svg>

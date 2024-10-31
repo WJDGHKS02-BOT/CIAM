@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 콘솔에 로그 출력 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 파일에 로그 저장 (RollingFileAppender) -->
+<!--    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">-->
+<!--        <queueSize>5000</queueSize> &lt;!&ndash; 큐의 크기 설정 &ndash;&gt;-->
+<!--        <discardingThreshold>0</discardingThreshold> &lt;!&ndash; 큐가 가득 차기 전에 로그 버리기 시작할 기준 &ndash;&gt;-->
+<!--        <appender-ref ref="FILE" />-->
+<!--    </appender>-->
+
+<!--    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--        <file>/home/user/projects/logs/application.log</file>-->
+<!--        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">-->
+<!--            &lt;!&ndash; 날짜와 크기 기반으로 로그 파일을 롤링 &ndash;&gt;-->
+<!--            &lt;!&ndash; 10MB를 초과하면 새로운 로그 파일을 생성하고, 날짜별로 구분 &ndash;&gt;-->
+<!--            <fileNamePattern>/home/user/projects/logs/application.%d{yyyy-MM-dd}.%i.log</fileNamePattern>-->
+<!--            &lt;!&ndash; 파일 하나의 최대 크기 설정 &ndash;&gt;-->
+<!--            <maxFileSize>10MB</maxFileSize>-->
+<!--            &lt;!&ndash; 30일간의 로그 파일을 보관 &ndash;&gt;-->
+<!--            <maxHistory>30</maxHistory>-->
+<!--            &lt;!&ndash; 로그 파일 최대 크기 &ndash;&gt;-->
+<!--            <totalSizeCap>3GB</totalSizeCap>-->
+<!--        </rollingPolicy>-->
+<!--        <encoder>-->
+<!--            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+    <!-- 운영 환경에서만 Slack Webhook Appender 적용 -->
+    <if condition='property("spring.profiles.active").contains("prod")'>
+        <then>
+            <!-- 커스텀 Slack Webhook Appender -->
+            <appender name="SLACK" class="com.samsung.ciam.common.core.component.SlackAppender">
+                <webhookUrl>https://hooks.slack.com/services/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</webhookUrl>
+            </appender>
+
+            <!-- ERROR 로그만 Slack으로 전송 -->
+            <logger name="com.samsung.ciam" level="ERROR" additivity="false">
+                <appender-ref ref="SLACK" />
+            </logger>
+        </then>
+    </if>
+
+    <!-- INFO 레벨 이상의 로그는 콘솔에 기록 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+<!--        <appender-ref ref="FILE" />-->
+    </root>
+
+</configuration>

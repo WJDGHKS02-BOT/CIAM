@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Account Info</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<h1>Get Account Info</h1>
+<input type="text" id="uid" placeholder="Enter UID" />
+<button id="getAccountInfoBtn">Get Account Info</button>
+
+<div id="result"></div>
+
+<script>
+    $(document).ready(function() {
+        $('#getAccountInfoBtn').click(function() {
+            const uid = $('#uid').val();
+
+            $.ajax({
+                url: '/getAccountInfo',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ uid: uid }),
+                success: function(response) {
+                    debugger;
+                    $('#result').html(JSON.stringify(response, null, 2));
+                },
+                error: function(xhr, status, error) {
+                    $('#result').html('Error: ' + xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

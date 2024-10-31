@@ -1,0 +1,28 @@
+const ERROR_CODES = {
+  SUCCESS: 0,
+
+  user: {
+    UNAUTHORIZED: 403005,
+  },
+  tfa: {
+    REQUIRED_AUTHENTICATION: 403101 || 403102,
+    init: {
+      PENDING: 400006
+    },
+  },
+  accounts: {
+    PENDING: 206001,
+  },
+  field: {
+    EMAIL_OR_PASSWORD_INCORRECT: 403042,
+    ENTERED_WRONG_VERIFICATION_CODE: 400006,
+  },
+  captcha: {
+    IS_REQUIRED: 401020,
+    IS_WRONG: 401021,
+  },
+  password: {
+    SAME_AS_CURRENT_PASSWORD: 401030,
+    PASSWORD_PATTERN_INVALID: 400006,
+  }
+}

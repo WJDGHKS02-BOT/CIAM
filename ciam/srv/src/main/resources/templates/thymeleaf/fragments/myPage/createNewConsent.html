@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="createNewConsent">
+
+    <script src="/theme/assets/js/ui/ui.common.js"></script>
+	<script src="/scripts/vendor/daterangepicker/js/moment.min.js"></script>
+    <script src="/scripts/vendor/daterangepicker/js/daterangepicker.js"></script>
+
+	<link rel="stylesheet" href="/ckeditor5/ckeditor5.css">
+	<link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+	<link rel="stylesheet" href="/theme/assets/css/custom/ck_editor.css" />
+	<link rel="stylesheet" type="text/css" href="/scripts/vendor/daterangepicker/css/daterangepicker.css" />
+	<h2>Create New Consent</h2>
+
+	<div class="content_ty3">
+		<h3>New Consent</h3>
+		<th:block th:replace="~{fragments/myPage/customPaginationGrid :: customPaginationGrid(0, 0)}"></th:block>
+
+		<div class="mar_ty1">
+			<div class="list_wrap1">
+				<dl class="form_list6">
+					<h3>
+						Channel
+					</h3>
+					<dd>
+						<!--
+						<input type="text" name="createChannel" id="createChannel" th:value="${payload != null ? payload['selectedCreateChannel'] : ''}" class="input wid_ty3" readonly>
+						-->
+						<select name="selectedChannel" id="selectedChannel" class="select wid_ty3" aria-readonly="true">
+							<option value="common">COMMON</option>
+							<option th:each="curChannel: ${channel}"
+								th:if="${curChannel != null}"
+								th:value="|${curChannel.channelName}|"
+								th:utext="${curChannel.channelDisplayName}"
+								th:selected="${#arrays.length(consent) > 0 ? curChannel.channelName == consent[0]['channel'] : curChannel.channelName == payload['selectedChannelCondition']}"></option>
+						</select>
+					</dd>
+					<h3>
+						Consent Type
+					</h3>
+					<dd>
+						<select name="selectedType" id="selectedType" class="select wid_ty3" aria-readonly="true">
+							<option value=""></option>
+							<option th:each="curType: ${type}"
+								th:if="${curType != null}"
+								th:value="|${curType.id}|"
+								th:utext="${curType.nameEn}"
+								th:selected= "${#arrays.length(consent) > 0 ? curType.id == consent[0]['consentType'] : curType.id == payload['selectedTypeCondition']}"></option>
+						</select>
+					</dd>
+				</dl>
+			</div>
+			<div class="list_wrap1">
+				<dl class="form_list6">
+					<h3>
+						Language
+					</h3>
+					<dd>
+						<select name="selectedLanguage" id="selectedLanguage" class="select wid_ty3" 
+								th:aria-readonly="${(payload['selectedConsentGroupCondition'] != null && payload['selectedConsentGroupCondition'] != '')}">
+							<option value="">Select Language</option>
+							<option th:each="curLanguage: ${consentLanguage}"
+								th:if="${curLanguage != null}"
+								th:value="|${curLanguage.id}|"
+								th:utext="${curLanguage.nameEn}"
+								th:selected="${curLanguage.id == consent[0]['defaultLanguage']}"></option>
+						</select>
+					</dd>
+				</dl>
+			</div>
+		</div>
+
+		<h3>Content</h3>
+		<div class="temrs_wrap">
+			<textarea id="txtContent" rows="10" cols="100" style="width: 100%; height:500px"></textarea>
+		</div>
+			
+
+		<div class="wrap_btn2">
+			<button type="button" class="btn_l btn_white" onclick="clickedCancelBtn()">Cancel</button>
+			<button type="button" class="btn_l" onclick="clickedPreviewBtn()">Preview</button>
+		</div>
+
+		<input type="hidden" name="content" id="content">
+		<input type="hidden" name="subsidiary" id="subsidiary">
+		<input type="hidden" name="location" id="location">
+		<input type="hidden" name="consentId" id="consentId">
+		<input type="hidden" name="consentGroup" id="consentGroup">
+	</div>
+	<div id="dimPlace">
+		<th:block th:replace="~{fragments/myPage/consentDimmed :: consentDimmed('create')}"></th:block>
+		<th:block th:replace="~{fragments/myPage/consentDimmed :: consentDimmed('publishing')}"></th:block>
+	</div>
+
+	<script>
+		// editor 변수 선언용 script
+		let currentEditor;
+	</script>
+	<script type="module" id="smartEditor" th:inline="javascript">
+		import {
+			ClassicEditor,
+			Essentials,
+			Paragraph,
+			Bold,
+			Italic,
+			Font,
+			Table,
+			TableToolbar,
+    		SourceEditing,
+			Alignment,
+			GeneralHtmlSupport,
+			BlockToolbar,
+		} from 'ckeditor5';
+		ClassicEditor
+			.create( document.querySelector( '#txtContent' ), {
+				initialData: '',	// Initial Consent
+				plugins: [ Essentials, Paragraph, Bold, Italic, Font, Table, TableToolbar, SourceEditing, Alignment, GeneralHtmlSupport ],
+				htmlSupport: {
+					allow: [ 
+						{
+							name: /.*/,
+							attributes: true,
+							classes: true,
+							styles: true
+						}
+					],
+				},
+				toolbar: {
+					items: [
+						'undo', 'redo', '|',
+						'bold', 'italic', '|',
+						'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 'alignment', '|',
+						'insertTable', 'tableColumn', 'tableRow', 'mergeTableCells', '|',
+						'sourceEditing'
+					],
+					shouldNotGroupWhenFull: true // 툴바의 항목이 툴바 영역을 넘쳐도 "Show More Items" 버튼을 생성하지 않는 옵션
+				},          
+				// Configure the table plugin with additional options if necessary
+				table: {
+					contentToolbar: [
+						'tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties'
+					]
+				},
+				height : '300px',  // 입력창의 높이
+				// Define plugins to exclude
+				removePlugins: ['Image', 'ImageToolbar', 'ImageCaption', 'ImageStyle', 'ImageResize', 'ImageUpload']
+			} )
+			.then( editor => {
+				currentEditor = editor;
+				// window.editor = editor;
+			} )
+			.catch( error => {
+				console.error( error );
+			} );
+			
+		$(document).ready(() => {
+			
+		});
+	</script>
+	<script th:inline="javascript">
+		const dimPlace = document.getElementById("dimPlace");
+		
+		const contentElement = document.getElementById('content');
+		const subsidiaryElement = document.getElementById('subsidiary');
+		const locationElement = document.getElementById('location');
+		const consentIdElement = document.getElementById('consentId');
+		const consentGroupElement = document.getElementById('consentGroup');
+
+		const selectedLanguageElement = document.getElementById('selectedLanguage');
+		
+		const createNewConsentConditionPopupChannel = [[${channel}]] || '';
+        const createNewConsentConditionPopupType = [[${type}]] || '';
+        const createNewConsentConditionPopupConsentLanguage = [[${consentLanguage}]] || '';
+        const createNewConsentConditionPopupConsent = [[${consent}]] || '';
+        const createNewConsentConditionPopupPayload = [[${payload}]] || '';
+
+		const saveAlertText = [[#{myPage.consentManager.saveAlertText}]] || '';
+        const publishingAlertText = [[#{myPage.consentManager.publishingAlertText}]] || '';
+
+		let createPopupEditor;
+
+		console.log("createNewConsentConditionPopupChannel: ", createNewConsentConditionPopupChannel,
+					"createNewConsentConditionPopupType: ", createNewConsentConditionPopupType,
+					"createNewConsentConditionPopupConsentLanguage: ", createNewConsentConditionPopupConsentLanguage,
+					"createNewConsentConditionPopupConsent: ", createNewConsentConditionPopupConsent,
+					"createNewConsentConditionPopupPayload: ", createNewConsentConditionPopupPayload);
+
+		function clickedCancelBtn() {
+			window.location.href = "/myPage/consentManager";
+		}
+
+		function setSubmitData() {
+			let data = {};
+			data.subsidiary = createNewConsentConditionPopupPayload.selectedSubsidiaryCondition || createNewConsentConditionPopupConsent[0].subsidiary || '';
+			data.countries = createNewConsentConditionPopupPayload.selectedLocationCondition || createNewConsentConditionPopupConsent[0].location || '';
+			data.consentId = createNewConsentConditionPopupConsent[0].consentId || '';
+			data.consentGroup = createNewConsentConditionPopupPayload.selectedConsentGroupCondition || '';
+			data.language = $('#selectedLanguage').val() || '';
+			data.type = $('#selectedType').val() || '';
+			data.channel = $('#selectedChannel').val() || '';
+			data.content = contentElement.value || '';
+
+			return data;
+		}
+
+		function clickedPreviewBtn() {
+			if ($("#selectedChannel").val() == '') {
+				openModal('alert', '', 'Please Select Channel');
+				// alert("채널을 선택해주세요.");
+				return;
+			} else if ($("#selectedType").val() == '') {
+				openModal('alert', '', 'Please Select Consent Type');
+				// alert("약관 타입을 선택해주세요.");
+				return;
+			} else if ($("#selectedLanguage").val() == '') {
+				openModal('alert', '', 'Please Select Language');
+				// alert("언어를 선택해주세요.");
+				return;
+			}
+
+			// title
+			const curDimTitle = 'Create New Consent';
+
+			// popup btn setting
+			const saveText = 'save';
+            const publishingText = 'publishing';
+            const cancelText = 'cancel';
+			const createText = 'create';
+
+			// preview, publishing popup - grid data setting
+			createNewConsentConditionPopupConsent[0].language = selectedLanguageElement.value;
+			createNewConsentConditionPopupConsent[0].languageNm = selectedLanguageElement.options[selectedLanguageElement.selectedIndex].text;
+			renderConsentDimGridData(publishingText, createNewConsentConditionPopupConsent, createText);
+			renderConsentDimGridData(createText, createNewConsentConditionPopupConsent, createText);
+
+            let saveBtnFunc = '';
+            let publishingBtnFunc = '';
+            let cancelBtnFunc = '';
+
+			saveBtnFunc = () => { popupBtnCallback(saveText) };
+			publishingBtnFunc = () => { clickedPublishingBtn(createText, popupBtnCallback, '', createText); };
+
+			// content setting
+			const editorTextData = currentEditor.getData();
+			contentElement.value = editorTextData;
+			console.log('current content:', contentElement.value);
+			
+			// open popup
+            openConsentDim(curDimTitle, editorTextData, createText, saveBtnFunc, publishingBtnFunc, cancelBtnFunc);
+		}
+
+		// Popup에서 Save, Publishing 클릭 시 동작(Submit Fucntion)
+        function createNewConsentSubmit(btnType) {
+            // submit하기 전, 데이터 세팅
+			let url = "/systemConsents/insertConsentManagement";
+			let statusId = '';
+			let params = setSubmitData();
+            const channelVal = params.channel;
+            const consentTypeVal = params.type;
+            const locationVal = params.countries;
+            const subsidiaryVal = params.subsidiary;
+			let purpose = (channelVal + ' ' + consentTypeVal + ' ' + locationVal + ' ' + subsidiaryVal).toUpperCase();
+
+			// save, publishing 버튼에 따라 약관 상태 설정
+			if (btnType == 'save') {
+				statusId = 'draft';
+			} else if (btnType == 'publishing' || btnType == 'create') {
+				statusId = 'scheduled';
+			}
+
+			params.statusId = statusId;
+			params.purpose = purpose;
+
+			consentSubmit('create', params);
+        }
+
+        function popupBtnCallback(btnType) {
+            let currentFunction = '';
+            let currentAlertText = '';
+            
+            currentFunction = () => { createNewConsentSubmit(btnType) };
+
+			if (btnType == 'save') {
+				currentAlertText = saveAlertText;
+			} else if (btnType == 'create') {
+				currentAlertText = publishingAlertText;
+			}
+
+			console.log(btnType, currentAlertText);
+
+            openModal('alert', currentFunction, currentAlertText);
+        }
+		
+		// 240816 New Consent Grid 데이터 조회 작업중
+        function renderTableData(consent){
+			if (!!currentGrid) {
+                currentGrid.setGridOption("loading", true);    // loading - true
+            }
+            let oTableData = '';
+
+            // search 클릭 후 render 시에 동작
+            if (!!consent) {
+                oTableData = consent;
+            }
+
+			// 컬럼 6개 : Consent Group, Channel, Consent Type, Location, Subsidary, Language
+            const columnDefs = [
+                {
+                    headerName: 'Consent Group',
+                    field: 'consentGroup', // consentGroup,
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+					tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Channel',
+                    field: 'channelNm',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+					tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Consent Type',
+                    field: 'consentTypeNm', // channel,
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+					tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Location',
+                    field: 'locationNm', // location
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+					tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Subsidiary',
+                    field: 'subsidiary',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+					tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Language',
+                    field: 'languageNm',
+       				hide: true
+                }
+            ];
+
+            // Table Header and Data Setting
+            const gridData = {
+                'header': columnDefs,   // header
+                'results': oTableData,  // data
+            };
+
+            renderResultTable(gridData);
+        }
+
+        $(document).ready(() => {
+            renderTableData(createNewConsentConditionPopupConsent);
+			initializeConsentDimGrid('create', createNewConsentConditionPopupConsent, 'create');
+			initializeConsentDimGrid('publishing', createNewConsentConditionPopupConsent, 'create');
+			document.getElementById(agGridId).classList.add("mar_ty1");
+
+			// if (!selectedLanguageElement.val()) {
+			// 	const defaultLanguage = createNewConsentConditionPopupConsent[0].defaultLanguage;
+			// 	selectedLanguageElement.val(defaultLanguage).prop('selected', true);
+			// }
+		});
+	</script>
+
+</th:block>
+</html>

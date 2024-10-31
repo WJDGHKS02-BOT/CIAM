@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="mfaSetting">
+    <script th:inline="javascript">
+        const mfaDataResult = [[${mfaDataResult}]] || '';
+
+        console.log(mfaDataResult);
+    </script>
+    <h2>MFA Setting</h2>
+    <form method="POST" class="content_ty3" th:action="@{/myPage/mfaSubmit}">
+        <ul id="mfaRadio" class="form_list4">
+            <li>
+                <span class="radio">
+                    <input type="radio" name="mfaRadio" id="mfaTfa" value="mfaTfa" disabled
+                        th:checked="${mfaDataResult != null && mfaDataResult['gigyaTotp'] == true}">
+                    <label for="mfaTfa">
+                        <span>
+                            <em class="auth" th:text="#{selfregisteration.authenticator}"></em>
+                            <th:block th:utext="#{selfregisteration.authenticatorComment}"></th:block>
+                        </span>
+                    </label>
+                </span>
+            </li>
+            <li>
+                <span class="radio">
+                    <input type="radio" name="mfaRadio" id="mfaEmail" value="mfaEmail" disabled
+                        th:checked="${mfaDataResult != null && mfaDataResult['gigyaEmail'] == true}">
+                    <label for="mfaEmail">
+                        <span>
+                            <em class="email" th:text="#{selfregisteration.mfaEmailText}"></em>
+                            <th:block th:utext="#{selfregisteration.emailAuth}"></th:block>
+                        </span>
+                    </label>
+                </span>
+            </li>
+        </ul>
+        <input type="hidden" name="mfa" id="mfaHidden">
+
+        <div class="wrap_btn2">
+            <button id="editCancel" type="button" class="btn_l btn_white" onclick="clickedEditCancelBtn(this)" style="visibility: hidden;">Cancel</button>
+            <button id="editSave" type="button" class="btn_l" onclick="clickedEditBtn(this)" style="visibility: hidden;">Save</button>
+            <button id="edit" type="button" class="btn_l" onclick="clickedEditBtn(this)">Edit</button>
+        </div>
+
+        <button id="submit" type="submit"></button>
+    </form>
+    <script th:inline="javascript">
+        let editMode = false;
+
+        const alertMessage = [[#{myPage.cancelAlertText}]];
+        const changeSuccessText= [[#{myPage.mfaSetting.changeSuccessText}]];
+        const submitBtn = document.getElementById('submit');
+        const socialProviders = /*[[${socialProviders}]]*/ '';
+
+        function setHiddenInputValue() {
+            const mfaValue = document.querySelector('input[name="mfaRadio"]:checked').value;
+            const mfaHidden = document.getElementById("mfaHidden");
+
+            mfaHidden.value = mfaValue;
+        }
+
+        async function setEditableFieldsElement(elementsType) {
+            let fields = document.querySelector("#mfaRadio").querySelectorAll(elementsType);
+            const editableFields = await Object.entries(fields).filter(([key, component]) => {
+                return !!component.id;
+            });
+
+            let changeElement = 'disabled';
+
+            for await (let valueArray of editableFields) {
+                valueArray[1][changeElement] = editMode;
+            }
+        }
+
+        function toggleVisibility(target) {
+            let currentVisibility = target.style.visibility;
+            let visibility = '';
+
+            if (currentVisibility == 'hidden') {
+                visibility = 'visible';
+            } else if (currentVisibility == 'visible') {
+                visibility = 'hidden';
+            }
+            target.style.visibility = visibility;
+        }
+
+        function toggleDisplay(target) {
+            let currentDisplay = target.style.display;
+            let display = "";
+
+            if (!currentDisplay) {
+                display = 'none';
+            } else {
+                display = '';
+            }
+            target.style.display = display;
+        }
+
+        function clickedEditCancelBtn(target) {
+            openModal('alert', reloadMyPage, alertMessage);
+        }
+
+        // 저장 로직
+        function changeSuccessFunction() {
+            submitBtn.click();
+        }
+
+        async function clickedEditBtn(target) {
+            const type = target.id;
+
+            const editCancelBtn = document.getElementById("editCancel");
+            const editSaveBtn = document.getElementById("editSave");
+            const editBtn = document.getElementById("edit");
+
+            if (type == 'editSave') {
+                if (socialProviders.includes('saml-samsung-ad')) {
+
+                    setHiddenInputValue();
+
+                    // API key를 동적으로 포함하는 스크립트 추가
+                    const g = document.createElement("script");
+                    var apiKey = /*[[${apiKey}]]*/ 'defaultApiKey';  // apiKey 변수는 서버에서 전달된 값을 사용
+                    g.type = "text/javascript";
+                    g.src = `https://cdns.au1.gigya.com/JS/gigya.js?apiKey=${apiKey}`;
+
+                    loading("open");
+
+                    // gigya.js가 로드된 후 로그인 호출
+                    g.onload = function() {
+                        debugger;
+                        gigya.accounts.socialLogin({
+                            provider: 'saml-samsung-ad',
+                            authFlow: 'popup',
+                            ignoreInterruptions: true,
+                            callback: function(sl) {
+                                loading("close");
+                                // 콜백 함수에서 필요한 로직 실행
+                                executeSamsungVerifyingAccount();
+                            }
+                        });
+                    };
+
+                    // 스크립트를 head에 추가
+                    document.head.appendChild(g);
+                } else {
+                    // 금지된 도메인이 아닐 경우
+                    setHiddenInputValue();
+                    executeReAuthentication(changeSuccessText, changeSuccessFunction);
+                }
+                return;
+            }
+
+            await setEditableFieldsElement('input');
+            
+            toggleVisibility(editCancelBtn);
+            toggleVisibility(editSaveBtn);
+            toggleDisplay(editBtn);
+
+            editMode = !(editMode);
+        }
+        
+        function clickedSubmitCancelBtn() {
+
+        }
+        
+        function clickedSubmitBtn() {
+
+        }
+
+        $(document).ready(() => {
+            if ((typeof responseErrorCode) != 'string') {
+                let modalType = '';
+                let modalText = '';
+                const setResponseTextPromise = new Promise((resolve, reject) => {
+                    if (!!responseErrorCode) {
+                        modalType = 'error';
+                        modalText = serverErrorText;
+                    } else {
+                        modalType = 'success';
+                        modalText = changeSuccessText;
+                    }
+                    if (!!modalText) {
+                        resolve();
+                    }
+                });
+                
+                Promise.all([setResponseTextPromise]).then(() => {
+                    openModal(modalType, '', modalText);
+                });
+            }
+        });
+    </script>
+</th:block>
+</html>

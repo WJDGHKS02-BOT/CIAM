@@ -1,0 +1,10 @@
+<html xmlns:th="http://www.thymeleaf.org">
+  <div class="check"
+       th:fragment="checkbox(name, value, innerHTML)">
+      <input th:id="${name}"
+             th:name="${name}"
+             th:value="${value}"
+             type="checkbox">
+      <label th:for="${name}"><span th:text="${innerHTML}">innerHTML</span></label>
+  </div>
+</html>

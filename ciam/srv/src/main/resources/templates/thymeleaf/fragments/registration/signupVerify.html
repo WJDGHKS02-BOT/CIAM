@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <div th:fragment="signupVerify">
+        <form id="validate-form" method="POST" action="/registration/signupVerified" class="form-horizontal">
+
+            <div class="page-header">
+                <div class="company-name">Email Verification</div>
+            </div>
+        
+            <div class="company-main">
+                <input type="hidden" name="_csrf" th:value="${_csrf?.token}"/>
+                <br>
+                <div class="row">
+                    <div class="col-12">
+                        <p>We sent a mail with the verification code to the mail below.</p>
+                        <p>
+                            <strong th:text="${email}"></strong>
+                        </p>
+                        <p>
+                            Please check your email and enter the code below.<br>
+                            ( Verification Code expires after 10 minutes )
+                        </p>
+                    </div>
+                    <div class="labelInput-wrap">
+                        <label class="control-label no-margin">
+                            <span class="company-name-2-span2 black-coating no-drag">Verification Code</span>
+                            <span class="company-name-2-span">*</span>
+                        </label>
+                        <div class="col-4">
+                            <div class="form-group has-error">
+                                <input type="text" class="form-control" id="verCode" name="verCode" placeholder=""
+                                       value="" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <div class="textrow-wrap mt-2">
+                    <p class="no-margin">Didn't receive your code (please allow few minutes) or has your code expired?</p>
+                    <span id="resendLink" class="hyper-resend">Resend</span>
+                </div>
+        
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <br><br>
+                        <div class="footer-btn-form">
+                            <button type="submit" class="btn btn-primary company-next-btn">Next</button>
+                        </div>
+                        <br><br>
+                    </div>
+                </div>
+            </div>
+        
+            <div class='company-btn-margin'></div>
+        </form>
+        
+        <div class="modal fade" id="okMessage" tabindex="-1" aria-labelledby="delegationModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content p-4">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="modal-title" id="delegationModalLabel">Success</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <p>Verification sent, please check your email.</p>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+        <script type="text/javascript" th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('resendLink').addEventListener('click', function() {
+                    setResendLink();
+                });
+            });
+
+            function setResendLink() {
+                var resendLink = document.getElementById('resendLink');
+                resendLink.disabled = true;
+
+                // var xhttp = new XMLHttpRequest();
+                // var url = '/registration/resendEmailCode';
+                // xhttp.open("POST", url, true);
+                // xhttp.setRequestHeader("Content-Type", "application/json");
+                // xhttp.onreadystatechange = function() {
+                //     if (this.readyState == 4 && this.status == 200) {
+                //         var responses = this.responseText;
+                //         var ajaxResult = JSON.parse(responses);
+
+                //         if (ajaxResult.result === 'ok') {
+                //             $('#okMessage').modal('show');
+                //         }
+                //     }
+                // }
+                // var data = {
+                //     _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                //     email: /*[[${email}]]*/'${email}',
+                // };
+                // xhttp.send(JSON.stringify(data));
+
+                setTimeout(function() {
+                    resendLink.disabled = false;
+                }, 30000);
+            }
+
+            async function validationCheck() {
+                // const result = await $.ajax({
+                //     url: "/registration/checkUserId",
+                //     type: "POST",
+                //     data: paramsString,
+                //     contentType: "application/json; charset=utf-8",
+                //     dataType: "json",
+                //     success: function(data){
+                //     },
+                //     error: function(error){
+                //     }
+                // });
+
+                // if (result && result.errorCode == '0' && result.status == 'available') {
+                //     return true;
+                // } else {
+                //     return false;
+                // }
+                return false;
+            }
+            
+            // submit 이벤트 리스너
+            $(document).on('submit', "form", async (event) => {
+                const good = await validationCheck();
+                if (!good) {
+                    alert("미구현");
+                    event.preventDefault(); // Block submit
+                }else{
+                    loading("open"); // loading bar Start
+                }
+            });
+        </script>
+    </div>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="consentDetail">
+    <script src="/theme/assets/js/ui/ui.common.js"></script>
+    <script src="/scripts/vendor/daterangepicker/js/moment.min.js"></script>
+    <script src="/scripts/vendor/daterangepicker/js/daterangepicker.js"></script>
+
+    <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+	<link rel="stylesheet" href="/ckeditor5/ckeditor5.css">
+	<link rel="stylesheet" href="/theme/assets/css/custom/ck_editor.css" />
+    <link rel="stylesheet" type="text/css" href="/scripts/vendor/daterangepicker/css/daterangepicker.css" />
+
+    <div class="content_ty4">
+        <h3>Consent Detail</h3>
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Group Name</dt>
+                    <dd>
+                        <input type="text" name="" id="" th:value="${payload != null ? payload['selectedGroupId'] : ''}" placeholder="" class="input wid_ty4" readonly>
+                    </dd>
+                    <dt>Channel</dt>
+                    <dd>
+                        <input type="text" name="" id="" th:value="${payload != null ? payload['selectedChannelNm'] : ''}" placeholder="" class="input wid_ty4" readonly>
+                    </dd>
+                    <dt>Consent Type</dt>
+                    <dd>
+                        <input type="text" name="" id="" th:value="${payload != null ? payload['selectedConsentTypeNm'] : ''}" placeholder="" class="input wid_ty4" readonly>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Grid Table -->
+        <div>
+            <th:block th:replace="~{fragments/myPage/customPaginationGrid :: customPaginationGrid(1, ${(payload != null && payload['selectedGroupId'] == '') ? 2 : 0})}"></th:block>
+            
+            <div class="wrap_btn2">
+                <button id="" type="button" class="btn_l btn_white" onclick="clickedCancelBtn()">Cancel</button>
+            </div>
+        </div>
+
+        <input type="hidden" id="detailContent" th:value="${detailContent}">
+        <input type="hidden" name="consentId" id="consentId">
+        <input type="hidden" name="modifyConsentContent" id="modifyConsentContent">
+        <input type="hidden" name="addConsentContent" id="addConsentContent">
+
+        <div id="dimPlace">
+            <th:block th:replace="~{fragments/myPage/consentDimmed :: consentDimmed('add')}"></th:block>
+            <th:block th:replace="~{fragments/myPage/consentDimmed :: consentDimmed('modify')}"></th:block>
+            <th:block th:replace="~{fragments/myPage/consentDimmed :: consentDimmed('preview')}"></th:block>
+            <th:block th:replace="~{fragments/myPage/consentDimmed :: consentDimmed('publishing')}"></th:block>
+        </div>
+
+        <button type="submit" id="submit"></button>
+    </div>
+    <script th:inline="javascript">
+        const submitBtn = document.getElementById('submit');
+        const formElement = document.querySelector('form');
+        const contentElemment = document.getElementById('detailContent');
+        const dimPlaceElement = document.getElementById('dimPlace');
+        const modifyConsentContentElement = document.getElementById('modifyConsentContent');
+        const addConsentContentElement = document.getElementById('addConsentContent');
+        const consentIdElement = document.getElementById('consentId');
+
+        const saveAlertText = [[#{myPage.consentManager.saveAlertText}]] || '';
+        const publishingAlertText = [[#{myPage.consentManager.publishingAlertText}]] || '';
+
+        let addPopupEditor = '';
+        let modifyPopupEditor = '';
+
+        let detailConsents = [[${consents}]] || '';
+        let detailPayload = [[${payload}]] || '';
+        let detailAllConsents = [[${allConsents}]] || '';
+
+        let currentConsentLanguageList = [];
+
+        console.log('detailConsents:', detailConsents);
+        console.log('detailPayload:', detailPayload);
+        console.log('detailAllConsents:', detailAllConsents);
+
+        function setCurrentConsentLanguageList() {
+            currentConsentLanguageList = [];
+            for (let consentInfo of detailConsents) {
+                currentConsentLanguageList.push(consentInfo.language); 
+            }
+        }
+
+        function clickedCancelBtn() {
+            window.location.href = "/myPage/consentManager";
+        }
+
+        function detailModifySaveBtn() {
+            console.log('clicked save button on modify popup');
+        }
+
+        function renderGridBtn(type, rowData) {
+            let button = document.createElement('button');
+            let btnText = '';
+            let btnStyleClass = '';
+            let btnFunction;
+
+            switch(type) {
+                case 'modify':
+                    btnText = "Modify";
+                    btnStyleClass = "btn_gray";
+                    if (!!detailPayload.selectedGroupId) {
+                        // 전체 데이터 보여주기
+                        btnFunction = () => {
+                            const selectedConsentVersion = rowData.version;
+                            const allConsentLength = detailAllConsents.length;
+                            let modifyGridConsent = [];
+                            let groupConsentRenderPromise = new Promise((resolve, reject) => {
+                                let i = 0;
+                                for (let curConsentDetail of detailAllConsents) {
+                                    if (curConsentDetail.version == selectedConsentVersion) {
+                                        modifyGridConsent.push(curConsentDetail);
+                                    }
+                                    i++;
+
+                                    if (i == allConsentLength) {
+                                        resolve();
+                                    }
+                                }
+                            });
+
+                            Promise.all([groupConsentRenderPromise]).then(() => {
+                                renderConsentDimGridData(type, modifyGridConsent);
+                                contentElemment.value = rowData.content;
+                                consentIdElement.value = rowData.consentId;
+                                clickedPopupBtn(type, rowData);
+                            });
+                            // renderConsentDimGridData(type, detailConsents);
+                        };
+                    } else {
+                        // 선택된 행의 데이터만 보여주기
+                        btnFunction = () => {
+                            contentElemment.value = rowData.content;
+                            consentIdElement.value = rowData.consentId;
+                            renderConsentDimGridData(type, [rowData]);
+                            clickedPopupBtn(type, rowData);
+                        };
+                    }
+                    
+                    break;
+                default:
+                    break;
+            }
+
+            button.innerText = btnText;
+            button.classList.add("btn_table_s");
+
+            if (!!btnFunction) {
+                button.onclick = btnFunction;
+            }
+
+            return button;
+        }
+
+        function setSubmitData(rowData) {
+			let data = {};
+            if (!rowData) {
+                data.subsidiary = (detailConsents.length > 0) ? detailConsents[0].subsidiary : detailPayload.selectedSubsidiary || '';
+                data.countries = (detailConsents.length > 0) ? detailConsents[0].location : detailPayload.selectedLocation || '';
+                data.consentId = (detailConsents.length) > 0 ? detailConsents[0].consentId : detailPayload.selectedConsentId || '';
+                data.consentGroup = (detailConsents.length > 0) ?  detailConsents[0].consentGroup : detailPayload.selectedConsentGroupCondition || '';
+                // 9/19 detail 데이터가 없으면 영어 기본값으로 적용
+                data.language = (detailConsents.length > 0) ? detailConsents[0].language : 'en';
+                data.type = (detailConsents.length > 0) ? detailConsents[0].consentType : detailPayload.selectedConsentType ||  '';
+                data.channel = (detailConsents.length > 0) ? detailConsents[0].channel : detailPayload.selectedChannel || '';
+                data.id = (detailConsents.length > 0) ? detailConsents[0].id : '';
+            } else {
+                data.subsidiary = rowData.subsidiary;
+                data.countries = rowData.location;
+                data.consentId = rowData.consentId;
+                data.consentGroup = rowData.consentGroup;
+                // 9/19 detail 데이터가 없으면 영어 기본값으로 적용
+                data.language = rowData.language || 'en';
+                data.type = rowData.consentType;
+                data.channel = rowData.channel;
+                data.id = rowData.id;
+            }
+
+			return data;
+		}
+
+        function initializePopup(type) {
+            // const currentConsentContent = detailConsents[0].content;
+            if (type == 'modify') {
+                const currentConsentContent = !!contentElemment.value ? contentElemment.value : (detailConsents.length > 0) ? detailConsents[0].content : '';
+                // modifyPopupEditor.setData('');
+                modifyPopupEditor.setData(currentConsentContent);
+            } else if (type == 'add') {
+                addPopupEditor.setData('');
+                const newLanguageListElement = document.getElementById('curLanguage');
+                const allLanguages = [[${consentLanguage}]];
+                
+                if (!!newLanguageListElement) {
+                    newLanguageListElement.innerHTML = '';
+                    const selectOption = document.createElement('option');
+                    selectOption.value = '';
+                    selectOption.innerText = "Select Language";
+                    newLanguageListElement.appendChild(selectOption);
+
+                    if (!!allLanguages) {
+                        console.log('allLanguages:', allLanguages);
+                        for (let languageInfo of allLanguages) {
+                            let isContinue = false;
+                            for (let curLanguageId of currentConsentLanguageList) {
+                                if (languageInfo.id == curLanguageId) {
+                                    isContinue = true;
+                                    break;
+                                }
+                            }
+                            if (!!isContinue) {
+                                continue;
+                            }
+                            const selectOption = document.createElement('option');
+                            selectOption.value = languageInfo.id;
+                            selectOption.innerText = languageInfo.nameEn;
+                            newLanguageListElement.appendChild(selectOption);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Popup에서 Save, Publishing 클릭 시 동작(Submit Fucntion)
+        // submit하기 전, 데이터 세팅
+        function consentDetailSubmit(popupType, btnType, rowData) {
+            if (!!consentIdElement.value) {
+                consentIdElement.value = (!!rowData) ? rowData.consentId : detailConsents[0].consentId;
+            }
+
+            let params = setSubmitData(rowData);
+            let statusId = '';
+            let purpose = '';
+            let content = '';
+
+            switch(btnType) {
+                case 'save':
+                    statusId = 'draft';
+                    break;
+                case 'publishing':
+                    statusId = 'scheduled';
+                    break;
+                default:
+                    break;
+            }
+
+            switch(popupType) {
+                case 'modify':
+                    content = modifyPopupEditor.getData();
+                    break;
+                case 'add':
+                    content = addPopupEditor.getData();
+                    break;
+                default:
+                    break;
+            }
+
+            params.statusId = statusId;
+            params.content = content;
+            params.purpose = `${params.channel} ${params.type} ${params.countries} ${params.subsidiary}`.toUpperCase();
+
+            consentSubmit(popupType, params);
+        }
+
+        function popupBtnCallback(popupType, btnType, rowData) {
+            let currentFunction = '';
+            let currentAlertText = '';
+
+            if (btnType == 'cancel') {
+                initializePopup(popupType);
+                return;
+            }
+            
+            currentFunction = () => { consentDetailSubmit(popupType, btnType, rowData) };
+
+            switch(popupType) {
+                case 'modify':
+                    if (btnType == 'save') {
+                        currentAlertText = saveAlertText;
+                    } else if (btnType == 'publishing') {
+                        currentAlertText = publishingAlertText;
+                    }
+                    break;
+                case 'add':
+                    if (btnType == 'save') {
+                        currentAlertText = saveAlertText;
+                    } else if (btnType == 'publishing') {
+                        currentAlertText = publishingAlertText;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            openModal('alert', currentFunction, currentAlertText);
+        }
+
+        function clickedPopupBtn(type, rowData) {
+            const saveText = 'save';
+            const publishingText = 'publishing';
+            const cancelText = 'cancel';
+
+            let detailConsentContent = contentElemment.value;
+            console.log('detailConsentContent:', detailConsentContent);
+            modifyPopupEditor.setData(detailConsentContent);    // 팝업 CK editor 데이터 세팅
+            let curDimTitle = '';
+            let saveBtnFunc = '';
+            let publishingBtnFunc = '';
+            let cancelBtnFunc = '';
+
+            switch(type) {
+                case 'modify':
+                    console.log('current content:', modifyPopupEditor.getData());   // Content 확인용
+                    curDimTitle = 'Modify Consent';
+                    saveBtnFunc = (type) => { popupBtnCallback(type, saveText, rowData) };
+                    publishingBtnFunc = (type) => { clickedPublishingBtn(type, popupBtnCallback, rowData); };
+                    cancelBtnFunc = (type) => { popupBtnCallback(type, cancelText, rowData) };
+                    break;
+                case 'preview':
+                    curDimTitle = 'Consent Preview';
+                    break;
+                case 'add':
+                    console.log('current content:', addPopupEditor.getData());   // Content 확인용
+                    curDimTitle = 'Add Consent Language';
+                    saveBtnFunc = (type) => { popupBtnCallback(type, saveText) };
+                    publishingBtnFunc = (type) => { clickedPublishingBtn(type, popupBtnCallback, rowData); };
+                    cancelBtnFunc = (type) => { popupBtnCallback(type, cancelText) };
+                    break;
+            }
+
+            openConsentDim(curDimTitle, detailConsentContent, type, saveBtnFunc, publishingBtnFunc, cancelBtnFunc);
+        }
+
+        function renderTableData(consent){
+            if (!!currentGrid) {
+                currentGrid.setGridOption("loading", true);    // loading - true
+            }
+            let oTableData = '';
+
+            // search 클릭 후 render 시에 동작
+            if (!!consent) {
+                oTableData = consent;
+            }
+
+            const columnDefs = [
+                {
+                    headerName: 'Consent Group',
+                    field: 'consentGroup', // consentGroup,
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                    hide: true,
+                },
+                {
+                    headerName: 'Consent ID',
+                    field: 'consentId',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                    hide: true,
+                },
+                {
+                    headerName: 'Channel',
+                    field: 'channelNm', // channel,
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                    hide: true,
+                },
+                {
+                    headerName: 'Consent Type',
+                    field: 'consentTypeNm', // consentType
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                    hide: true,
+                },
+                {
+                    headerName: 'Location',
+                    field: 'locationNm', // location
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Subsidiary',
+                    field: 'subsidiaryNm',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Language',
+                    field: 'languageNm',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Version',
+                    field: 'version',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                    // hide: true,
+                },
+                {
+                    headerName: 'Create Date',
+                    field: 'createDate',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Status',
+                    field: 'statusNm',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Release Date',
+                    field: 'releaseDate',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    cellRenderer: function(params) {
+                        return params.data.releaseDate || params.data.updateDate || '-';
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Modify',
+                    cellStyle: {
+                        textAlign: "center"   
+                    },
+                    cellRenderer: function(params) {
+                        return renderGridBtn('modify', params.data);
+                    }
+                },
+                {
+                    headerName: 'Content',
+                    field: 'content',
+                    hide: true,
+                },
+                {
+                    headerName: 'Id',
+                    field: 'id',
+                    hide: true,
+                },
+            ];
+
+            // Table Header and Data Setting
+            const gridData = {
+                'header': columnDefs,   // header
+                'results': oTableData,  // data
+            };
+
+            renderResultTable(gridData);
+        }
+
+        $(document).ready(() => {
+            setCurrentConsentLanguageList();
+            initializeConsentDimGrid('add', detailConsents);
+            initializeConsentDimGrid('modify', detailConsents);
+            initializeConsentDimGrid('preview', detailConsents);
+            initializeConsentDimGrid('publishing', detailConsents);
+
+            initializePopup('add');
+
+            renderTableData(detailConsents);
+        });
+    </script>
+</th:block>
+</html>

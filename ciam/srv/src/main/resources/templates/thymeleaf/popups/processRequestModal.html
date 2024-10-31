@@ -1,0 +1,167 @@
+<!-- Modal Dimmed -->
+<div class="modal_wrap" id="processRequestModal">
+    <div class="modal modal_dimmed M">
+        <div class="modal_header">
+            <h4>Process Request</h4>
+        </div>
+        <div class="modal_content">
+            <dl class="form_list2">
+                <div>
+                    <dt>Request Type</dt>
+                    <dd>
+                        <select name="requestType" id="requestType" class="select" onchange="selectRequestType()">
+                            <option value="approved" id="requestTypeApprove">Approve</option>
+                            <option value="rejected" id="requestTypeReject">Reject</option>
+                        </select>
+                    </dd>
+                </div>
+                <div id="rejectReasonField" style="display: none;">
+                    <dt>Reason</dt>
+                    <dd>
+                        <select name="rejectReason" id="rejectReason" class="select">
+                        </select>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+        <div class="modal_footer wrap_btn2">
+            <button type="button" class="btn_m btn_white" onclick="closeProcessRequest()">Cancel</button>
+            <button type="button" class="btn_m" onclick="clickedSaveBtn()">Save</button>
+        </div>
+    </div>
+    <div class="dimmer" aria-hidden="true"></div>
+</div>
+<!-- // Modal Dimmed -->
+
+<script th:inline="javascript">
+    const requestTypeElement = document.getElementById('requestType');
+    const rejectReasonElement = document.getElementById('rejectReason');
+    const requestTypeApproveElement = document.getElementById('requestTypeApprove');
+    const requestTypeRejectElement =  document.getElementById('requestTypeReject');
+    const rejectReasonFieldElement = document.getElementById('rejectReasonField');
+
+    // 반려 리스트 텍스트
+    const inadequateDomainText =[[#{myPage.employmentVerification.rejectReason.inadequateDomain}]] || '';
+    const insufficientinformationText =[[#{myPage.employmentVerification.rejectReason.insufficientinformation}]] || '';
+    const retirementText =[[#{myPage.employmentVerification.rejectReason.retirement}]] || '';
+    const maternityLeaveText =[[#{myPage.employmentVerification.rejectReason.maternityLeave}]] || '';
+    const leaveOfAbsenceText =[[#{myPage.employmentVerification.rejectReason.leaveOfAbsence}]] || '';
+    const sickLeaveText =[[#{myPage.employmentVerification.rejectReason.sickLeave}]] || '';
+    const othersText =[[#{myPage.employmentVerification.rejectReason.others}]] || '';
+    const deleteReasonText = [[#{myPage.employmentVerification.rejectReason.delete}]] || '';
+
+    const rejectList1 = [
+        deleteReasonText,
+    ];
+
+    const rejectList2 = [
+        inadequateDomainText,
+        insufficientinformationText,
+        retirementText,
+        maternityLeaveText,
+        leaveOfAbsenceText,
+        sickLeaveText,
+        othersText,
+    ];
+
+    const employmentVerificationRejectReasonList = [
+        retirementText,
+        maternityLeaveText,
+        leaveOfAbsenceText,
+        sickLeaveText,
+        othersText,
+    ];
+
+    function initiailizeFields() {
+        requestTypeElement.selectedIndex = 0;
+        rejectReasonElement.selectedIndex = 0;
+
+        requestTypeApproveElement.removeAttribute('hidden');
+        requestTypeRejectElement.removeAttribute('hidden');
+        rejectReasonFieldElement.style.display = '';
+
+        rejectReasonElement.innerHTML = '';
+    }
+
+    function setRejectList(type, menuType) {
+        let currentList = '';
+        switch(type) {
+            case 'pending':
+            case 'rejected':
+            if (!!menuType && menuType == 'employment') {
+                    currentList = employmentVerificationRejectReasonList;
+                } else {
+                    currentList = rejectList2;
+                }
+                break;
+            case 'approved':
+                currentList = rejectList1;
+                break;
+            default:
+                break;
+        }
+
+        for (let value of currentList) {
+            let currentOption = document.createElement('option');
+            currentOption.value = value;
+            currentOption.innerText = value;
+
+            rejectReasonElement.appendChild(currentOption);
+        }
+
+        if (type == 'approved') {
+            rejectReasonElement.selectedIndex = 0;
+        }
+    }
+
+    function closeProcessRequest() {
+        initiailizeFields();
+        ModalOpenClose("#processRequestModal");
+    }
+
+    function openProcessRequest(type, menuType) {
+        initiailizeFields();
+        let openState = false;
+        switch(type) {
+            case 'pending':
+            case 'rejected':
+                openState = true;
+                break;
+            case 'approved':
+                requestTypeApproveElement.hidden = 'true';
+                requestTypeElement.selectedIndex = 1;
+                break;
+            default:
+                break;
+        }
+        setRejectList(type, menuType);
+        selectRequestType();
+        if (openState) {
+            ModalOpen("#processRequestModal");
+        }
+    }
+
+    function selectRequestType() {
+        switch(requestTypeElement.value) {
+            case 'approved':
+                rejectReasonFieldElement.style.display = 'none';
+                break;
+            case 'rejected':
+                rejectReasonFieldElement.style.display = '';
+                break;
+            default:
+                break;
+        }
+    }
+
+    function clickedSaveBtn() {
+        // alert 모달 없이 바로 Save
+        employmentVerificationSubmit();
+        
+        // openModal('alert', employmentVerificationSubmit, employmentVerificationSaveAlertText);
+    }
+
+    $(document).ready(() => {
+        initiailizeFields();
+    });
+</script>

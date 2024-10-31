@@ -1,0 +1,289 @@
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>Two-Factor Authentication</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <link href="/_styles/_index.css" rel="stylesheet" />
+    <link href="/_pages/login/login-page.css"
+          rel="stylesheet" />
+
+    <script>
+      window.__gigyaConf = {
+        sessionExpiration: 0,
+      }
+    </script>
+    <script
+        th:inline="javascript"
+        th:src="|https://cdns.gigya.com/js/gigya.js?apikey=${apiKey}|"
+    ></script>
+    <script src="/_apis/gigya/gigya-add-event-handlers.js"></script>
+
+    <script src='/_components/input/field-input-box.js'></script>
+    <script src="/_components/spinner/loading-spinner.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/_apis/_instance/gigya-instance.js"></script>
+    <script src="/_apis/_instance/samsung-instance.js"></script>
+
+    <script type="module" src="/_apis/gigya/accounts.js"></script>
+    <script type="module" src="/_apis/gigya/socialize.js"></script>
+    <script src="/_apis/samsung/samsung.js"></script>
+    <script src="/_apis/gigya/ERROR_CODES.js"></script>
+    <script src="/_apis/gigya/continueSSO.js"></script>
+
+    <script src="/_pages/login/sign-in-session.js"></script>
+    <script src="/_pages/login/components/show-login-page-response-messages.js"></script>
+    <script src="/_apis/is-update-consent.js"></script>
+    <script src="/_pages/login/components/add-login-form-event.js"></script>
+
+    <script th:inline="javascript">
+      const samsungInstanceURL = [[${samsungInstanceURL}]];
+      const gigyaInstanceURL = [[${gigyaInstanceURL}]];
+      const GIGYA_API_KEY = [[${apiKey}]];
+      const GIGYA_PARENT_KEYS = [[${parentKeys}]];
+      const HOST_URL = [[${hostUrl}]];
+      const CHANNEL = [[${channel}]];
+      const isAdLogin = new URLSearchParams(location.search).get('adLogin');
+      const isBtpLogin = CHANNEL === 'btp';
+      let isRegisteredQR;
+
+      async function handleSubmitForm() {
+        showLoadingSpinner();
+
+        const code = document.querySelector('input[name="field-code"]').value;
+
+        try {
+          showLoadingSpinner();
+
+          // QR 등록 되어 있는 경우
+          if(isRegisteredQR) {
+            await accounts.tfa.totp.verify({code});
+            // AD 로그인 인 경우
+            if(isAdLogin) {
+              const data = await samsung.updateUserRecord();
+              await accounts.search({
+                query: `SELECT data, profile, UID
+                  from accounts
+                  WHERE UID = '${data.UID}'`,
+                updateUserRecord: false,
+              })
+            }
+            // AD 로그인이 아닌 경우
+            else {
+              await accounts.search({
+                query: `SELECT data, profile, UID
+                    from accounts
+                    WHERE UID = '${signInSession.UID}'`,
+                updateUserRecord: false,
+              })
+            }
+            await accounts.tfa.finalizeTFA();
+            await accounts.finalizeRegistration();
+          }
+          // QR 등록 되어 있지 않은 경우
+          else {
+            await accounts.tfa.totp.verify({code, sctToken: signInSession.sctToken});
+            // AD 로그인 인 경우
+            if(isAdLogin) {
+              const data = await samsung.updateUserRecord();
+              await accounts.search({
+                query: `SELECT data, profile, UID
+                  from accounts
+                  WHERE UID = '${data.UID}'`,
+                updateUserRecord: false,
+              })
+            }
+            // AD 로그인이 아닌 경우
+            else {
+              await accounts.search({
+                query: `SELECT data, profile, UID
+                    from accounts
+                    WHERE UID = '${signInSession.UID}'`,
+                updateUserRecord: true,
+              })
+            }
+            await socialize.notifyLogin();
+          }
+        } catch(err) {
+          console.error(err);
+        } finally {
+          hideLoadingSpinner();
+        }
+
+      }
+
+      document.addEventListener('DOMContentLoaded', async function () {
+        showLoadingSpinner();
+        samsungInstance.defaults.baseURL = samsungInstanceURL;
+        gigyaInstance.defaults.baseURL = gigyaInstanceURL;
+
+        const form = document.querySelector('.form');
+        const submitButton = document.querySelector('#formSubmitButton');
+        const VALIDITY = {
+          code: false,
+        }
+
+        addLoginFormEvent({
+          form: form,
+          submitButton: submitButton,
+          validity: VALIDITY,
+          enterKeyFunc: handleSubmitForm,
+          inputFunc: (e) => {
+            const FIELD_VALUE = e.target.value;
+            (FIELD_VALUE === '') ? VALIDITY.code = false : VALIDITY.code = true;
+          }});
+
+        const userProvider = await accounts.tfa.getProviders();
+        isRegisteredQR = userProvider.inactiveProviders.length === 0 ?? false;
+
+        const qr = document.querySelector('.qr');
+        const secretKeyLabelElement = document.querySelector('input[name=field-secret-key]').parentNode;
+        const secretKeyElement = document.querySelector('input[name=field-secret-key]');
+        const titleRegistered = document.querySelector('#title-registered');
+        const titleUnRegistered = document.querySelector('#title-unregistered');
+        const subTitleRegistered = document.querySelector('#sub-title-registered');
+        const subTitleUnRegistered = document.querySelector('#sub-title-unregistered');
+
+        if(isRegisteredQR) {
+          titleRegistered.style.display = 'block';
+          titleUnRegistered.style.display = 'none';
+
+          subTitleRegistered.style.display = 'block';
+          subTitleUnRegistered.style.display = 'none';
+
+          secretKeyLabelElement.style.display = 'none';
+          qr.style.display = 'none';
+
+          await accounts.tfa.initTFA({provider: 'gigyaTotp', isSetGigyaAssertion: true});
+        } else {
+          document.title = 'Setup Authenticator';
+          titleRegistered.style.display = 'none';
+          subTitleRegistered.style.display = 'none';
+
+          titleUnRegistered.style.display = 'block';
+          subTitleUnRegistered.style.display = 'block';
+          qr.style.display = 'block';
+
+          await samsung.initTotpTfaRegistration();
+          await accounts.tfa.initTFA({provider: 'gigyaEmail', isSetGigyaAssertion: false});
+          const data = await accounts.tfa.totp.register();
+
+          qr.src = data.qrCode;
+          secretKeyElement.value = data.sctKey;
+        }
+
+        hideLoadingSpinner();
+      })
+    </script>
+
+    <style>
+      .main {
+        align-items: center;
+      }
+
+      .title {
+        font: var(--samsung-700-32);
+        color: var(--color-black);
+        margin-top: 200px;
+        text-align: center;
+      }
+
+      .sub-title {
+        font: var(--samsung-400-16);
+        color: var(--color-gray-03);
+        margin: 10px 0 48px 0;
+      }
+
+      .form {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 600px;
+        padding: 24px;
+        margin: 0 auto;
+        border: 1px solid var(--color-gray-04);
+        border-radius: 8px;
+      }
+
+      .qr {
+        width: 150px;
+        height: 150px;
+        padding: 10px;
+        background: var(--color-gray-05);
+        margin: 24px auto 48px auto;
+      }
+
+      @media screen and (max-width: 768px) {
+        .title {
+          margin-top: 80px;
+        }
+        .form {
+          border: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <th:block th:replace="_components/layout/header :: header"></th:block>
+    <th:block th:replace="_components/layout/main :: main(~{::content})">
+      <th:block th:fragment="content">
+        <h2 id="title-registered" class="title"
+            th:utext="#{tfa-otp-auth-page.title}">Two-Factor Authentication</h2>
+        <p id='sub-title-registered' class="sub-title"
+           th:utext="#{tfa-otp-auth-page.subTitle}">Enter your authenticator app code</p>
+
+        <h2 id="title-unregistered" class="title" style="display: none"
+            th:utext="#{tfa-otp-setup-page.title}">Setup Authenticator</h2>
+        <p id='sub-title-unregistered' class="sub-title" style="display: none"
+           th:utext="#{tfa-otp-setup-page.subTitle}">Please scan the QR code below to log in</p>
+
+        <form class="form">
+          <img class="qr" src="/theme/assets/image/common/qr_img.png" alt="qr image">
+          <th:block th:replace="_components/input/field-input-box :: field-input-box(
+            fieldType='text',
+            fieldTitle=#{tfa-otp-setup-page.form.field.secretKey},
+            fieldName='field-secret-key',
+            fieldValue=null,
+            maxLength=50,
+            required=true,
+            readonly=true,
+            disabled=true,
+            fieldState=null,
+            stateMessage=null,
+            placeholder=#{tfa-otp-setup-page.form.field.secretKey.placeholder}
+          )"></th:block>
+          <th:block th:replace="_components/input/field-input-box :: field-input-box(
+            fieldType='text',
+            fieldTitle=#{tfa-otp-page.form.field.passcode},
+            fieldName='field-code',
+            fieldValue=null,
+            maxLength=50,
+            required=true,
+            readonly=false,
+            disabled=false,
+            fieldState=null,
+            stateMessage=null,
+            placeholder=#{tfa-otp-page.form.field.passcode.placeholder}
+          )"></th:block>
+
+          <th:block
+              th:replace="_pages/login/components/login-page-response-messages :: login-page-response-messages"
+          ></th:block>
+
+          <th:block th:replace="_pages/login/components/captcha :: captcha"></th:block>
+
+          <button id="formSubmitButton"
+                  class="button button-size--m button-theme--blue"
+                  onclick="handleSubmitForm()"
+                  th:utext="#{tfa-otp-page.form.submitButton}"
+                  type='button'>Sign In</button>
+        </form>
+      </th:block>
+    </th:block>
+    <th:block th:replace="_components/layout/footer :: footer"></th:block>
+    <th:block
+        th:replace="_components/spinner/loading-spinner :: loading-spinner"
+    ></th:block>
+  </body>
+</html>
+

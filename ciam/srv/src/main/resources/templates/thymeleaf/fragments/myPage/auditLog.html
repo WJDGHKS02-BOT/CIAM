@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<!-- Search Company Functions -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    let defaultChannel = [[${session_channel}]];
+    /*]]>*/
+</script>
+<script src="/scripts/search_audit_log.js"></script>
+<script src="/scripts/vendor/daterangepicker/js/moment.min.js"></script>
+<script src="/scripts/vendor/daterangepicker/js/daterangepicker.js"></script>
+
+<link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+<link rel="stylesheet" type="text/css" href="/scripts/vendor/daterangepicker/css/daterangepicker.css" />
+
+<th:block th:fragment="auditLog">
+    <div th:unless="${channelHeader['myRole'] == 'General User' || channelHeader['myRole'] == 'Partner Admin' || channelHeader['myRole'] == 'Channel biz Admin' || channelHeader['myRole'] == 'Channel Admin'}">
+        <h2>Audit Log</h2>
+        <div class="content_ty4">
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Requester UID</dt>
+                        <dd>
+                            <input type="text" id="filter_requester_uid" value="" placeholder="Requester UID" class="input wid_ty4">
+                        </dd>
+                        <dt>Channel</dt>
+                        <dd>
+                            <select id="filter_channel" class="select wid_ty4" th:aria-readonly="${role != null && role != 'CIAM Admin'}">
+                                <option value="">ALL</option>
+                                <option th:each="curChannel: ${channel}"
+                                        th:if="${curChannel != null}"
+                                        th:value="${curChannel.channelName}"
+                                        th:utext="${curChannel.channelDisplayName}"
+                                        th:selected="${curChannel.channelName == session_channel}">
+                                </option>
+                            </select>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+    
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Menu</dt>
+                        <dd>
+                            <select id="filter_type" class="select wid_ty4" onchange="setMenuType(this)">
+                                <option value="">ALL</option>
+                                <option value="Personal_Information">Personal Information</option>
+                                <option value="MFA_Setting">MFA Setting</option>
+                                <option value="Account_Deletion">Account Deletion</option>
+                                <option value="SSO_Access">SSO Access</option>
+                                <option value="Approval_Request">Approval Request</option>
+                                <option value="Consent_Manager">Consent Manager</option>
+                                <option value="Approval_List">Approval List</option>
+                                <option value="Approval_Configuration">Approval Configuration</option>
+                                <option value="User_Management">User Management</option>
+                                <option value="Employment_Verification">Employment Verification</option>
+                                <option value="Invite_User">Invite User</option>
+                            </select>
+                        </dd>
+                        <dt>Menu Type</dt>
+                        <dd>
+                            <select id="filter_menu_type" class="select wid_ty4">
+                                <option value="">ALL</option>
+                            </select>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+    
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Action</dt>
+                        <dd>
+                            <select id="filter_action" class="select wid_ty4">
+                                <option value="">ALL</option>
+                                <option value="Creation">Creation</option>
+                                <option value="Modification">Modification</option>
+                                <option value="ListView,View,Search">ListView</option>
+                                <option value="DetailedView">DetailedView</option>
+                                <option value="Deletion">Deletion</option>
+                            </select>
+                        </dd>
+                        <dt>Date</dt>
+                        <dd>
+                            <input type="text" id="filter_created_at" value="" placeholder="Date" class="input wid_ty4">
+                        </dd>
+                        <dt style="margin-top: 0 !important;">
+                            <button type="button" class="btn_s search wid_ty5" onclick="doSearchAuditLog()">Search</button>
+                        </dt>
+                        <dd>
+                            <button type="button" class="btn_s btn_gray wid_ty5" onclick="resetFilters()">Reset</button>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+    
+            <!-- buttons -->
+            <!-- <div class="justify-content-end" style="margin-right: 300px; padding-bottom: 20px;">
+                
+            </div> -->
+    
+            <div>
+                <th:block th:replace="~{fragments/myPage/customPaginationGrid :: customPaginationGrid(1, 0)}"></th:block>
+                <!-- <div id="searchAuditLogResult" class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center custom-pagination-grid" style="height: auto;">
+                </div> -->
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const blackListRole = [
+            "General User",
+            "Partner Admin",
+            "Channel biz Admin",
+            "Channel Admin",
+        ];
+
+        $(document).ready(() => {
+            // 권한 별 접근 제어
+            if (blackListRole.includes([[${channelHeader['myRole']}]])) {
+                accessDenied();
+                return;
+            }
+            initializeAuditLogGrid();
+        });
+    </script>
+
+    <!-- Detail Popup -->
+    <div>
+        <!-- Modal Dimmed -->
+        <div class="modal_wrap" id="auditLogDetailPopup">
+            <div class="modal modal_dimmed">
+                <div class="modal_header">
+                    <button type="button" class="modal_close_btn" th:onclick="ModalOpenClose('#auditLogDetailPopup')"><span class="blind">Close</span></button>
+                </div>
+                <div class="modal_content">
+                    <dl class="list_ty2">
+                        <h3>Audit Log Details</h3>
+                        <dl class="form_list2">
+                            <dt>Details</dt>
+                            <dd>
+                                <div class="input_clear">
+                                    <input id="details" name="details" type="text" class="input" readonly>
+                                </div>
+                            </dd>
+                            <dt>Reason</dt>
+                            <dd>
+                                <div class="input_clear pass_word">
+                                    <input name="reason" id="reason" type="text" class="input" readonly>
+                                </div>
+                            </dd>
+                        </dl>
+                    </dl>
+                </div>
+            </div>
+            <div class="dimmer" aria-hidden="true"></div>
+        </div>
+        <!-- // Modal Dimmed -->
+    </div>
+    <!-- // Detail Popup -->
+</th:block>
+</html>

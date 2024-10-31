@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="approverListModal(modalType)">
+    <!-- Modal Dimmed -->
+    <div class="modal_wrap" th:id="|approverListModal_${modalType}|">
+        <div class="modal modal_dimmed">
+            <div class="modal_header">
+                <h4>Approver List</h4>
+                <button type="button" class="modal_close_btn" th:onclick="closeApproverListModal('#approverListModal_' + [[${modalType}]])"><span class="blind">Close</span></button>
+            </div>
+            <div class="modal_content">
+                <div class="list_ty2">
+                    <th:block th:replace="~{fragments/myPage/customPaginationGrid2 :: customPaginationGrid2(1, 0, 'approverList')}"></th:block>
+                </div>
+            </div>
+            <div class="modal_footer">
+                <div class="wrap_btn2" th:id="|previewBtnWrap_${modalType}|">
+                    <div id="approverListCancelBtnDiv" th:styleappend="${role == 'CIAM Admin' ? 'display: none' : ''}">
+                        <button
+                            type="button" class="btn_m btn_white" th:onclick="closeApproverListModal('#approverListModal_' + [[${modalType}]])" >Cancel</button>
+                    </div>
+                    <div id="approverListAddBtnDiv" th:styleappend="${role != 'CIAM Admin' ? 'display: none' : ''}">
+                        <button
+                            type="button" class="btn_m" onclick="openAddNewApproverModal()">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dimmer" aria-hidden="true"></div>
+    </div>
+    <!-- // Modal Dimmed -->
+
+    <!-- 1회용 Javascript -->
+    <script type="module" th:inline="javascript">
+        // const currentModalType = [[${modalType}]] || '';
+
+        // $(document).ready(() => {
+        //     // 필드 초기화
+        //     clickedApprovalConfigurationModalBtn('cancel', currentModalType);
+        // });
+    </script>
+</th:block>
+</html>

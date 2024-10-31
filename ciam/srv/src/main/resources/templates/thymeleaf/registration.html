@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="keywords" content="SAMSUNG">
+    <meta name="description" content="SAMSUNG">
+
+    <title>SAMSUNG DAP PORTAL</title>
+
+    <!-- New Version Start -->
+
+    <link rel="stylesheet" href="/theme/assets/css/librarys.min.css" />
+    <link rel="stylesheet" href="/theme/assets/css/base.css" />
+    <link rel="stylesheet" href="/theme/assets/css/content.css" />
+    <link rel="stylesheet" href="/theme/assets/css/member.css" />
+    <link rel="stylesheet" href="/theme/assets/css/terms.css" />
+
+    <script src="/theme/assets/js/libs/jquery.min.js"></script>
+    <script src="/theme/assets/js/libs/librarys.min.js"></script>
+    <script src="/theme/assets/js/ui/ui.common.js"></script>
+    <script src="/scripts/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Includes all JS & CSS for the JavaScript Data Grid -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+
+    <script th:inline="javascript" src="/scripts/modal.js"></script>
+    <script th:inline="javascript" src="/scripts/myPagePopup.js"></script>
+
+    <th:block th:if="${headScript != null}">
+            <th:block th:replace="~{${headScript}}"></th:block>
+    </th:block>
+</head>
+
+<body>
+    <div class="wrapper member">
+        <!-- Start #main -->
+        <header class="header">
+            <th:block th:replace="~{fragments/header :: header('registration')}"></th:block>
+        </header>
+        <!-- End #header -->
+
+        <!-- Start #main -->
+        <main role="main" class="container">
+            <div th:replace="~{${content}}"></div>
+        </main>
+        <!-- End #main -->
+
+        <!-- ======= Start #footer ======= -->
+        <footer class="footer">
+            <div th:replace="~{fragments/footer}"></div>
+        </footer>
+        <!-- End #footer -->
+    </div>
+
+    <div class="modal_wrap" id="errorDialogBox">
+		<div class="modal modal_alert">
+			<div class="modal_header">
+				<button type="button" class="modal_close_btn closeErrorBtn" onclick="closeErrorDialog('#errorDialogBox')"><span class="blind">닫기</span></button>
+			</div>
+			<div class="modal_content">
+				<p class="alert_error">Error</p>
+				<ul class="list_ty1" id="errorMsgContent">
+				</ul>
+			</div>
+			<div class="modal_footer wrap_btn1">
+				<button type="button" class="btn_m btn_white closeErrorBtn" onclick="closeErrorDialog('#errorDialogBox')">Close</button>
+			</div>
+		</div>
+		<div class="dimmer" aria-hidden="true"></div>
+	</div>
+
+    <div class="modal_wrap" id="loadingPopup">
+        <div class="loading">
+            <img style="background-color:transparent;" src="/theme/assets/image/common/loading.svg">
+            <div class="txt">
+                <strong>Hang tight!</strong>
+                This may take a few more minutes to process your request.
+            </div>
+        </div>
+        <div class="dimmer" aria-hidden="true"></div>
+    </div>
+
+    <div th:replace="~{popups/alert}"></div>
+    <div th:replace="~{popups/error}"></div>
+
+    <div class="modal_wrap"
+         id="adSSOModal">
+      <div class="modal modal_alert">
+          <div class="modal_header">
+              <button class="modal_close_btn"
+                      onclick="ModalAlertClose('#adSSOModal')"
+                      type="button"><span class="blind">Close</span></button>
+          </div>
+          <div class="modal_content">
+              <p class="alert_ty"
+                 id="adSSOModalTitle">Alert</p>
+              <style>
+                  .list_ty1 {
+                      > li:nth-child(2)::before,
+                      li:nth-child(3)::before{
+                          content: none;
+                      }
+                  }
+              </style>
+              <ul class="list_ty1 mar1" id="adSSOModalText">
+                <li th:utext="#{registration.alertText01}">If you are already a ADSSO user, click on 'ADSSO'.<br>If you are not a ADSSO user, click on 'General'.</li>
+                <li th:utext="#{registration.alertText02}">※ You can confirm whether you are using ADSSO with the URL below.</li>
+                <li style="text-decoration: underline"><a href="https://mfa.secsso.net/"  th:utext="#{registration.alertText03}" target="_blank" rel="noopener noreferrer">https://mfa.secsso.net/</a></li>
+                <li th:utext="#{registration.alertText04}">If you are already signed in, you are a ADSSO user.<br>If you are directed to sign-in page, you are not a ADSSO user.</li>
+              </ul>
+          </div>
+          <div class="modal_footer wrap_btn1">
+              <button class="btn_m btn_white" th:utext="#{registration.alert.generalBtn}"
+                      onclick="generalLoginConfirm()"
+                      type="button">General</button>
+              <button class="btn_m" th:utext="#{registration.alert.adBtn}"
+                      onclick="adLoginConfirm()"
+                      id="adSSOModalConfirmBtn"
+                      type="button">ADSSO</button>
+          </div>
+      </div>
+      <div aria-hidden="true"
+           class="dimmer"></div>
+    </div>
+
+      <script th:inline="javascript">
+        function generalLoginConfirm() {
+          console.log('general')
+          ModalAlertClose('#adSSOModal')
+          submitBtn.click();
+        }
+
+        function adLoginConfirm() {
+          console.log('ad')
+          ModalAlertClose('#adSSOModal');
+            const channelValue = document.querySelector('input[name="channel"]').value;
+            const url = `/registration/adLoginProcessing/${channelValue}`;
+
+            // 패스 파라미터가 포함된 URL로 페이지 이동
+            window.location.href = url;
+        }
+    </script>
+
+    <script th:inline="javascript">
+        let nonSeesionShowErrorMsg = [[${showErrorMsg}]] || '';
+        let sessionShowErrorMsg = '';
+
+        const curChannel = [[${channel}]] || '';
+        const content = [[${content}]] || '';
+
+        const canGoBackContent = [
+            "registrationContent"
+        ];
+
+        const errorMsgList = {
+            invalidVerifyingCode: "Verification failed: Invalid parameter value : code",
+            expiredVerifyingCode: "Verification failed: Token has been revoked",
+        }
+
+        if (!![[${session}]]) {
+            sessionShowErrorMsg = [[${session.showErrorMsg}]] || '';
+        }
+        errorMsgContent = document.getElementById('errorMsgContent');
+
+        function setErrorModalMsg(msg) {
+            let li = document.createElement('li');
+
+            // 메일 인증 코드 틀렸을 시
+            if (msg == errorMsgList["invalidVerifyingCode"]) {
+                msg = [[#{registration.maiLVerifyingCodeWrongText}]] || '';
+            }
+            // 메일 인증 코드 만료 시
+            else if (msg == errorMsgList["expiredVerifyingCode"]) {
+                msg = [[#{registration.mailVerifyingCodeExpired}]] || '';
+            }
+
+            li.textContent = msg;
+            errorMsgContent.innerHTML = '';
+            errorMsgContent.appendChild(li);
+        }
+
+        $(document).ready(function() {
+            // Browser 뒤로가기 버튼 제어
+            try {
+                let splitContentString = content.split("/");
+                if (splitContentString[1] != null) {
+                    if (canGoBackContent.includes(splitContentString[1])) {
+                            window.onpopstate = function() {
+                            history.go(-1);
+                        };
+                    }
+                }
+            } catch (e) {
+                // split 에러 and 인덱스 참조 에러
+                // 아무 동작 하지 않음
+            }
+            
+            if (!!nonSeesionShowErrorMsg || !!sessionShowErrorMsg) {
+                const showErrorMsg = nonSeesionShowErrorMsg || sessionShowErrorMsg;
+                console.log("Error: showErrorMsg", showErrorMsg);
+                let tempElement = document.createElement('div');
+                tempElement.innerHTML = showErrorMsg;
+
+                let decodedJson = tempElement.textContent;
+                let stringArray= '';
+                // let ul = document.createElement('ul');
+                try {
+                    console.log('decodedJson:', decodedJson);
+                    stringArray = JSON.parse(decodedJson);
+                } catch (e) {
+                    console.error("Parsing error:", e);
+                } finally {
+                    if (stringArray && Array.isArray(stringArray)) {
+                        stringArray.forEach(function(item, index) {
+                            showErrorMsg(item);
+                        });
+                    } else {
+                        setErrorModalMsg(showErrorMsg);
+                    }
+                    ModalAlertOpen('#errorDialogBox');
+                }
+            }
+        });
+
+        function closeErrorDialog(id) {
+            errorMsgContent.innerHTML = '';
+            ModalAlertClose(id);
+        }
+
+        function loading(flag) {
+            if (flag === "open") {
+                ModalAlertOpen("#loadingPopup");
+            } else {
+                ModalAlertClose("#loadingPopup");
+            }
+        }
+
+    </script>
+</body>
+</html>

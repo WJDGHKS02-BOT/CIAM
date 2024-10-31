@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval Test Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 테이블을 감싸는 div에 스크롤 추가 */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table-responsive table {
+            min-width: 1000px; /* 넓은 필드를 모두 표시할 수 있도록 최소 너비 설정 */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Approval Test Result</h1>
+
+    <!-- TempWfMaster 테이블 -->
+    <h2>WfMaster Information</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Field</th>
+            <th>Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>WF ID</td>
+            <td th:text="${wmaster.wfId}"></td>
+        </tr>
+        <tr>
+            <td>Channel</td>
+            <td th:text="${wmaster.channel}"></td>
+        </tr>
+        <tr>
+            <td>Workflow Code</td>
+            <td th:text="${wmaster.workflowCode}"></td>
+        </tr>
+        <tr>
+            <td>Requestor ID</td>
+            <td th:text="${wmaster.requestorId}"></td>
+        </tr>
+        <tr>
+            <td>Requestor Email</td>
+            <td th:text="${wmaster.requestorEmail}"></td>
+        </tr>
+        <tr>
+            <td>Requestor Role</td>
+            <td th:text="${wmaster.requestorRole}"></td>
+        </tr>
+        <tr>
+            <td>Status</td>
+            <td th:text="${wmaster.status}"></td>
+        </tr>
+        <tr>
+            <td>WF Max Level</td>
+            <td th:text="${wmaster.wfLevel}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- WfList 테이블 -->
+    <h2>WF List Information</h2>
+    <div class="table-responsive">
+        <table>
+            <thead>
+            <tr>
+                <th>WF ID</th>
+                <th>Workflow Code</th>
+                <th>WF Level</th>
+                <th>Status</th>
+                <th>Approval Role</th>
+                <th>Approval Format</th>
+                <th>Approver ID</th>
+                <th>Approver Email</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="wfItem : ${wfList}">
+                <td th:text="${wfItem.wfId}"></td>
+                <td th:text="${wfItem.workflowCode}"></td>
+                <td th:text="${wfItem.level}"></td>
+                <td th:text="${wfItem.status}"></td>
+                <td th:text="${wfItem.approverRole}"></td>
+                <td th:text="${wfItem.approvalFormat}"></td>
+                <td th:text="${wfItem.approverId}"></td>
+                <td th:text="${wfItem.approverEmail}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Approval Rule Master List</h2>
+    <div class="table-responsive">
+        <table>
+            <thead>
+            <tr>
+                <th>Rule Master ID</th>
+                <th>Workflow Code</th>
+                <th>Channel</th>
+                <th>Country</th>
+                <th>Subsidiary</th>
+                <th>Division</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th>Stage</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="approvalRuleMaster : ${approvalRuleMasterList}">
+                <td th:text="${approvalRuleMaster.ruleMasterId}"></td>
+                <td th:text="${approvalRuleMaster.workflowCode}"></td>
+                <td th:text="${approvalRuleMaster.channel}"></td>
+                <td th:text="${approvalRuleMaster.country}"></td>
+                <td th:text="${approvalRuleMaster.subsidiary}"></td>
+                <td th:text="${approvalRuleMaster.division}"></td>
+                <td th:text="${approvalRuleMaster.createdAt}"></td>
+                <td th:text="${approvalRuleMaster.updatedAt}"></td>
+                <td th:text="${approvalRuleMaster.stage}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ApprovalRule 테이블 -->
+    <h2>Approval Rule List</h2>
+    <div class="table-responsive">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Rule Master ID</th>
+                <th>Rule Level</th>
+                <th>Approve Format</th>
+                <th>Approve Condition</th>
+                <th>Status</th>
+                <th>Role</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="rule : ${approvalRuleList}">
+                <td th:text="${rule.id}"></td>
+                <td th:text="${rule.ruleMasterId}"></td>
+                <td th:text="${rule.ruleLevel}"></td>
+                <td th:text="${rule.approveFormat}"></td>
+                <td th:text="${rule.approveCondition}"></td>
+                <td th:text="${rule.status}"></td>
+                <td th:text="${rule.role}"></td>
+                <td th:text="${rule.createdAt}"></td>
+                <td th:text="${rule.updatedAt}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

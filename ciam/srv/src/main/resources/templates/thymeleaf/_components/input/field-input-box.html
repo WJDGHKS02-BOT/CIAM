@@ -1,0 +1,45 @@
+<!-- label className 목록 -->
+<!-- field--required / field--readonly / field-state--error / field-state--success -->
+
+<!-- field-input-box-state 목록 -->
+<!-- field-input-box-state--error / field-input-box-state--success-->
+
+<html xmlns:th="http://www.thymeleaf.org">
+  <th:block th:fragment="field-input-box(fieldType, fieldTitle, fieldName, fieldValue, maxLength, required, readonly, disabled, fieldState, stateMessage, placeholder)">
+    <label th:class="${'field-wrapper' +
+                     (required ? ' field--required' : '') +
+                     (readonly ? ' field--readonly' : '') +
+                     (fieldState == 'error' ? ' field-state--error' : '') +
+                     (fieldState == 'success' ? ' field-state--success' : '')}">
+      <h5 class="field-title"
+          th:text="${fieldTitle}">Field Title</h5>
+      <input class="field-input-box"
+             th:disabled="${disabled}"
+             th:maxlength="${maxLength}"
+             th:name="${fieldName}"
+             th:placeholder="${placeholder}"
+             th:readonly="${readonly}"
+             th:required="${required}"
+             th:type="${fieldType}"
+             th:value="${fieldValue}" />
+      <div class="field-button-wrapper">
+        <button class="field-input-box-ico-button field-input-box-clear-button"
+                tabindex="-1"
+                type="button">
+          <img alt="input-clear"
+               src="/theme/assets/image/common/ico_input_clear.png" />
+        </button>
+        <button class="field-input-box-ico-button field-input-box-hidden-button"
+                onclick="togglePasswordVisibility(this)"
+                tabindex="-1"
+                th:if="${fieldType == 'password'}"
+                type="button">
+          <img alt="password-hidden"
+               src="/theme/assets/image/common/ico_pwd.png" />
+        </button>
+      </div>
+      <p class="input-state-message"
+         th:text="${stateMessage}"></p>
+    </label>
+  </th:block>
+</html>

@@ -1,0 +1,641 @@
+<!--
+    accountObject
+    companyObject
+    companySearchEnabled
+    channel
+    registration
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="samsungAdInformation">
+
+    <form class="member_content"
+          id="memberContentForm"
+          method="POST"
+          th:action="@{/new-channel/account/{key}(key=${channel})}">
+        <input name="channel"
+               th:value="${channel}"
+               type="hidden">
+
+        <div th:replace="fragments/registration/title :: registration-title"></div>
+        <div th:replace="fragments/registration/step :: registration-step(1)"></div>
+
+        <div class="inner_white"
+             th:if="${companyObject != null && companyObject.registerCompany != null && accountObject != null}">
+            <!-- Tab -->
+            <div class="tab_nav" style="display: none;">
+                <ul class="tab_list"
+                    role="tablist">
+                    <li class="is_active"
+                        id="companyInfoTab"
+                        onclick="setActive(this)"
+                        role="tab">
+                        <button class="btn"
+                                type="button"><span th:text="#{selfregisteration.companyInformation}">Company Information</span>
+                        </button>
+                    </li>
+                    <li id="userInfoTab"
+                        onclick="clickedNextBtn(this)"
+                        role="tab">
+                        <button class="btn"
+                                type="button"><span th:text="#{selfregisteration.userInformation}">User Information</span></button>
+                    </li>
+                </ul>
+            </div>
+            <!-- //Tab -->
+
+            <!-- Company Information : START -->
+            <div id="companyInfo" style="display: none;">
+                <input id="bpid"
+                       name="bpid"
+                       th:value="${companyObject.registerCompany['bpid'] != null ? companyObject.registerCompany['bpid'] : ''}"
+                       type="hidden">
+                <input id="source"
+                       name="source"
+                       th:value="${companyObject.registerCompany['source'] != null ? companyObject.registerCompany['source'] : ''}"
+                       type="hidden">
+                <input id="type"
+                       name="type"
+                       th:value="${companyObject.registerCompany['type'] != null ? companyObject.registerCompany['type'] : ''}"
+                       type="hidden">
+                <input id="validStatus"
+                       name="validStatus"
+                       th:value="${companyObject.registerCompany['validStatus'] != null ? companyObject.registerCompany['validStatus'] : ''}"
+                       type="hidden">
+
+                <h3>General Information</h3>
+                <ul class="mem_form_list2">
+                    <li>
+                        <p class="tit requ" th:text="#{selfregisteration.companyName}">Company Name</p>
+                        <div class="col_wrap2">
+                            <div class="inp_sec">
+                                <input type="text" name="name" id="name"
+                                       th:value="${companyObject.registerCompany['name'] != null ? companyObject.registerCompany['name'] : ''}"
+                                       placeholder="Company Name" class="input" maxlength="300" readonly required>
+                            </div>
+<!--                            <div class="bt_sec" th:if="${companySearchEnabled}">-->
+<!--                                <button id="resetBtn" type="button" class="btn_l btn_gray" onclick="clickedResetBtn()" th:text=#{selfregisteration.reset}>Reset</button>-->
+<!--                                <button id="searchCompany" type="button" class="btn_l" onclick="onSearchCompany()" th:text="#{selfregisteration.searchCompany}">Search company</button>-->
+<!--                            </div>-->
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit requ" th:text="#{selfregisteration.businessLocation}">Business Location</p>
+                                <select name="country" id="country"  disabled
+                                        class="select" required>
+                                    <!--                                    <option value="" th:text="#{selfregisteration.selectOption}"></option>-->
+                                    <option th:each="location: ${companyObject.countries}" th:if="${location != null}"
+                                            th:value="|${location.countryCode}|" th:utext="${location.nameEn}"
+                                            th:selected="${location.countryCode == companyObject.registerCompany['country']}"></option>
+                                </select>
+                                <input id="countryHidden" name="country" type="hidden"
+                                       th:value="${companyObject.registerCompany['country'] != null ? companyObject.registerCompany['country'] : ''}">
+                            </div>
+                            <div style="display: flex; flex-direction: column; justify-content: end">
+                                <p class="tit" th:text="#{selfregisteration.state}">State</p>
+                                <input type="text" name="state" id="state"
+                                       th:value="${companyObject.registerCompany['state'] != null ? companyObject.registerCompany['state'] : ''}"
+                                       placeholder="" class="input" maxlength="50" readonly>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.region}">Region</p>
+                                <input type="text" name="region" id="region"
+                                       th:value="${companyObject.registerCompany['region'] != null ? companyObject.registerCompany['region'] : ''}"
+                                       placeholder="" class="input" maxlength="50" readonly>
+                            </div>
+                            <div>
+                                <p class="tit" th:text=#{selfregisteration.city}>City</p>
+                                <input type="text" name="city" id="city"
+                                       th:value="${companyObject.registerCompany['city'] != null ? companyObject.registerCompany['city'] : ''}"
+                                       placeholder="" class="input" maxlength="70" readonly>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.street}">Street</p>
+                                <input type="text" name="street_address" id="street_address"
+                                       th:value="${companyObject.registerCompany['street_address'] != null ? companyObject.registerCompany['street_address'] : ''}"
+                                       placeholder="" class="input" maxlength="100" readonly>
+                            </div>
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.postalCode}">Postal Code</p>
+                                <input type="text" name="zip_code" id="zip_code"
+                                       th:value="${companyObject.registerCompany['zip_code'] != null ? companyObject.registerCompany['zip_code'] : ''}"
+                                       placeholder="" class="input" maxlength="10" readonly>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.phoneNumber1}">Company Phone Number</p>
+                                <input type="text" name="phonenumber1" id="phonenumber1"
+                                       th:value="${companyObject.registerCompany['phonenumber1'] != null ? companyObject.registerCompany['phonenumber1'] : ''}"
+                                       placeholder="" class="input" maxlength="40" readonly>
+                                <!-- 24.07.15 phoneNumberValidation 클래스 제거 -->
+                                <!-- placeholder="" class="input phoneNumberValidation" maxlength="40" readonly> -->
+                            </div>
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.fax}">Company Fax</p>
+                                <input type="text" name="fax" id="fax"
+                                       th:value="${companyObject.registerCompany['fax'] != null ? companyObject.registerCompany['fax'] : ''}"
+                                       placeholder="" class="input" maxlength="40" readonly>
+                                <!-- 24.07.15 phoneNumberValidation 클래스 제거 -->
+                                <!-- placeholder="" class="input phoneNumberValidation" maxlength="40" readonly> -->
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.mfaEmailText}">Business Email</p>
+                                <input type="text" name="email" id="email"
+                                       th:value="${companyObject.registerCompany['email'] != null ? companyObject.registerCompany['email'] : ''}"
+                                       placeholder="" class="input" maxlength="100" readonly>
+                                <!-- 24.07.15 emailValidation 클래스 제거 -->
+                                <!-- placeholder="" class="input emailValidation" maxlength="100" readonly> -->
+                            </div>
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.businessLicenseNumber}">Business License Number</p>
+                                <input type="text" name="bizregno1" id="bizregno1"
+                                       th:value="${companyObject.registerCompany['bizregno1'] != null ? companyObject.registerCompany['bizregno1'] : ''}"
+                                       placeholder="" class="input" maxlength="20" readonly>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.representative}">Representative</p>
+                                <input type="text" name="representative" id="representative"
+                                       th:value="${companyObject.registerCompany['representative'] != null ? companyObject.registerCompany['representative'] : ''}"
+                                       placeholder="" class="input" maxlength="14" readonly>
+                            </div>
+                            <div>
+                                <p class="tit requ" th:text="#{selfregisteration.vendorCode}">Vendor Code</p>
+                                <input type="text" name="vendorcode" id="vendorcode"
+                                       th:value="${companyObject.registerCompany['vendorcode'] != null ? companyObject.registerCompany['vendorcode'] : ''}"
+                                       placeholder="" class="input" maxlength="255" readonly required>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="bt_wrap1">
+                    <button class="btn_l next"
+                            id="companyInfoNextBtn"
+                            onclick="clickedNextBtn(this)"
+                            th:text="#{selfregisteration.next}"
+                            type="button">Next
+                    </button>
+                </div>
+            </div>
+            <!-- Company Information : END -->
+
+            <!-- User Information Start -->
+            <div id="userInfo"
+                 style="display: block;">
+                <h3>General Information</h3>
+                <ul class="mem_form_list2">
+                    <li>
+                        <p class="tit requ"
+                           th:text="#{selfregisteration.loginId}">Login ID</p>
+                        <input class="input"
+                               id="loginUserId"
+                               maxlength="100"
+                               name="loginUserId"
+                               placeholder=""
+                               required
+                               readonly
+                               th:value="${accountObject.loginId}"
+                               type="text">
+                        <p id="loginUserIdError"></p>
+                    </li>
+                    <li>
+                        <div class="col_wrap1">
+                            <!--                            <div>-->
+                            <!--                                <p class="tit"-->
+                            <!--                                   th:text="#{selfregisteration.salutation}">Salutation</p>-->
+                            <!--                                <input class="input"-->
+                            <!--                                       id="salutation"-->
+                            <!--                                       name="salutation"-->
+                            <!--                                       placeholder=""-->
+                            <!--                                       type="text">-->
+                            <!--                            </div>-->
+                            <div>
+                                <p class="tit requ"
+                                   th:text=#{selfregisteration.preferredLanguage}>Preferred Language</p>
+                                <select class="select"
+                                        id="language"
+                                        name="language"
+                                        required>
+                                    <option value="">-- select --</option>
+                                    <option th:each="language: ${accountObject?.languages}"
+                                            th:if="${language != null}"
+                                            th:selected="${language.value == accountObject['language']}"
+                                            th:utext="${language.name}"
+                                            th:value="${language.value}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col_wrap1 requ">
+                            <div>
+                                <p class="tit requ"
+                                   th:text="#{selfregisteration.firstName}">First Name</p>
+                                <input class="input characterValidation"
+                                       id="firstName"
+                                       maxlength="100"
+                                       name="firstName"
+                                       placeholder=""
+                                       required
+                                       th:value="${accountObject['firstName'] != null ? accountObject['firstName'] : ''}"
+                                       type="text">
+                                <p id="firstNameError"></p>
+                            </div>
+                            <div>
+                                <p class="tit requ"
+                                   th:text=#{selfregisteration.lastName}>Last Name</p>
+                                <input class="input characterValidation"
+                                       id="lastName"
+                                       maxlength="40"
+                                       name="lastName"
+                                       placeholder=""
+                                       required
+                                       th:value="${accountObject['lastName'] != null ? accountObject['lastName'] : ''}"
+                                       type="text">
+                                <p id="lastNameError"></p>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <p class="tit"
+                           th:text="#{selfregisteration.phone}">Phone</p>
+                        <div class="col_wrap4" style="gap: 10px;">
+                            <select class="select"
+                                    id="country_code_work"
+                                    name="country_code_work">
+                                <option value="">-</option>
+                                <option th:each="code: ${accountObject?.codes}"
+                                        th:if="${code != null}"
+                                        th:selected="${code.code == accountObject['country_code_work']}"
+                                        th:utext="|(+${code.code}) ${code.name}|"
+                                        th:value="${code.code}"></option>
+                            </select>
+                            <input id="country_code_work_Hidden"
+                                   name="country_code_work"
+                                   type="hidden">
+
+                            <input class="input phoneNumberValidation"
+                                   id="work_phone"
+                                   maxlength="40"
+                                   name="work_phone"
+                                   placeholder=""
+                                   th:value="${accountObject['work_phone'] != null ? accountObject['work_phone'] : ''}"
+                                   type="text">
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit"
+                                   th:text="#{selfregisteration.department}">Department</p>
+                                <select class="select"
+                                        id="secDept"
+                                        name="secDept">
+                                    <option value="">-- select --</option>
+                                    <option th:each="division: ${accountObject?.divisions}"
+                                            th:if="${division != null}"
+                                            th:selected="${division.value == accountObject['secDept']}"
+                                            th:utext="${division.name}"
+                                            th:value="${division.value}"></option>
+                                </select>
+                            </div>
+                            <div>
+                                <p class="tit"
+                                   th:text="#{selfregisteration.jobTitle}">Job Title</p>
+                                <input class="input"
+                                       id="job_title"
+                                       name="job_title"
+                                       placeholder=""
+                                       th:value="${accountObject['job_title'] != null ? accountObject['job_title'] : ''}"
+                                       type="text">
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="bt_wrap4" style="display: flex; justify-content: flex-end;">
+<!--                    <button class="btn_l back"-->
+<!--                            id="backCompanyInfoBtn"-->
+<!--                            onclick="setActive(this)"-->
+<!--                            th:text="#{selfregisteration.back}"-->
+<!--                            type="button">Back-->
+<!--                    </button>-->
+                    <button class="btn_l next"
+                            id="userInfoNextBtn"
+                            onclick="clickedNextBtn(this)"
+                            th:text="#{selfregisteration.confirm}"
+                            type="button">Confirm
+                    </button>
+                </div>
+
+            </div>
+            <!-- User Information End -->
+
+            <!-- Hidden Fields Start -->
+            <button id="submit"
+                    type="submit"></button>
+            <!-- Hidden Fields End -->
+        </div>
+    </form>
+    <!-- </div> -->
+
+    <!-- Company Search Button - show or hide based on companySearchEnabled -->
+    <!--<th:block th:if="${companySearchEnabled}">-->
+    <!--    <button type="button"-->
+    <!--            onclick="onSearchCompany()"-->
+    <!--            class="btn">Search Company</button>-->
+    <!--</th:block>-->
+
+    <!-- i18n 메시지 변수 -->
+    <script th:inline="javascript">
+        const createAlertMessage = [[#{myPage.inviteUser.createAlertMessage}]];
+        const createSuccessMessage = [[#{myPage.inviteUser.createSuccessMessage}]];
+        const createErrorMessage = [[#{myPage.inviteUser.createErrorMessage}]];
+    </script>
+
+    <script th:inline="javascript" type="text/javascript">
+        const loginIdErrorElement = document.querySelector('#loginUserIdError');
+        const companyInfoComponent = document.getElementById('companyInfo');
+        const userInfoComponent = document.getElementById('userInfo');
+        const companyInfoTab = document.getElementById('companyInfoTab');
+        const userInfoTab = document.getElementById('userInfoTab');
+        const companyName = document.getElementById('name');
+        const country = document.getElementById("country");
+        const countryHidden = document.getElementById("countryHidden");
+        const submitBtn = document.getElementById("submit");
+
+        const errorInputClass = "inp_error";
+        const txtErrorClass = "txt_inp_error";
+
+        const phoneNumberRegex = /^[0-9-+\s]/;
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]{2,3}$/i;
+        const characterRegex = /^[가-힣a-zA-Z]/;
+
+        const notIncludeCompanySelectFields = [
+            // "country"
+        ];
+
+        // 필수 필드들의 Validatied 상태값
+        const isValidated = {
+            "loginUserId": false
+        };
+
+        let duplicateCheckComponent = [
+            'loginUserId'
+        ];
+
+        let count = 0;
+
+        const classList = [
+            "txt_inp_error"
+        ];
+
+        const loginErrorElement = document.querySelector('#loginUserIdError');
+
+        function addClassList(component, classList) {
+            for (let value of classList) {
+                component.classList.add(`${value}`);
+            }
+        }
+        function removeClassList(component, classList) {
+            for (let value of classList) {
+                component.classList.remove(`${value}`);
+            }
+        }
+
+        const companyValidationFields = {
+            // "phonenumber1": false,
+            // "fax": false,
+            // "email": false,
+            "name": false,
+            "country": false,
+            "vendorcode": false,
+        };
+
+        const userValidationFields = {
+            "loginUserId": false,
+            "language": false,
+            "firstName": false,
+            "lastName": false
+        };
+
+        const isNumberCheckFileds = [
+            "phonenumber1",
+            "fax",
+        ];
+
+        const userPhoneValidation = [
+            "country_code_work",
+            "work_phone"
+        ];
+
+        function getValidationFields(target) {
+            let fields = {};
+
+            if (target.includes("user")) {
+                fields = userValidationFields;
+            }
+            return fields;
+        }
+
+        function addErrorInputClass(target) {
+            target.classList.add(errorInputClass);
+        }
+
+        function removeErrorInputClass(target) {
+            target.classList.remove(errorInputClass);
+        }
+
+        // 전화번호 유효성 검증
+        async function phoneNumberValidation(target) {
+            let fields = getValidationFields(target);
+
+            const phoneNumberFormFields = document.querySelector(target).querySelectorAll(".phoneNumberValidation");
+            if (!!phoneNumberFormFields) {
+                await phoneNumberFormFields.forEach((component) => {
+                    let value = component.value;
+                    let id = component.id;
+                    if (!!value && !phoneNumberRegex.test(value)) {
+                        addErrorInputClass(component);
+                        component.focus();
+                        fields[id] = false;
+                    } else {
+                        removeErrorInputClass(component);
+                        fields[id] = true;
+                    }
+                });
+            }
+        }
+
+        // target 활성화
+        function setActive(target) {
+            const id = target.id.toLowerCase();
+
+            if (id.includes('user')) {
+                companyInfoComponent.style.display = 'none';
+                userInfoComponent.style.display = 'block';
+
+                companyInfoTab.classList.remove("is_active");
+                userInfoTab.classList.add("is_active");
+            } else if (id.includes('company')) {
+                companyInfoComponent.style.display = 'block';
+                userInfoComponent.style.display = 'none';
+
+                companyInfoTab.classList.add("is_active");
+                userInfoTab.classList.remove("is_active");
+            }
+        }
+
+        // 필수 필드 값 검증
+        async function checkRequiredFields(target) {
+            let fields = getValidationFields(target);
+
+            const requiredFields = document.querySelector(target).querySelectorAll("[required]");
+            console.log(requiredFields);
+            debugger;
+            if (!!requiredFields) {
+                await Object.entries(requiredFields).map(([key, component]) => {
+                    let value = component.value;
+                    let id = component.id;
+                    if (!value) {
+                        // if (id === "searchCompany") {
+                        //     component = companyName;
+                        //     fields["name"] = false;
+                        //     addErrorInputClass(component);
+                        //     component.focus();
+                        // } else {
+                        //     fields[id] = false;
+                        //     addErrorInputClass(component);
+                        //     component.focus();
+                        // }
+                        fields[id] = false;
+                        addErrorInputClass(component);
+                        component.focus();
+                    } else {
+                        removeErrorInputClass(component);
+                        fields[id] = true;
+                    }
+                });
+            }
+        }
+
+        // 문자 유효성 검증 TODO: 물어보기
+        async function characterValidation(target) {
+            let fields = getValidationFields(target);
+
+            const characterFormFields = document.querySelector(target).querySelectorAll(".characterValidation");
+            if (!!characterFormFields) {
+                await characterFormFields.forEach((component) => {
+                    let value = component.value;
+                    let id = component.id;
+
+                    const errorMsgId = id + "Error";
+                    const errorMsgText = document.getElementById(errorMsgId);
+                    if (!value || !characterRegex.test(value)) {
+                        addErrorInputClass(component);
+                        component.focus();
+
+                        errorMsgText.classList.add(txtErrorClass);
+                        errorMsgText.innerText = "The name field must only contain letters";
+
+                        fields[id] = false;
+                    } else {
+                        removeErrorInputClass(component);
+
+                        errorMsgText.classList.remove(txtErrorClass);
+                        errorMsgText.innerText = "";
+
+                        fields[id] = true;
+                    }
+                });
+            }
+        }
+
+        // validation 상태값 체크
+        async function checkFieldsValidated(target) {
+            let fields = getValidationFields(target);
+
+            for (let key in fields) {
+                if (!fields[key]) {
+                    console.log('invalid key:', key);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // target에 해당하는 Information 전체 필드들의 Validation 상태 체크
+        // target = "company" or "user"
+        async function validationCheck(target) {
+            const idString = `#${target}`;
+
+            await checkRequiredFields(idString);
+            await phoneNumberValidation(idString);
+            await characterValidation(idString);
+
+            if (!(await checkFieldsValidated(target))) {
+                return false;
+            } else {
+                console.log('success validation!');
+                return true;
+            }
+        }
+
+        // Next Button
+        async function clickedNextBtn(target) {
+            const id = target.id;
+            let clickedId = "";
+
+            if (target.id.includes("Tab")) {
+                clickedId = "companyInfo";
+            } else {
+                clickedId = target.id.includes("companyInfo") ? "companyInfo" : "userInfo";
+            }
+
+            const good = await validationCheck(clickedId);
+            if (good) {
+                if (clickedId === "companyInfo") {
+                    countryHidden.value = country.value;
+                    setActive(userInfoTab);
+                } else {
+                    submitBtn.click();
+                }
+            } else {
+                return false;
+            }
+        }
+
+        // submit 이벤트 리스너
+        // submit 이벤트 리스너
+        $(document).on('submit', "form", async (event) => {
+            loading("open");
+        });
+
+    </script>
+
+
+</th:block>
+</html>

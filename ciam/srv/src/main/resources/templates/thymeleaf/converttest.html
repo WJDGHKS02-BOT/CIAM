@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channel UID Form</title>
+</head>
+<body>
+<form id="channelForm" method="POST" th:action="@{'/converttest/' + ${channel}}">
+    <h2>CIAM Parameters (New)</h2>
+    <label for="firstName">firstName:</label><br>
+    <input type="text" id="firstName" name="firstName"><br><br>
+
+    <label for="lastName">lastName:</label><br>
+    <input type="text" id="lastName" name="lastName"><br><br>
+
+    <label for="loginID">loginID:</label><br>
+    <input type="text" id="loginID" name="loginID"><br><br>
+
+    <label for="cmdmAccountID">cmdmAccountID:</label><br>
+    <input type="text" id="cmdmAccountID" name="cmdmAccountID"><br><br>
+
+    <label for="department">department:</label><br>
+    <input type="text" id="department" name="department"><br><br>
+
+    <label for="userPhone">userPhone:</label><br>
+    <input type="text" id="userPhone" name="userPhone"><br><br>
+
+    <label for="languages">languages:</label><br>
+    <input type="text" id="languages" name="languages"><br><br>
+
+    <label for="countryCode">countryCode:</label><br>
+    <input type="text" id="countryCode" name="countryCode"><br><br>
+
+    <label for="channelType">channelType:</label><br>
+    <input type="text" id="channelType" name="channelType"><br><br>
+
+    <label for="industryType">industryType:</label><br>
+    <input type="text" id="industryType" name="industryType"><br><br>
+
+    <label for="gbm1">gbm1:</label><br>
+    <input type="text" id="gbm1" name="gbm1"><br><br>
+
+    <label for="gbm2">gbm2:</label><br>
+    <input type="text" id="gbm2" name="gbm2"><br><br>
+
+    <label for="gbm3">gbm3:</label><br>
+    <input type="text" id="gbm3" name="gbm3"><br><br>
+
+    <label for="gbm4">gbm4:</label><br>
+    <input type="text" id="gbm4" name="gbm4"><br><br>
+
+    <label for="channelUID">channelUID:</label><br>
+    <input type="text" id="channelUID" name="channelUID"><br><br>
+
+    <label for="subsidiaryName">subsidiaryName:</label><br>
+    <input type="text" id="subsidiaryName" name="subsidiaryName"><br><br>
+
+    <label for="userType">userType:</label><br>
+    <input type="text" id="userType" name="userType"><br><br>
+
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="proxy">
+    <!-- <div class="modal_wrap" id="loadingProxy">
+        <div class="loading">
+            <img style="background-color:transparent;" src="/theme/assets/image/common/loading.svg">
+            <div class="txt">
+                <strong>Hang tight!</strong>
+                This may take a few more minutes to process your request.
+            </div>
+        </div>
+        <div class="dimmer" aria-hidden="true"></div>
+    </div> -->
+    <script th:inline="javascript">
+        // ModalAlertOpen("#loadingProxy");
+        console.log('>>> start proxy js');
+
+        const url = [[${url}]];
+        const channel = [[${channel}]];
+        const loginURL = [[${loginURL}]];
+        const logoutURL = [[${logoutURL}]];
+
+        // console.log('url: ', url);
+        // console.log('channel: ', channel);
+        // console.log('loginURL: ', loginURL);
+        // console.log('logoutURL: ', logoutURL);
+    </script>
+    <script th:inline="javascript" th:src="|https://cdns.gigya.com/js/gigya.saml.js?apiKey=${apiKey}|">
+        {
+            loginURL: `${loginURL}`,
+            logoutURL: `${logoutURL}`
+        }
+    </script>
+</th:block>
+</html>

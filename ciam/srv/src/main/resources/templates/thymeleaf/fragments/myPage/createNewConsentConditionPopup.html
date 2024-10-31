@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="createNewConsentConditionPopup">
+    <!-- Modal Dimmed -->
+    <div class="modal_wrap" id="createNewConsentCondition">
+        <div class="modal modal_dimmed">
+            <div class="modal_header">
+                <h4>Create New Consent</h4>
+                <button type="button" class="modal_close_btn" onclick="ModalOpenClose('#createNewConsentCondition')"><span class="blind">Close</span></button>
+            </div>
+            <div class="modal_content">
+                <dl class="list_ty2">
+                    <dd class="updown_padding">
+                        <ul class="form_list1">
+                            <li>
+                                <div class="col_wrap1">
+                                    <div>
+                                        <p class="tit">Channel</p>
+                                        <select name="selectedChannelCondition" id="selectedChannelCondition" class="select" th:aria-readonly="${role != null && role != 'CIAM Admin'}">
+                                            <option value=""></option>
+                                            <option th:each="curChannel: ${channel}"
+                                                th:if="${curChannel != null}"
+                                                th:value="|${curChannel.channelName}|"
+                                                th:utext="${curChannel.channelDisplayName}"
+                                                th:selected="${curChannel.channelName == session_channel}"></option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <p class="tit">Type</p>
+                                        <select name="selectedTypeCondition" id="selectedTypeCondition" class="select">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="col_wrap1">
+                                    <div>
+                                        <p class="tit">Location</p>
+                                        <select name="selectedLocationCondition" id="selectedLocationCondition" class="select">
+                                            <option value=""></option>
+                                            <option th:each="curLocation: ${location}"
+                                                th:if="${curLocation != null}"
+                                                th:value="|${curLocation.countryCode}|"
+                                                th:utext="${curLocation.nameEn}"></option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <p class="tit">Subsidiary</p>
+                                        <select name="selectedSubsidiaryCondition" id="selectedSubsidiaryCondition" class="select">
+                                            <option value="ALL">ALL</option>
+                                            <option th:each="curSubsidiary: ${subsidiary}"
+                                                th:if="${curSubsidiary != null}"
+                                                th:value="${curSubsidiary}"
+                                                th:utext="${curSubsidiary}">
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <h3 class="line">OR</h3>
+                        <div class="list_wrap1">
+                            <dl class="form_list6">
+                                <h3>
+                                    Consent Group
+                                </h3>
+                                <dd>
+                                    <select name="selectedConsentGroupCondition" id="selectedConsentGroupCondition" class="select wid_ty4" style="height: 44px;">
+                                        <option value=""></option>
+                                        <option th:each="curConsentGroup: ${consentGroup}"
+                                            th:if="${curConsentGroup != null}"
+                                            th:value="|${curConsentGroup}|"
+                                            th:utext="${curConsentGroup}"></option>
+                                    </select>
+                                </dd>
+                            </dl>
+                        </div>
+                    </dd>
+                </dl>
+            </div>
+            <div class="modal_footer">
+                <div class="wrap_btn2">
+                    <button type="button" class="btn_m btn_white" onclick="ModalOpenClose('#createNewConsentCondition')">Cancel</button>
+                    <button id="createNewConsentConditionSaveBtn" type="button" class="btn_m" onclick="createConditionSaveBtn()">Create</button>
+                </div> 
+            </div>
+        </div>
+        <div class="dimmer" aria-hidden="true"></div>
+    </div>
+    <script th:inline="javascript">
+        const createNewConsentConditionConsentTypeElement = document.getElementById('selectedTypeCondition');
+
+        function createConditionSaveBtn() {
+            const consentGroupVal = document.getElementById('selectedConsentGroupCondition').value;
+            const channelVal = document.getElementById('selectedChannelCondition').value;
+            const consentTypeVal = createNewConsentConditionConsentTypeElement.value;
+            const locationVal = document.getElementById('selectedLocationCondition').value;
+            const subsidiaryVal = document.getElementById('selectedSubsidiaryCondition').value;
+
+            if(consentGroupVal == '' && channelVal == '' 
+                && consentTypeVal == '' && locationVal == '') {
+                openModal('alert', '', 'Please set condition');
+                // alert("조건을 선택해주세요.")
+                return;
+            } else if (consentGroupVal == '' && (channelVal == '' 
+                || consentTypeVal == '' || locationVal == '')) {
+                    openModal('alert', '', 'Please set detail condition');
+                // alert("상세 조건을 선택해주세요.");
+                return;
+            }
+
+            let params;
+            if(consentGroupVal != '') {
+                params = {
+                    'consentGroup': consentGroupVal
+                }
+            } else {
+                params = {
+                    'channel': channelVal,
+                    'consentType': consentTypeVal,
+                    'location': locationVal,
+                    'subsidiary': subsidiaryVal,
+                    'cdcConsentId': consentTypeVal+"."+channelVal+"."+locationVal+"."+subsidiaryVal
+                };
+            }
+                
+            $.ajax({
+                url: "/systemConsents/duplicationConsentCheck", // Set API URL
+                type: "POST",
+                data: JSON.stringify(params),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(oResult){
+                    if (oResult.status == 'ok'){
+                        formElement.action = "/myPage/createNewConsentSubmit";
+                        submitBtn.click();
+                    } else {
+                        openModal('alert', '', "이미 있는 데이터입니다. Consent Detail 화면에서 진행해주세요.");
+                    }
+                },
+                error: function(e){
+                    console.error("Error .... : ", e);
+                }
+            })
+        }
+
+        $(document).ready(() => {
+            setConsentType(typeList, role, createNewConsentConditionConsentTypeElement);
+        });
+    </script>
+    <!-- // Modal Dimmed -->
+</th:block>
+</html>

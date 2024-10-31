@@ -1,0 +1,7 @@
+<html xmlns:th="http://www.thymeleaf.org">
+  <th:block th:fragment="main(content)">
+    <main class="main">
+      <th:block th:replace="${content}"></th:block>
+    </main>
+  </th:block>
+</html>

@@ -1,0 +1,19 @@
+<!-- Error Modal -->
+<div class="modal_wrap" id="errorModal">
+    <div class="modal modal_alert">
+        <div class="modal_header">
+            <button type="button" class="modal_close_btn" onclick="ModalAlertClose('#errorModal')"><span class="blind">Close</span></button>
+        </div>
+        <div class="modal_content">
+            <p id="errorModalTitle" class="alert_error"></p>
+            <ul class="list_ty1" id="errorModalText">
+            </ul>
+        </div>
+        <div class="modal_footer wrap_btn1">
+            <button id="errorModalCancelBtn" type="button" class="btn_m btn_white" onclick="ModalAlertClose('#errorModal')">Close</button>
+            <button id="errorModalConfirmBtn" type="button" class="btn_m">Confirm</button>
+        </div>
+    </div>
+    <div class="dimmer" aria-hidden="true"></div>
+</div>
+<!-- // Error Modal -->

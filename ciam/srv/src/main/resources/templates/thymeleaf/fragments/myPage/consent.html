@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="consent">
+    <!-- <script src="/scripts/consentGrid.js"></script> -->
+
+    <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+    <h2>Terms & Privacy</h2>
+    <form method="POST" class="content_ty3" th:action="@{/myPage/marketingUpdate}">
+        <div id="consentResult" class="pc_grid_wrap ag-theme-quartz custom_ag_grid header-cell-center" style="height: 500px;">
+        </div>
+        <div class="wrap_btn2">
+            <button id="edit" type="button" class="btn_l" onclick="clickedSaveBtn(this)">Save</button>
+        </div>
+
+        <h4 class="tit_ty2">Terms & Privacy History</h4>
+        <div id="consentHistory" class="pc_grid_wrap ag-theme-quartz custom_ag_grid header-cell-center" style="height: 500px;">
+		</div>
+
+        <input type="hidden" id="updatedConsent" name="updatedConsent">
+        <button type="submit" id="submit"></button>
+
+        <!-- <button type="button" class="btn_m" onclick="openUserConsentPreviewModal()">Hello</button> -->
+    </form>
+
+    <div th:replace="~{popups/userConsentPreview}"></div>
+
+    <script th:inline="javascript">
+        const submitBtn = document.getElementById('submit');
+        const changeSuccessText = [[#{myPage.consent.changeSuccessText}]] || '';
+        const changeAlertText = [[#{myPage.consent.changeAlertText}]] || '';
+
+        let userConsentGridResult, userCOnsentHistoryGridResult = null;
+        let aUserConsentData, aUserConsentHistoryData = [];
+        let aHeader, aResultsData, mobileDisplaySize = 4;
+        let startIdx = 0, endIdx = mobileDisplaySize;
+
+        function changeSuccessFunction() {
+            submitBtn.click();
+        }
+
+        function clickedSaveBtn() {
+            let editResult = [];
+            const consentCheckeboxes = document.querySelector('#consentResult').querySelectorAll('.switch');
+            const updatedConsent = document.getElementById('updatedConsent');
+            const consentLength = consentCheckeboxes.length;
+            let i = 0;
+
+            for (let component of consentCheckeboxes) {
+                const currentCheckbox = component.querySelector('input');
+                const currentCheckboxIdArray = currentCheckbox.id.split('_');
+                const currentTermsId = currentCheckboxIdArray[1];
+                const currentConsentId = currentCheckboxIdArray[2];
+                if (!currentCheckbox.disabled) {
+                    let resultJson = {};
+                    resultJson['termsId'] = currentTermsId;
+                    resultJson['consentId'] = currentConsentId;
+                    resultJson['agreeStatus'] = currentCheckbox.checked;
+                    editResult.push(resultJson);
+                }
+                i++;
+            }
+
+            if (i == consentLength) {
+                updatedConsent.value = JSON.stringify(editResult);
+                openModal('alert', changeSuccessFunction, "Do you want to save this settings?");
+            }
+        }
+
+        // clear grid data
+        function initializeGrid(){
+            startIdx = 0;
+            endIdx = mobileDisplaySize;
+
+            if(!!userConsentGridResult){
+                userConsentGridResult.destroy();
+            }
+            if (!!userCOnsentHistoryGridResult) {
+                userCOnsentHistoryGridResult.destroy();
+            }
+
+            renderResultTable();
+        }
+
+        function clickedConsentTitle(target) {
+            const idArray = target.id.split('_');
+            const type = idArray[0];
+            const termsId = idArray[1];
+
+            let currentData;
+            let currentGrid;
+
+            if (type == 'consent') {
+                currentData = aUserConsentData;
+                currentGrid = userConsentGridResult;
+            } else if (type == 'consentHistory'){
+                currentData = aUserConsentHistoryData;
+                currentGrid = userCOnsentHistoryGridResult;
+            }
+
+            const selectedRows = currentData.filter((node) => node.termsId == termsId);
+            
+            if (selectedRows.length > 0) {
+                const selectedRow = selectedRows[0];
+                const selectedConsentTitle = selectedRow.consent;
+                const selectedConsentContent = selectedRow.content;
+                const selectedConsentVersion = selectedRow.version;
+                const selectedConsentReleaseDate = selectedRow.releaseDate;
+
+                openUserConsentPreviewModal(selectedConsentTitle, selectedConsentContent, selectedConsentVersion, selectedConsentReleaseDate);
+            }
+        }
+
+        function renderResultTable(){
+            const oResult = [[${gridData}]];
+
+            if (!oResult) {
+                return;
+            }
+
+            aUserConsentData = oResult.userConsent ? oResult.userConsent : [];
+            aUserConsentHistoryData = oResult.userConsentHistory ? oResult.userConsentHistory : [];
+
+            /**
+             * for PC
+             */
+                // Grid Options: Contains all of the Data Grid configurations
+            const userConsentGridOptions = {
+                    rowData: aUserConsentData,
+                    columnDefs: [
+                        {
+                            headerName: 'Terms ID',       // 데이터로 저장되지만 화면에 보이지 않는 필드
+                            field: 'termsId',
+                            hide: true              // 이 속성을 사용하면 열이 숨겨집니다.
+                        },
+                        {
+                            headerName: 'Consent ID',       // 데이터로 저장되지만 화면에 보이지 않는 필드
+                            field: 'consentId',
+                            hide: true              // 이 속성을 사용하면 열이 숨겨집니다.
+                        },
+                        {
+                            headerName: 'Content',   // 데이터로 저장되지만 화면에 보이지 않는 필드
+                            field: 'content',
+                            hide: true               // 이 속성을 사용하면 열이 숨겨집니다.
+                        },
+                        {
+                            headerName: 'Consent',
+                            field: 'consent',
+                            width: "24%",
+                            cellStyle: { textAlign: 'left' },
+                            headerClass: 'ag-header-cell-center',
+                            unSortIcon: true,
+                            cellRenderer: function (params) {
+                                const paramData = params.data;
+                                const termsId = paramData.termsId;
+                                const currentConsentTitle = paramData.consent;
+                                return `<a id="consent_${termsId}" style="text-decoration: underline;" href="javascript:void(0);" onclick="clickedConsentTitle(this);">${currentConsentTitle}</a>`;
+                            }
+                        },
+                        {
+                            headerName: 'Version',
+                            field: 'version',
+                            width: "5%",
+                            cellStyle: { textAlign: 'center' },
+                            headerClass: 'ag-header-cell-center',
+                        },
+                        {
+                            headerName: 'Location',
+                            field: 'location',
+                            width: "22%",
+                            cellStyle: { textAlign: 'center' },
+                            headerClass: 'ag-header-cell-center',
+                            unSortIcon: true,
+                        },
+                        {
+                            headerName: 'Agreement Date',
+                            field: 'agreementDate',
+                            width: "22%",
+                            cellStyle: { textAlign: 'center' },
+                            headerClass: 'ag-header-cell-center',
+                            unSortIcon: true,
+                        },
+                        {
+                            headerName: 'Release Date',
+                            field: 'releaseDate',
+                            width: "22%",
+                            cellStyle: { textAlign: 'center' },
+                            headerClass: 'ag-header-cell-center',
+                            unSortIcon: true,
+                            cellRenderer: function(params) {
+                                return params.data.releaseDate || params.data.updateDate || '-';
+                            }
+                        },
+                        {
+                            headerName: 'Agreement',
+                            field: 'agreement',
+                            width: "5%",
+                            cellRenderer: function(params) {
+                                const paramData = params.data;
+                                const currentTermsId = paramData.termsId;
+                                const currentConsentId = paramData.consentId;
+                                const requiredYn = paramData.requiredYn;
+                                const agreement = paramData.agreement;
+                                let currentAgreement = agreement == 'Y' ? true : false;
+                                let currentDisabled = requiredYn == 'Y' ? true : false;
+
+                                return `<span class="switch" style="display: flex !important;" onclick="${!currentDisabled ? 'toggleSwitch(this)' : ''}" ><input type="checkbox" type="checkbox" name="" id="agreement_${currentTermsId}_${currentConsentId}" ${currentAgreement ? 'checked' : ''} ${currentDisabled ? 'disabled' : ''}>
+                                        <label id="agreement_${currentTermsId}_${currentConsentId}"></label></span>`;
+                            },
+                            cellStyle: { textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center'},
+                            headerClass: 'ag-header-cell-center',
+                        }
+                    ],
+                    rowSelection: 'single',
+                    pagination : false,
+                    suppressHorizontalScroll: true, // 수평 스크롤을 억제
+                    domLayout: 'autoHeight', // 자동 높이 조정
+                    localeText: {
+                        noRowsToShow: ""  // 'No Rows To Show' 메시지를 'No Match Found'로 변경
+                    },
+                    onGridReady: function(params) {
+                        params.api.sizeColumnsToFit(); // 열 너비를 그리드 너비에 맞춤
+                    }
+                };
+
+                const userConsentHistoryGridOptions = {
+                    rowData: aUserConsentHistoryData,
+                    columnDefs: [
+                        {
+                            headerName: 'ID',       // 데이터로 저장되지만 화면에 보이지 않는 필드
+                            field: 'termsId',
+                            hide: true              // 이 속성을 사용하면 열이 숨겨집니다.
+                        },
+                        {
+                            headerName: 'Content',   // 데이터로 저장되지만 화면에 보이지 않는 필드
+                            field: 'content',
+                            hide: true               // 이 속성을 사용하면 열이 숨겨집니다.
+                        },
+                        {
+                            headerName: 'Consent',
+                            field: 'consent',
+                            width: 200,
+                            cellStyle: { textAlign: 'left' },
+                            headerClass: 'ag-header-cell-center',
+                            unSortIcon: true,
+                            cellRenderer: function (params) {
+                                const paramData = params.data;
+                                const termsId = paramData.termsId;
+                                const currentConsentTitle = paramData.consent;
+                                return `<a id="consentHistory_${termsId}" style="text-decoration: underline;" href="javascript:void(0);" onclick="clickedConsentTitle(this);">${currentConsentTitle}</a>`;
+                            }
+                        },
+                        {
+                            headerName: 'Version',
+                            field: 'version',
+                            width: 150,
+                            cellStyle: { textAlign: 'center' },
+                            headerClass: 'ag-header-cell-center',
+                        },
+                        {
+                            headerName: 'Location',
+                            field: 'location',
+                            width: 200,
+                            cellStyle: { textAlign: 'center' },
+                            headerClass: 'ag-header-cell-center',
+                            unSortIcon: true,
+                        },
+                        {
+                            headerName: 'Agreement Date',
+                            field: 'agreementDate',
+                            width: 200,
+                            cellStyle: { textAlign: 'center' },
+                            headerClass: 'ag-header-cell-center',
+                            unSortIcon: true,
+                        },
+                    ],
+                    rowSelection: 'single',
+                    pagination : false,
+                    suppressHorizontalScroll: true, // 수평 스크롤을 억제
+                    domLayout: 'autoHeight', // 자동 높이 조정
+                    localeText: {
+                        noRowsToShow: ""  // 'No Rows To Show' 메시지를 'No Match Found'로 변경
+                    },
+                    onGridReady: function(params) {
+                        params.api.sizeColumnsToFit(); // 열 너비를 그리드 너비에 맞춤
+                    }
+                };
+
+            // Your Javascript code to create the Data Grid
+            const userConsentResultElement = document.querySelector('#consentResult');
+            userConsentResultElement.style.height = '';
+
+            const userConsentHistoryResultElement = document.querySelector('#consentHistory');
+            userConsentHistoryResultElement.style.height = '';
+
+            // create grid
+            userConsentGridResult = agGrid.createGrid(userConsentResultElement, userConsentGridOptions);
+            userCOnsentHistoryGridResult = agGrid.createGrid(userConsentHistoryResultElement, userConsentHistoryGridOptions);
+        }
+        
+        function toggleSwitch(target) {
+            const currentCheckbox = target.querySelector("input");
+            const currentCheckboxChecked = currentCheckbox.checked;
+            currentCheckbox.checked = !(currentCheckboxChecked);
+        }
+
+        $(document).ready(() => {
+            initializeGrid();
+            
+            if ((typeof responseErrorCode) != 'string') {
+                let modalType = '';
+                let modalText = '';
+                const setResponseTextPromise = new Promise((resolve, reject) => {
+                    if (!!responseErrorCode) {
+                        modalType = 'error';
+                        modalText = serverErrorText;
+                    } else {
+                        modalType = 'success';
+                        modalText = changeSuccessText;
+                    }
+                    if (!!modalText) {
+                        resolve();
+                    }
+                });
+                
+                Promise.all([setResponseTextPromise]).then(() => {
+                    openModal(modalType, '', modalText);
+                });
+            }
+        });
+        
+    </script>
+</th:block>
+</html>

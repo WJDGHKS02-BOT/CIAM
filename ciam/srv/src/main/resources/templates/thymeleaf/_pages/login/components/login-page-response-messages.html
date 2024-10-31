@@ -1,0 +1,48 @@
+<html xmlns:th="http://www.thymeleaf.org">
+  <th:block th:fragment="login-page-response-messages">
+    <div id="response-message">
+      <!-- FIELD : START -->
+      <span class="message error"
+            id="message-field.EMAIL_OR_PASSWORD_INCORRECT"
+            th:utext="#{message-field.EMAIL_OR_PASSWORD_INCORRECT}"></span>
+      <span class="message error"
+            id="message-MISSING_REQUIRED_PARAMETER"
+            th:utext="#{message-field.MISSING_REQUIRED_PARAMETER}"></span>
+      <span class="message error"
+            id="message-field.ENTERED_WRONG_VERIFICATION_CODE"
+            th:utext="#{message-field.ENTERED_WRONG_VERIFICATION_CODE}"></span>
+      <span class="message error"
+            id="message-field.SAME_AS_CURRENT_PASSWORD"
+            th:utext="#{message-field.SAME_AS_CURRENT_PASSWORD}"></span>
+      <span class="message error"
+            id="message-field.NOT_SAME_PASSWORD"
+            th:utext="#{message-field.NOT_SAME_PASSWORD}"></span>
+      <span class="message error"
+            id="message-field.PASSWORD_PATTERN_INVALID"
+            th:utext="#{message-field.PASSWORD_PATTERN_INVALID}"></span>
+      <!-- FIELD : START -->
+      <!-- CAPTCHA : END -->
+      <span class="message error"
+            id="message-captcha.IS_REQUIRED"
+            th:utext="#{message-captcha.IS_REQUIRED}"></span>
+      <span class="message error"
+            id="message-captcha.IS_WRONG"
+            th:utext="#{message-captcha.IS_WRONG}"></span>
+      <!-- CAPTCHA : END -->
+      <!-- CODE : START -->
+      <span class="message success"
+            id="message-code.RESEND_SUCCESS"
+            th:utext="#{message-code.RESEND_SUCCESS}"></span>
+      <span class="message error"
+            id="message-code.EMAIL_REQUEST_EXPIRED"
+            th:utext="#{message-code.EMAIL_REQUEST_EXPIRED}"></span>
+      <!-- CODE : END -->
+      <span class="message error"
+            id="message-accounts.IS_NOT_ACTIVATED"
+            th:utext="#{message-accounts.IS_NOT_ACTIVATED}"></span>
+      <span class="message error"
+            id="message-all.INVALID_LOGIN_REQUEST"
+            th:utext="#{message-all.INVALID_LOGIN_REQUEST}"></span>
+    </div>
+  </th:block>
+</html>

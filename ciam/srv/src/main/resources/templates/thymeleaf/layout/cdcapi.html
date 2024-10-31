@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>SAMSUNG DAP PORTAL</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <link th:href="@{/theme/assets/img/favicon.png}" rel="icon">
+
+    <!-- Vendor CSS Files -->
+    <link th:href="@{/theme/assets/vendor/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/theme/assets/fontawesome/css/all.css}" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link th:href="@{/theme/assets/css/style.css}" rel="stylesheet">
+
+    <link href="https://cdn.datatables.net/v/bs5/dt-1.13.6/r-2.5.0/datatables.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #ffffff;
+        }
+    </style>
+
+    <!-- <meta name="csrf-token" content="{{ csrf_token() }}" /> -->
+    <!--<meta name="csrf-token" th:content="${_csrf.token}"/> -->
+
+    <!--  <th:block th:include="fragments/metaheader"></th:block> -->
+ </head>
+
+ <body>
+ <header id="header" class="header fixed-top d-flex align-items-center">
+     <a th:href="@{/}" class="logo d-flex align-items-center">
+         <img th:src="@{/theme/assets/img/samsung_blue.png}" alt="">
+     </a>
+ </header>
+ <main id="main">
+     <div class="container">
+         <th:block th:include="layout/messages"></th:block>
+         <th:block th:include="${content}"></th:block>
+     </div>
+ </main><!-- End #main -->
+
+<th:block th:include="fragments/popups"></th:block>
+
+<!-- ======= Footer ======= -->
+<div class="container copyright text-center mt-4">
+    <div class="copyright">
+        &copy; All Rights Reserved
+    </div>
+</div><!-- End Footer -->
+
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+<!-- Vendor JS Files -->
+<script th:src="@{/theme/assets/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/theme/assets/fontawesome/js/all.js}"></script>
+
+<!-- Template Main JS File -->
+<script th:src="@{/theme/assets/js/main.js}"></script>
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/v/bs5/dt-1.13.6/r-2.5.0/datatables.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const submitButton = document.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', (event) => {
+            // show loading icon
+            const loadingIcon = document.createElement('i');
+            loadingIcon.classList.add('fa', 'fa-spinner', 'fa-spin');
+            loadingIcon.style.fontSize = '10em';
+            loadingIcon.style.color = 'black';
+            loadingIcon.style.position = 'fixed'; // set the position to fixed
+            loadingIcon.style.top = '50%'; // set the top position to 50%
+            loadingIcon.style.left = '50%'; // set the left position to 50%
+            loadingIcon.style.transform = 'translate(-50%, -50%)';
+            submitButton.appendChild(loadingIcon);
+
+            // disable submit button
+            submitButton.disabled = true;
+
+            // show grey overlay
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = 0;
+            overlay.style.left = 0;
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.zIndex = '9999';
+            document.body.appendChild(overlay);
+
+            // remove overlay after 2 seconds
+            setTimeout(() => {
+                overlay.remove();
+                loadingIcon.remove();
+                submitButton.disabled = false; // enable submit button
+            }, 10000);
+        });
+    });
+</script>
+
+<th:block th:include="fragments/scripts"></th:block>
+</body>
+
+</html>

@@ -1,0 +1,61 @@
+@charset 'utf-8';
+/*-------------------------------------------------------------------
+	분류그룹 : 초기화
+	속성순서 : 레이아웃, 사이징, 박스모양, 글자모양, 문단모양, 기타모양
+-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------
+	@Fonts
+-------------------------------------------------------------------*/
+@font-face {font-family:"SamsungOne"; font-weight:200; src:url('../fonts/SamsungOne-200.eot'); src:local('※'), url('../fonts/SamsungOne-200.eot?#iefix') format('embedded-opentype'), url('../fonts/SamsungOne-200.woff') format('woff'), url('../fonts/SamsungOne-200.woff2') format('woff2');}
+@font-face {font-family:"SamsungOne"; font-weight:400; src:url('../fonts/SamsungOne-400.eot'); src:local('※'), url('../fonts/SamsungOne-400.eot?#iefix') format('embedded-opentype'), url('../fonts/SamsungOne-400.woff') format('woff'), url('../fonts/SamsungOne-400.woff2') format('woff2');}
+@font-face {font-family:"SamsungOne"; font-weight:700; src:url('../fonts/SamsungOne-700.eot'); src:local('※'), url('../fonts/SamsungOne-700.eot?#iefix') format('embedded-opentype'), url('../fonts/SamsungOne-700.woff') format('woff'), url('../fonts/SamsungOne-700.woff2') format('woff2');}
+@font-face {font-family:"SamsungOne"; font-weight:800; src:url('../fonts/SamsungOne-800.eot'); src:local('※'), url('../fonts/SamsungOne-800.eot?#iefix') format('embedded-opentype'), url('../fonts/SamsungOne-800.woff') format('woff'), url('../fonts/SamsungOne-800.woff2') format('woff2');}
+
+/*-------------------------------------------------------------------
+	@Resets
+-------------------------------------------------------------------*/
+html, body, div, ul, ol, dl, li, dt, dd, p, h1, h2, h3, h4, h5, h6, table, thead, tbody, tr, th, td, caption, address, article, aside,
+canvas, details, figure, figcaption, main, footer, header, menu, nav, section,
+button, select, textarea, input, fieldset, legend, label, a, span, strong, em, address, dfn, small, i, b, form {margin:0; padding:0; border:0; list-style:none; font-style:normal; font-size:inherit; font-weight:inherit; font-family:inherit; color:inherit; box-sizing:inherit; -webkit-box-sizing:inherit; -moz-box-sizing:inherit; -o-box-sizing:inherit; -webkit-print-color-adjust:exact;}
+:before, :after {box-sizing:inherit; -webkit-box-sizing:inherit; -moz-box-sizing:inherit; -o-box-sizing:inherit;}
+main, article, aside, canvas, details, figure, figcaption, footer, header, menu, nav, section {display:block;}
+body {font-family:'SamsungOne', 'sans-serif'; font-size:14px; color:#313131; line-height:1; word-break:keep-all; word-wrap:break-word; box-sizing:border-box; -webkit-box-sizing:border-box; -moz-box-sizing:border-box; -o-box-sizing:border-box; -webkit-text-size-adjust: none; -moz-text-size-adjust: none; -ms-text-size-adjust: none;}
+html[lang=ja] body, html[lang=zh] body {word-break:normal;}
+[hidden], hr {display:none;}
+img {vertical-align:middle;}
+button {background-color:transparent; cursor:pointer;}
+fieldset, iframe {width:100%;}
+img, a, frame, iframe, fieldset {border:0;}
+a {text-decoration:none;}
+table {width:100%; border-spacing:0; border-collapse:collapse;}
+caption, legend {position:fixed; overflow: hidden; border: 0; margin:-1px; width: 1px; height: 1px; clip: rect(1px, 1px, 1px, 1px); -webkit-clip-path: inset(50%); clip-path: inset(50%);}
+button {overflow:hidden; background-color:transparent; cursor:pointer;}
+button::-moz-focus-inner {border:0px; padding:0px;}
+input[type='checkbox'],input[type='radio'],select {appearance:none; -webkit-appearance:none; -moz-appearance:none; -o-appearance:none;}
+textarea {resize:none;}
+select::-ms-expand {display:none;}
+input::-webkit-input-placeholder{color:#bbb; }
+input::-ms-clear,
+input::-ms-reveal {display:none; width:0; height:0;} 
+input::search-decoration,
+input::search-cancel-button,
+input::search-results-button,
+input::search-results-decoration {display:none;}
+input::-webkit-search-decoration,
+input::-webkit-search-cancel-button,
+input::-webkit-search-results-button,
+input::-webkit-search-results-decoration {display:none;}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button {-webkit-appearance:none; margin:0;}
+input::-webkit-calendar-picker-indicator {-webkit-appearance:none;}
+.dv-android [tabindex='0']:focus,
+.dv-android a:focus,
+.dv-android button:focus,
+.dv-android input:focus,
+.dv-android textarea:focus,
+.dv-android select:focus {outline:0;}
+.dv-ios [tabindex='0'],
+.dv-ios a,
+.dv-ios button,
+.dv-ios input,
+.dv-ios textarea,
+.dv-ios select {-webkit-tap-highlight-color:transparent;}

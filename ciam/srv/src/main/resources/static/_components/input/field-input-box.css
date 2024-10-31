@@ -1,0 +1,157 @@
+.field-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.field-title {
+  font: var(--samsung-700-12);
+  margin-bottom: 4px;
+}
+
+.field-input-box {
+  position: relative;
+  padding: 0 44px 0 10px;
+  height: 40px;
+  border-radius: 8px;
+  font: var(--samsung-400-14);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-05);
+  
+  &::placeholder {
+    color: var(--color-gray-04)
+  }
+  
+  &:focus,
+  &:focus:read-only {
+    border-color: var(--color-gray-01);
+  }
+  
+  &:disabled {
+    background-color: var(--color-bg-gray);
+  }
+  
+  &:read-only {
+    background-color: var(--color-bg-gray);
+    cursor: default;
+    
+    &:focus {
+      border-color: var(--color-gray-05);
+    }
+  }
+  
+  &:required::after {
+    content: "*";
+  }
+  
+  &:focus-within .field-input-box-clear-button {
+    display: block;
+  }
+}
+
+/* Button */
+.field-button-wrapper {
+  position: absolute;
+  top: calc(50% + 1px);
+  transform: translateY(-50%);
+  right: 12px;
+  column-gap: 8px;
+  display: flex;
+}
+
+.field-input-box-ico-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20px;
+  height: 20px;
+}
+
+.field-input-box:focus ~ .field-button-wrapper > .field-input-box-clear-button {
+  visibility: visible;
+  opacity: 1;
+}
+
+.field-input-box-clear-button {
+  opacity: 0;
+}
+
+.field-input-box-clear-button--hide {
+  visibility: hidden;
+}
+
+.field-input-box-hidden-button {
+}
+
+.field-wrapper:has(.field-input-box-hidden-button) .field-input-box {
+  padding-right: 72px;
+}
+
+/* Required / Success / Error */
+.input-state-message {
+  position: relative;
+  display: flex;
+  align-items: center;
+  font: var(--samsung-400-12);
+  margin-top: 2px;
+  height: 18px;
+  
+  &::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.field--required > .field-title::after {
+  content: "*";
+  font: var(--samsung-700-12);
+  color: var(--color-error);
+  margin-left: 2px;
+}
+
+.field-state--error {
+  > .field-input-box {
+    border-color: var(--color-error);
+    
+    &:focus {
+      border-color: var(--color-error);
+    }
+  }
+  
+  .input-state-message:not(:empty)::before {
+    margin-right: 4px;
+    background: url("/theme/assets/image/common/ico_info.png") no-repeat center;
+  }
+}
+
+.field-state--success {
+  > .field-input-box {
+    border-color: var(--color-point);
+    
+    &:focus {
+      border-color: var(--color-point);
+    }
+  }
+  
+  .input-state-message:not(:empty)::before {
+    background: url("/theme/assets/image/common/ico_input_success.png") no-repeat center;
+  }
+}
+
+.field-state--error .input-state-message {
+  color: var(--color-error);
+  
+  > img {
+    margin-right: 4px;
+  }
+}
+
+.field-state--success > .input-state-message {
+  color: var(--color-point);
+  
+  > img {
+    width: 16px;
+    height: 16px;
+  }
+}

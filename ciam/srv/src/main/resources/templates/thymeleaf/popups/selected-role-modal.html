@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grant Biz Admin Role</title>
+</head>
+
+<body>
+<div class="modal_wrap" id="selectedRoleModal">
+    <div class="modal modal_dimmed M">
+        <div class="modal_header">
+            <h4>Grant Biz Admin Role</h4>
+            <button class="modal_close_btn" onclick="handleCloseSelectedRoleModal()" type="button"><span
+                    class="blind">Close</span></button>
+        </div>
+        <div class="modal_content">
+            <form id="grantRoleForm">
+                <section>
+                    <h5 style="margin-top: 0;">Country</h5>
+                    <div class="checkbox-wrapper checkbox-country">
+                        <div class="check">
+                            <input id="country-all" name="country-all" type="checkbox" value="ALL">
+                            <label for="country-all"><span>ALL</span></label>
+                        </div>
+                        <th:block th:each="countryInfo : ${companyObject.countries}">
+                            <th:block
+                                    th:replace="~{fragments/checkbox :: checkbox(|country-${countryInfo.nameEn}|, ${countryInfo.countryCode}, ${countryInfo.nameEn})}">
+                            </th:block>
+                        </th:block>
+                    </div>
+                </section>
+                <section>
+                    <h5>Subsidiary</h5>
+                    <div class="checkbox-wrapper checkbox-subsidiary">
+                        <div class="check">
+                            <input id="subsidiary-all" name="subsidiary-all" type="checkbox" value="ALL">
+                            <label for="subsidiary-all"><span>ALL</span></label>
+                        </div>
+                        <th:block th:each="subsidiaryInfo : ${companyObject.subsidiarys}">
+                            <th:block
+                                    th:replace="~{fragments/checkbox :: checkbox(|subsidiary-${subsidiaryInfo.companyAbbreviation}|, ${subsidiaryInfo.companyAbbreviation}, ${subsidiaryInfo.companyAbbreviation})}">
+                            </th:block>
+                        </th:block>
+                    </div>
+                </section>
+                <section>
+                    <h5>Division</h5>
+                    <div class="checkbox-wrapper checkbox-division">
+                        <div class="check">
+                            <input id="division-all" name="division-all" type="checkbox" value="ALL">
+                            <label for="division-all"><span>ALL</span></label>
+                        </div>
+                        <th:block th:each="divisionInfo : ${companyObject.approvalDivisions}">
+                            <th:block
+                                    th:replace="~{fragments/checkbox :: checkbox(|division-${divisionInfo.name}|, ${divisionInfo.value}, ${divisionInfo.name})}">
+                            </th:block>
+                        </th:block>
+                    </div>
+                </section>
+            </form>
+        </div>
+        <div class="modal_footer">
+            <div class="bt_wrap2">
+                <button class="btn_m btn_white" onclick="handleCloseSelectedRoleModal()" type="button">Cancel</button>
+                <button class="btn_m" onclick="handleClickSaveButton()" type="button">Save</button>
+            </div>
+        </div>
+    </div>
+    <div aria-hidden="true" class="dimmer"></div>
+</div>
+
+<style th:inline="javascript">
+    .checkbox-wrapper {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px 8px;
+        height: 100px;
+        overflow-y: scroll;
+        padding: 8px;
+        border: 1px solid #dddddd;
+        border-radius: 8px;
+    }
+</style>
+
+<script th:inline="javascript">
+    const selectedValues = {
+        country: null,
+        subsidiary: null,
+        division: null
+    };
+
+    function initializeModalValues() {
+        const divisions = /*[[${companyObject['approvalDivision'] != null ? companyObject['approvalDivision'] : ''}]]*/ '';
+        const subsidiaries = /*[[${companyObject['approvalSubsidiary'] != null ? companyObject['approvalSubsidiary'] : ''}]]*/ '';
+        const countries = /*[[${companyObject['approvalCountry'] != null ? companyObject['approvalCountry'] : ''}]]*/ '';
+
+        // 설정된 값을 배열로 변환 (콤마로 구분된 값 처리)
+        if (divisions) {
+            const divisionArray = divisions.split(',');
+            setCheckedValues('checkbox-division', divisionArray);
+            if (divisionArray.includes('ALL')) {
+                disableAllExcept('checkbox-division', 'division-all');
+            }
+        }
+        if (subsidiaries) {
+            const subsidiaryArray = subsidiaries.split(',');
+            setCheckedValues('checkbox-subsidiary', subsidiaryArray);
+            if (subsidiaryArray.includes('ALL')) {
+                disableAllExcept('checkbox-subsidiary', 'subsidiary-all');
+            }
+        }
+        if (countries) {
+            const countryArray = countries.split(',');
+            setCheckedValues('checkbox-country', countryArray);
+            if (countryArray.includes('ALL')) {
+                disableAllExcept('checkbox-country', 'country-all');
+            }
+        }
+    }
+
+    function disableAllExcept(sectionClass, allCheckboxId) {
+        const checkboxes = document.querySelectorAll(`.${sectionClass} input[type="checkbox"]:not(#${allCheckboxId})`);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+            checkbox.disabled = true;
+        });
+        document.getElementById(allCheckboxId).checked = true;
+    }
+
+    function setCheckedValues(sectionClass, values) {
+        const checkboxes = document.querySelectorAll(`.${sectionClass} input[type="checkbox"]`);
+        checkboxes.forEach(checkbox => {
+            // 콤마로 분리된 값이 체크박스 값과 일치하면 선택
+            if (values.includes(checkbox.value)) {
+                checkbox.checked = true;
+            }
+        });
+    }
+
+    // 섹션 이벤트 설정
+    function setupSection(sectionClass, allCheckboxId) {
+        const allCheckbox = document.getElementById(allCheckboxId);
+
+        allCheckbox.addEventListener('change', () => {
+            const checkboxes = document.querySelectorAll(`.${sectionClass} input[type="checkbox"]:not(#${allCheckboxId})`);
+            checkboxes.forEach(checkbox => checkbox.disabled = allCheckbox.checked);
+            if (allCheckbox.checked) checkboxes.forEach(checkbox => checkbox.checked = false);
+        });
+    }
+
+    // Division 섹션에서 두 개 이상 선택 시 자동으로 ALL 체크 및 다른 선택 비활성화
+    function setupDivisionSection() {
+        const allCheckbox = document.getElementById('division-all');
+
+        // ALL 체크박스 클릭 시 다른 체크박스 비활성화
+        allCheckbox.addEventListener('change', () => {
+            debugger;
+            const checkboxes = document.querySelectorAll('.checkbox-division input[type="checkbox"]:not(#division-all)');
+            checkboxes.forEach(checkbox => checkbox.disabled = allCheckbox.checked);
+            if (allCheckbox.checked) checkboxes.forEach(checkbox => checkbox.checked = false);
+        });
+
+        // 다른 체크박스 클릭 시 두 개 이상 선택되면 ALL 체크 및 다른 체크박스 비활성화
+        document.querySelectorAll('.checkbox-division input[type="checkbox"]:not(#division-all)').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const checkedCount = document.querySelectorAll('.checkbox-division input[type="checkbox"]:checked:not(#division-all)').length;
+                if (checkedCount >= 2) {
+                    allCheckbox.checked = true;
+                    document.querySelectorAll('.checkbox-division input[type="checkbox"]:not(#division-all)').forEach(c => {
+                        c.checked = false;
+                        c.disabled = true; // 다른 체크박스 비활성화
+                    });
+                } else {
+                    allCheckbox.checked = false;
+                    document.querySelectorAll('.checkbox-division input[type="checkbox"]').forEach(c => c.disabled = false); // 활성화
+                }
+            });
+        });
+    }
+
+    // 값 수집 및 콤마로 연결
+    function handleClickSaveButton() {
+        debugger;
+        function collectCheckedValues(sectionClass) {
+            const checkedValues = Array.from(document.querySelectorAll(`.${sectionClass} input[type="checkbox"]:checked:not(#${sectionClass}-all)`))
+                .map(checkbox => checkbox.value);
+            return checkedValues.length > 0 ? checkedValues.join(',') : null;
+        }
+
+        selectedValues.country = collectCheckedValues('checkbox-country');
+        selectedValues.subsidiary = collectCheckedValues('checkbox-subsidiary');
+        selectedValues.division = collectCheckedValues('checkbox-division');
+
+        console.log('Selected Values:', selectedValues);
+
+        handleClickCellButton();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupSection('checkbox-country', 'country-all');
+        setupSection('checkbox-subsidiary', 'subsidiary-all');
+        setupDivisionSection(); // Division 섹션 설정
+
+        initializeModalValues(); // 모달이 열리면 값을 설정
+    });
+
+    function handleCloseSelectedRoleModal() {
+        // document.querySelectorAll("input[type='checkbox']").forEach(checkbox => checkbox.checked = false);
+        // for (let key in selectedValues) selectedValues[key] = null;
+        ModalOpenClose('#selectedRoleModal');
+    }
+</script>
+</body>
+
+</html>

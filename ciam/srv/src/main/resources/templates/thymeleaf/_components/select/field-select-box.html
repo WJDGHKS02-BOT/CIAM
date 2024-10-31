@@ -1,0 +1,26 @@
+<html xmlns:th="http://www.thymeleaf.org">
+  <th:block th:fragment="field-select-box(fieldTitle, fieldName, fieldValue, required, readonly, fieldState, stateMessage, options)">
+    <label th:class="${'field-wrapper' +
+                     (required ? ' field--required' : '') +
+                     (readonly ? ' field--readonly' : '') +
+                     (fieldState == 'error' ? ' field-state--error' : '') +
+                     (fieldState == 'success' ? ' field-state--success' : '')}">
+      <h5 class="field-title"
+          th:text="${fieldTitle}">Field Title</h5>
+      <div class="field-select-wrapper">
+        <select class="field-select-box"
+                th:disabled="${readonly}"
+                th:name="${fieldName}"
+                th:required="${required}">
+          <option th:each="option : ${options}"
+                  th:selected="${option == fieldValue}"
+                  th:utext="${option.key}"
+                  th:value="${option.value}"></option>
+        </select>
+        <div class="field-select-arrow"></div>
+      </div>
+      <p class="input-state-message"
+         th:text="${stateMessage}"></p>
+    </label>
+  </th:block>
+</html>

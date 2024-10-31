@@ -1,0 +1,156 @@
+<!-- Modal Dimmed -->
+<div class="modal_wrap" id="verifyingAccountModal">
+    <div class="modal modal_dimmed M">
+        <div class="modal_header">
+            <h4>Verifying Your Account</h4>
+            <button type="button" class="modal_close_btn" onclick="ModalOpenClose('#verifyingAccountModal')"><span class="blind">Close</span></button>
+        </div>
+        <div class="modal_content">
+            <div class="txt_ty2">2-Factor Authentication</div>
+    
+            <div id="verifyingEmail" class="txt_ty3" th:text="${channelHeader != null ? channelHeader['loginUserId'] : ''}">
+            </div>
+    
+            <div class="txt_ty4" th:utext="#{selfregisteration.verificationText}">
+            </div>
+            
+            <dl class="form_list2">
+                <dt class="requ" th:text="#{selfregisteration.verificationCode}">Verification Code</dt>
+                <dd>
+                    <input type="text" name="" id="verifyCode" value="" th:placeholder="#{myPage.verifyingAccount.placeholder.verifyCode}" class="input">
+                </dd>
+            </dl>
+            <dl class="margin_div1">
+                <dd class="list_wrap1">
+                    <th:block th:utext="#{selfregisteration.verificationNote5}"></th:block>
+                    <div>
+                        <p id="resendText" style="display: none;"></p>
+                        <button type="button" id="resendLink" onclick="setResendLink()" class="link_blue" style="border: none;"
+                                th:text="#{selfregisteration.verificationResendLink}">Resend</button>
+                    </div>
+                </dd>
+            </dl>
+        </div>
+        <div class="modal_footer">
+            <div class="bt_wrap2">
+                <button type="button" class="btn_xl" style="width: 100%;" onclick="clickedContinueBtn()">Continue</button>
+            </div> 
+        </div>
+    </div>
+    <div class="dimmer" aria-hidden="true"></div>
+</div>
+<!-- // Modal Dimmed -->
+
+<script th:inline="javascript">
+    const resendBtn = document.getElementById("resendLink");
+    const resendText = document.getElementById("resendText");
+    const verifyCodeInput = document.getElementById("verifyCode");
+
+    const emptyVerifyCodeText = [[#{myPage.verifyingAccount.emptyVerifyCode}]] || '';
+    const invalidVerifyCodeText = [[#{myPage.verifyingAccount.invalidVerifyCode}]] || '';
+
+    const verifyLoginUserId = [[${channelHeader.loginUserId}]] || '';
+
+    // Resend 버튼과 텍스트 display 토글
+    function resendFieldsVisibleToggle() {
+        const resendBtnDisplay = resendBtn.style.display;
+        if (!resendBtnDisplay) {
+            resendBtn.style.display = 'none';
+            resendText.style.display = '';
+        } else {
+            resendBtn.style.display = '';
+            resendText.style.display = 'none';
+        }
+    }
+
+    // Resend 버튼 클릭
+    function setResendLink() {
+        const resendParams = {
+            "loginUserId": verifyLoginUserId
+        };
+
+        const resendParamsString = JSON.stringify(resendParams);
+
+        $.ajax({
+            url: "/myPage/sendEmailCode",
+            type: "POST",
+            data: resendParamsString,
+            contentType: "application/json; charset=utf-8",
+            dataType: "text",
+            success: function(data){
+            },
+            error: function(error){
+            }
+        });
+
+        // set resend text
+        setResendTime();
+    }
+
+    // 10초에 한 번씩 Resend 버튼 활성화
+    function setResendTime() {
+        let time = 9;
+        resendText.innerText = `Resend in ${time} sec`;
+        resendFieldsVisibleToggle();
+        let resendTimer = setInterval(() => {
+            time -= 1;
+            resendText.innerText = `Resend in ${time} sec`;
+        }, 1000);
+        setTimeout(() => {
+            clearInterval(resendTimer);
+            resendFieldsVisibleToggle();
+        }, 10000);
+    }
+
+    function clickedContinueBtn() {
+        // 메일 인증 API 호출 후 성공 여부
+        const verifyCode = verifyCodeInput.value;
+
+        if (!verifyCode) {
+            openModal('error', '', emptyVerifyCodeText);
+            return;
+        }
+
+        const verifyCodePromise = new Promise((resolve, reject) => {
+            const verifyCodeParams = {
+                "verCode": verifyCode
+            };
+
+            const verifyCodeParamsString = JSON.stringify(verifyCodeParams);
+
+            $.ajax({
+                url: "/myPage/emailVerified",
+                type: "POST",
+                data: verifyCodeParamsString,
+                contentType: "application/json; charset=utf-8",
+                dataType: "text",
+                success: function(data){
+                    console.log('data: ', data);
+                    resolve(data);
+                },
+                error: function(error){
+                    console.error('error: ', error);
+                    reject();
+                }
+            });
+        });
+
+        Promise.all([verifyCodePromise]).then((data) => {
+            if (!!data) {
+                const result = data[0];
+                
+                if (result == 'Y') {
+                    verifySuccess();
+                } else if (result == 'N') {
+                    openModal('error', '', invalidVerifyCodeText);
+                } else if (result == 'D') {
+                    openModal('error', '', "만료 됐습니다...");
+                } else {
+                    openModal('error', '', serverErrorText);
+                }
+            }
+        }).catch((e) => {
+            openModal('error', '', serverErrorText);
+        });
+    }
+</script>

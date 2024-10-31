@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0"
+          name="viewport">
+    <title>Unmask Modal</title>
+
+    <style>
+        /* 기존 스타일에서 필요한 부분을 확장하여 modal_textarea_unmask에 적용 */
+        .modal_textarea_unmask {
+            width: 500px; /* 모달의 너비 조정 */
+            background-color: #fff; /* 배경색 흰색 */
+            border-radius: 8px; /* 모서리 둥글게 */
+            padding: 40px 50px; /* 내부 여백 */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* 그림자 효과 추가 */
+            position: relative;
+            text-align: center; /* 모달 내 텍스트 중앙 정렬 */
+            margin: auto; /* 모달을 화면 중앙에 위치시킴 */
+            opacity: 0; /* 초기 상태에서 투명하게 */
+            transform: scale(0.75); /* 초기 상태에서 크기를 작게 */
+            transition: all 0.2s ease; /* 등장 애니메이션 */
+        }
+
+        .modal_wrap.is_active > .modal_textarea_unmask {
+            opacity: 1; /* 활성화 시 모달을 보이게 */
+            transform: scale(1); /* 활성화 시 모달 크기를 정상으로 */
+        }
+
+        .modal_textarea_header {
+            padding: 0; /* 상단 패딩 제거 */
+            font-size: 40px; /* 제목 크기 */
+            font-weight: 800; /* 제목 굵게 */
+            margin-bottom: 40px; /* 제목과 텍스트박스 사이의 간격 */
+            text-align: center; /* 제목을 가운데 정렬 */
+            /*position: relative; !* 닫기 버튼과 제목을 위치시킴 *!*/
+        }
+
+        .modal_textarea_content textarea {
+            width: 100%; /* 텍스트박스의 너비를 모달에 맞추기 */
+            height: 200px; /* 텍스트박스의 높이 */
+            border: 1px solid #bbb; /* 테두리 색상 */
+            border-radius: 8px; /* 텍스트박스 모서리 둥글게 */
+            padding: 12px 10px; /* 텍스트박스 내부 여백 */
+            box-sizing: border-box; /* 패딩 포함한 크기 계산 */
+            font-size: 16px; /* 글자 크기 */
+            font-weight: 400;
+        }
+
+        .modal_textarea_footer {
+            display: flex; /* 버튼들을 가로로 배치 */
+            justify-content: space-between; /* 버튼 간격 벌리기 */
+            align-items: center; /* 버튼의 텍스트가 중앙에 위치하도록 */
+            margin-top: 20px; /* 텍스트박스와 버튼 사이의 간격 */
+        }
+
+        .modal_close_btn {
+            top: 4px !important; /* 모서리에 더 가깝게 조정 */
+            right: 4px !important; /* 모서리에 더 가깝게 조정 */
+        }
+
+        .modal_textarea_close_btn .blind {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+<div class="modal_wrap"
+     id="unmaskModal">
+    <div class="modal modal_textarea_unmask">
+        <div class="modal_textarea_header">
+            Reason for Unmasking
+            <button class="modal_close_btn"
+                    onclick="unmaskModalOpenClose('#unmaskModal')"
+                    type="button"><span class="blind">닫기</span></button>
+        </div>
+        <div class="modal_textarea_content">
+            <textarea id="reasonTextarea"
+                      name="reason"
+                      placeholder="Enter reason here"
+                      rows="7"></textarea>
+        </div>
+        <div class="modal_textarea_footer wrap_btn1">
+            <button class="btn_m btn_white"
+                    onclick="unmaskModalOpenClose('#unmaskModal')"
+                    type="button">Cancel</button>
+            <button class="btn_m"
+                    id="unmaskSave"
+                    type="button">Save</button>
+        </div>
+    </div>
+    <div aria-hidden="true"
+         class="dimmer"></div>
+</div>
+<script>
+
+
+</script>
+</body>
+</html>

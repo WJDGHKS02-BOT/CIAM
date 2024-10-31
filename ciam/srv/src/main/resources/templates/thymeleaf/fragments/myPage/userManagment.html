@@ -1,0 +1,562 @@
+
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <style>
+        #invitationUserResult {
+            height: 520px;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            > dt {
+                min-width: 0;
+                padding-right: 0;
+            }
+            > dd {
+                flex: 1;
+            }
+        }
+
+        .form_list6 {
+            gap: 50px;
+        }
+
+        .menu dt {
+            width: 120px; /* 레이블 너비 증가 */
+            text-align: right;
+            padding-right: 10px;
+            white-space: nowrap; /* 줄바꿈 방지 */
+        }
+
+        .menu dd {
+            flex: 1;
+        }
+
+        .input {
+            width: 180px; /* 입력 필드의 고정 너비 설정 */
+            box-sizing: border-box;
+        }
+        .btn_m {
+            display :inline-block;
+        }
+    </style>
+</head>
+<body>
+<th:block th:fragment="userManagment">
+    <div th:unless="${channelHeader['myRole'] == 'General User'}">
+        <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+
+        <h2>User Management</h2>
+        <div class="content_ty4">
+            <div class="list_wrap1">
+                <div style="width: 100%; display: flex; flex-direction: column; row-gap: 12px;">
+                    <dl class="form_list6">
+                        <div class="menu" style="width: 350px;">
+                            <dt>Channel</dt>
+                            <dd>
+                                <select name="channel" id="channel" class="select" th:readonly="${role} == 'CIAM Admin' ? false : true" >
+                                    <option th:if="${role} == 'CIAM Admin'" value="">ALL</option>
+                                    <option th:each="channel : ${channels}"
+                                            th:value="${channel.channelName}"
+                                            th:text="${channel.channelDisplayName}"
+                                            th:selected="${channel.channelName == channelHeader['channelName']}"></option>
+                                </select>
+                            </dd>
+                        </div>
+
+                        <div class="menu" style="width: 350px;">
+                            <dt>Company Name</dt>
+                            <dd>
+                                <input type="text" th:value="${companyName}"  id="companyName" placeholder="" class="input role-input" th:readonly="${role} == 'Partner Admin' ? true : false">
+                            </dd>
+                        </div>
+                    </dl>
+                    <dl class="form_list6">
+                        <div class="menu" style="width: 350px;">
+                            <dt>User ID</dt>
+                            <dd>
+                                <input type="text" id="userId"  placeholder="" class="input role-input">
+                            </dd>
+                        </div>
+
+                        <div class="menu" style="width: 350px;">
+                            <dt>Company Code</dt>
+                            <dd>
+                                <input type="text" th:value="${companyId}" id="companyId"  placeholder="" class="input role-input" th:readonly="${role} == 'Partner Admin' ? true : false">
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <dl class="form_list6">
+                        <div class="menu" style="width: 350px;">
+                            <dt>First Name</dt>
+                            <dd>
+                                <input type="text" id="firstName" placeholder="" class="input role-input">
+                            </dd>
+                        </div>
+
+                        <div class="menu" style="width: 350px;">
+                            <dt>Last Name</dt>
+                            <dd>
+                                <input type="text" id="lastName" placeholder="" class="input role-input">
+                            </dd>
+                        </div>
+
+                    </dl>
+
+<!--                    <dl class="form_list6">-->
+<!--                        <div class="menu" style="width: 350px;">-->
+<!--                            <dt>Domain</dt>-->
+<!--                            <dd>-->
+<!--                                <input type="text" id="domain" placeholder="" class="input role-input">-->
+<!--                            </dd>-->
+<!--                        </div>-->
+
+<!--                    </dl>-->
+
+                    <div style="width: 120px; margin-left: 635px; margin-top: 20px;">
+                        <button class="btn_m" onclick="searchUserManagment()">Search</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="searchUserManagmentResult" class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center"></div>
+        </div>
+    </div>
+    <script th:inline="javascript">
+        const searchUserManagmentResultElement = document.querySelector('#searchUserManagmentResult');
+    
+        var role = [[${role}]] || '';
+    
+        let oSearchUserManagmentResultGrid = null;
+        let aHeader, aResultsData, mobileDisplaySize = 4;
+        let startIdx = 0, endIdx = mobileDisplaySize;
+        let columnDefs = [];
+    
+        const columnDefaultOptions = {
+            cellStyle: { textAlign: 'center' },
+            unSortIcon: true,
+            headerClass: 'ag-header-cell-center',
+            suppressSizeToFit: true,
+            flex: 1,
+        }
+    
+        const blackListRole = [
+            "General User",
+        ];
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            // 권한 별 접근 제어
+            if (blackListRole.includes([[${channelHeader['myRole']}]])) {
+                accessDenied();
+                return;
+            }
+            initializeGrid();
+        });
+    
+        document.addEventListener('keydown', function(event) {
+            const isModalOpen = document.querySelector('.modal_wrap.is_visible'); // 모달이 열려 있는지 확인
+
+            // 엔터 키를 눌렀을 때, 모달이 열려 있지 않으면 searchUserManagment 함수를 실행
+            if (event.key === 'Enter') {
+                if (!isModalOpen) {
+                    searchUserManagment(); // 모달이 열려 있지 않을 때만 검색 실행
+                } else {
+                    // 모달에서 Enter를 눌렀을 때 추가 작업이 필요한 경우 여기에 작성
+                    event.preventDefault(); // 모달이 열려 있을 때는 Enter 키가 다른 작업을 하지 않도록 중지
+                }
+            }
+        });
+    
+        const initailGridOptions = {
+            loading: false,
+            columnDefs: [
+                { headerName: 'uid', field: 'uid', hide: true},
+                { headerName: 'channel', field: 'channel', hide: true},
+                { headerName: 'Login ID', field: 'maskedLoginId', width: 150, cellStyle: { textAlign: 'center' }, headerClass: 'ag-header-cell-center', unSortIcon: true },
+                { headerName: 'Channel', field: 'maskedChannel', width: 150, cellStyle: { textAlign: 'center' }, headerClass: 'ag-header-cell-center', unSortIcon: true },
+                { headerName: 'Role', field: 'maskedRole', width: 150, cellStyle: { textAlign: 'center' }, headerClass: 'ag-header-cell-center', unSortIcon: true },
+                { headerName: 'Company Name', field: 'maskedCompanyName', width: 250, cellStyle: { textAlign: 'center' }, headerClass: 'ag-header-cell-center', unSortIcon: true },
+                { headerName: 'Company ID', field: 'maskedCompanyId', width: 150, cellStyle: { textAlign: 'center' }, headerClass: 'ag-header-cell-center', unSortIcon: true },
+                { headerName: 'Last Login Date', field: 'maskedLastLoginDate', width: 250,...columnDefaultOptions },
+                { headerName: 'Created Date', field: 'maskedCreateDate',width: 250, ...columnDefaultOptions },
+                { headerName: 'Detail', field: 'detail', width: 130, cellRenderer: function() { return ''; }, cellStyle: { textAlign: 'center' }, headerClass: 'ag-header-cell-center' }
+            ],
+            rowData: [],
+            rowSelection: 'single',
+            pagination : true,
+            paginationPageSize: 10, // 한 페이지에 표시할 행 수
+            suppressHorizontalScroll: false, // 수평 스크롤을 억제
+            domLayout: 'autoHeight', // 자동 높이 조정
+            localeText: {
+                noRowsToShow: ""  // 'No Rows To Show' 메시지를 'No Match Found'로 변경
+            },
+            overlayLoadingTemplate: `<img style="width: 100px;" src="/theme/assets/image/common/loading.svg" alt="loading">`
+        }
+    
+        // clear grid data
+        function initializeGrid(){
+            startIdx = 0;
+            endIdx = mobileDisplaySize;
+    
+            // for PC
+            if(!!oSearchUserManagmentResultGrid){
+                oSearchUserManagmentResultGrid.destroy();
+            }
+    
+            oSearchUserManagmentResultGrid = agGrid.createGrid(searchUserManagmentResultElement, initailGridOptions);
+    
+            //searchUserManagment();
+        }
+    
+        function searchUserManagment() {
+            initializeGrid();
+            oSearchUserManagmentResultGrid.setGridOption("loading", true);
+    
+            let params = {
+                channel: document.getElementById('channel').value,
+                companyName: document.getElementById('companyName').value,
+                userId: document.getElementById('userId').value,
+                companyId: document.getElementById('companyId').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value
+                // domain: document.getElementById('domain').value
+            };
+    
+            $.ajax({
+                url: "/myPage/searchUserManagment",
+                type: "POST",
+                data: JSON.stringify(params),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(oResult){
+                    renderResultTable(oResult);
+                },
+                error: function(e){
+                    const message = "데이터 통신중 에러발생";
+                }
+            });
+        }
+    
+        function auditLogSave(channel, type, action, reason,condition) {
+            let params = {
+                channel: channel,
+                type: type,
+                action: action,
+                reason: reason, // 추가된 reason 파라미터,
+                condition : condition
+            };
+    
+            $.ajax({
+                url: "/auditlog/create",
+                type: "POST",
+                data: JSON.stringify(params),
+                contentType: "application/json; charset=utf-8",
+                dataType: "text",
+                success: function(response) {
+                    console.log("Audit log saved successfully: " + response);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error saving audit log: " + xhr.responseText);
+                }
+            });
+        }
+    
+    
+        function renderResultTable(oResult) {
+            // 데이터를 마스킹하여 저장
+            aResultsData = oResult ? oResult.result.map(item => ({
+                ...item,
+                maskedLoginId: maskEmailData(item.LoginId),
+                maskedChannel: maskData(item.channelDisplayName),
+                maskedRole: maskData(item.role),
+                maskedCompanyName: maskData(item.companyName),
+                maskedCompanyId: maskData(item.companyId),
+                maskedLastLoginDate: maskAndFormatDate(item.lastLoginDate),
+                maskedCreateDate: maskAndFormatDate(item.createDate),
+                isMasked: true  // 마스킹 여부를 나타내는 플래그 추가
+            })) : [];
+    
+            aHeader = oResult ? oResult.header : [];
+    
+            columnDefs = [
+                {
+                    headerName: 'uid',
+                    field: 'uid',
+                    hide: true
+                },
+                {
+                    headerName: 'channel',
+                    field: 'channel',
+                    hide: true
+                },
+                {
+                    headerName: 'Login ID',
+                    field: 'maskedLoginId',  // 마스킹된 데이터를 표시
+                    width: 250,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'Channel',
+                    field: 'maskedChannel',  // 마스킹된 데이터를 표시
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'Role',
+                    field: 'maskedRole',  // 마스킹된 데이터를 표시
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'Company Name',
+                    field: 'maskedCompanyName',  // 마스킹된 데이터를 표시
+                    width: 250,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'Company ID',
+                    field: 'maskedCompanyId',  // 마스킹된 데이터를 표시
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'Last Login Date',
+                    field: 'maskedLastLoginDate',
+                    width: 250,
+                    // valueFormatter: function(params) {
+                    //     if (params.value) {
+                    //         const date = new Date(params.value);
+                    //         const formattedDate = `${date.getFullYear()}.${('0' + (date.getMonth() + 1)).slice(-2)}.${('0' + date.getDate()).slice(-2)}`;
+                    //         const formattedTime = `${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
+                    //         return `${formattedDate} ${formattedTime}`;
+                    //     }
+                    //     return '';
+                    // },
+                    // ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Created Date',
+                    field: 'maskedCreateDate',
+                    width: 250,
+                    // valueFormatter: function(params) {
+                    //     if (params.value) {
+                    //         const date = new Date(params.value);
+                    //         const formattedDate = `${date.getFullYear()}.${('0' + (date.getMonth() + 1)).slice(-2)}.${('0' + date.getDate()).slice(-2)}`;
+                    //         const formattedTime = `${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
+                    //         return `${formattedDate} ${formattedTime}`;
+                    //     }
+                    //     return '';
+                    // },
+                    // ...columnDefaultOptions
+                },
+                {
+                    headerName: 'Detail',
+                    field: 'detail',
+                    width: 130,
+                    cellRenderer: function(params) {
+                        const button = document.createElement('button');
+                        button.className = 'btn_table_s blue';
+    
+                        // 초기 버튼 텍스트 설정
+                        if (params.data.isMasked) {
+                            button.textContent = 'Unmasking';
+                        } else {
+                            button.textContent = 'View';
+                        }
+    
+                        button.addEventListener('click', function() {
+                            if (params.data.isMasked) {
+                                // Unmasking 버튼 클릭 시 동작
+                                unmaskRow(params);
+                            } else {
+                                // View 버튼 클릭 시 동작
+                                onViewClick(params.data);
+                            }
+                        });
+    
+                        return button;
+                    },
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                }
+            ];
+    
+            oSearchUserManagmentResultGrid.setGridOption("columnDefs", columnDefs);
+            oSearchUserManagmentResultGrid.setGridOption("rowData", aResultsData);
+            oSearchUserManagmentResultGrid.sizeColumnsToFit();
+            oSearchUserManagmentResultGrid.setGridOption("loading", false);
+        }
+    
+        // 마스킹 해제 함수
+        function unmaskRow(params) {
+            const currentModalId = `unmaskModal`;
+    
+            //auditLogSave(params.data.channel, "User Managment","Unmasking", "");
+    
+            unmaskModalOpen(`#${currentModalId}`,params);
+    
+        }
+    
+        function unmaskModalOpen(id,params){
+            document.getElementById('reasonTextarea').value = '';
+            $(id).css({'z-index': '1300'});
+            dimmVisible();
+            $(id).addClass("is_visible is_active");
+    
+            // unmaskSave 버튼 클릭 이벤트 핸들러 설정
+            const unmaskSaveButton = document.getElementById('unmaskSave');
+    
+            // 기존에 설정된 클릭 이벤트 리스너를 모두 제거하고 새로운 리스너 추가
+            unmaskSaveButton.onclick = function() {
+                const reasonTextarea = document.getElementById('reasonTextarea');
+                if (!reasonTextarea.value.trim()) {
+                    // 텍스트박스에 포커스
+                    reasonTextarea.focus();
+    
+                    // 텍스트박스의 테두리 색상을 빨간색으로 변경하여 강조
+                    reasonTextarea.style.borderColor = 'red';
+    
+                    // 잠시 후 원래 테두리 색상으로 복원 (애니메이션 효과)
+                    setTimeout(function() {
+                        reasonTextarea.style.borderColor = '#ccc';  // 원래 테두리 색상으로 복원
+                    }, 2000); // 4초 후 복원
+                } else {
+    
+                    // 로그 저장을 위해 auditLogSave 호출
+    
+                    auditLogSave(params.data.channel, "User_Management","Unmasking reason",  reasonTextarea.value,params.data.uid);
+                    btnViewEdit(params); // textarea에 값이 있는 경우 btnViewEdit 함수 실행
+                    unmaskModalOpenClose('#unmaskModal'); // 모달 닫기
+                }
+            };
+        }
+    
+        function unmaskModalOpenClose(id){
+            initializeScroll();
+            $(id).removeClass("is_active").one('transitionend', function(){
+                if (!$(id).hasClass('is_active')) {
+                    $(id).removeClass("is_visible");
+    
+                    // 남아있는 모달이 없는 경우 초기화
+                    if ($('.modal_wrap.is_visible').length == 0) {
+                        dimmHidden();
+                    }
+                }
+            })
+        }
+    
+        function btnViewEdit(params) {
+            params.node.setDataValue('maskedLoginId', params.data.LoginId);
+            params.node.setDataValue('maskedChannel', params.data.channelDisplayName);
+            params.node.setDataValue('maskedRole', params.data.role);
+            params.node.setDataValue('maskedCompanyName', params.data.companyName);
+            params.node.setDataValue('maskedCompanyId', params.data.companyId);
+            // 날짜 데이터를 포맷팅해서 설정
+            params.node.setDataValue('maskedLastLoginDate', formatDate(params.data.lastLoginDate));
+            params.node.setDataValue('maskedCreateDate', formatDate(params.data.createDate));
+    
+            params.data.isMasked = false;
+            const button = params.eGridCell.querySelector('button');
+            button.textContent = 'View';
+    
+            document.getElementById('reasonTextarea').value = '';
+        }
+    
+        function maskEmailData(email) {
+            if (typeof email === 'string' && email.includes('@')) {
+                const [user, domain] = email.split('@');
+    
+                if (domain && domain.includes('.')) {
+                    const maskedUser = '*'.repeat(user.length);
+                    const [domainName, domainSuffix] = domain.split('.');
+    
+                    if (domainName && domainSuffix) {
+                        const maskedDomainName = '*'.repeat(domainName.length);
+                        return `${maskedUser}@${maskedDomainName}.${domainSuffix}`;
+                    }
+                }
+            }
+            // 이메일 형식이 아니거나 처리 중 오류가 발생한 경우, 원본 이메일을 그대로 반환
+            return email;
+        }
+    
+        function onViewClick(data) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/myPage/userManagmentDetail';
+    
+            // 데이터를 form의 hidden 필드로 추가
+            form.appendChild(createHiddenInput('userId', data.LoginId));
+            form.appendChild(createHiddenInput('role', role));
+            form.appendChild(createHiddenInput('channel', data.channel));
+            form.appendChild(createHiddenInput('uid', data.uid));
+            form.appendChild(createHiddenInput('bpid', data.companyId));
+            auditLogSave(data.channel, "User_Management","View",  "",data.uid);
+    
+            document.body.appendChild(form);
+            form.submit();  // 폼 제출로 서버에 POST 요청
+        }
+    
+        function createHiddenInput(name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            return input;
+        }
+    
+        function maskAndFormatDate(dateStr, isMasked = true) {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return '';
+    
+                const formattedDate = `${date.getFullYear()}.${('0' + (date.getMonth() + 1)).slice(-2)}.${('0' + date.getDate()).slice(-2)}`;
+                const formattedTime = `${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
+    
+                if (isMasked) {
+                    return `${'*'.repeat(4)}.${'*'.repeat(2)}.${'*'.repeat(2)} ${'*'.repeat(2)}:${'*'.repeat(2)}:${'*'.repeat(2)}`;
+                }
+    
+                return `${formattedDate} ${formattedTime}`;
+            } catch (e) {
+                return '';  // 날짜 포맷팅에 실패할 경우 빈 문자열 반환
+            }
+        }
+    
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                return `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}`;
+            } catch (e) {
+                return '';  // 날짜 포맷팅에 실패할 경우 빈 문자열 반환
+            }
+        }
+    
+        function maskData(data) {
+            if (typeof data === 'string') {
+                return '*'.repeat(data.length);
+            }
+            return data;
+        }
+    </script>
+</th:block>
+</body>
+</html>

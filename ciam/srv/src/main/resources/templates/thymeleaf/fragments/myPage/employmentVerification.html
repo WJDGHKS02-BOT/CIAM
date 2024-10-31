@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="employmentVerification">
+    <div th:unless="${channelHeader['myRole'] == 'General User'}">
+        <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+        <h2>Employment Verification</h2>
+        <form method="POST" class="content_ty4" id="consentManagerForm" th:action="@{/myPage/employmentVerificationSubmit}">
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Channel</dt>
+                        <dd>
+                            <select name="channel" id="channel" class="select wid_ty4"
+                                    th:aria-readonly="${role != null && role != 'CIAM Admin'}"
+                                    onchange="changeChannel()">
+                                <option value="%%">ALL</option>
+                                <option th:each="curChannel: ${channel}"
+                                        th:if="${curChannel != null}"
+                                        th:value="${curChannel.channelName}"
+                                        th:utext="${curChannel.channelDisplayName}"
+                                        th:selected="${curChannel.channelName == session_channel}">
+                                </option>
+                            </select>
+                        </dd>
+                        <dt>Role</dt>
+                        <dd>
+                            <input type="text" name="role" id="role" th:value="${channelHeader['myRole'] != null ? channelHeader['myRole'] : ''}" class="input wid_ty4" readonly>
+                        </dd>
+                        <!-- <dt>
+                            <button type="button" class="btn_s search" onclick="clickedSearchBtn()">Search</button>
+                        </dt> -->
+                    </dl>
+                </div>
+                <div>
+                    <dl class="form_list6 custom_form">
+                        <dt>Type</dt>
+                        <dd>
+                            <select name="type" id="type" class="select wid_ty3" onchange="clickedSearchBtn()">
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+    
+            <!-- Grid Table -->
+            <th:block th:replace="~{fragments/myPage/customPaginationGrid :: customPaginationGrid(1, 0)}"></th:block>
+            <!-- Grid Table End -->
+    
+            <!-- popup -->
+            <th:block th:replace="~{popups/processRequestModal}"></th:block>
+            <!-- popup End -->
+    
+            <!-- Hidden Fields -->
+            <input type="hidden" name="rowData" id="rowData">
+            <!-- Hidden Fields -->
+    
+            <button type="submit" id="submit"></button>
+        </form>
+    </div>
+    <script th:inline="javascript">
+        const submitBtn = document.getElementById("submit");
+        const formElement = document.querySelector('#consentManagerForm');
+        const channelElement = document.getElementById('channel');
+        const typeElement = document.getElementById('type');
+
+        const employmentVerificationDeleteAlertText = [[#{myPage.employmentVerification.deleteAlertText}]] || '';
+
+        const btnClass = [
+            "btn_table_s",
+            "blue",
+        ];
+
+        const blackListRole = [
+            "General User",
+        ];
+
+        function employmentVerificationSubmit() {
+            submitBtn.click();
+        }
+
+        function changeChannel() {
+            $("select[name=type]").val('pending').prop("selected", true);
+            clickedSearchBtn();
+        }
+
+        function setRowData(type, params) {
+            const oRowData = params.data;
+
+            $("#rowData").val(JSON.stringify(oRowData));
+            if (type == 'approved') {
+                openModal('alert', employmentVerificationSubmit, "Really delete this row?");
+            }
+        }
+
+        // Delete 버튼 클릭 시
+        function clickedDeleteBtn(params) {
+            setRowData(type, params);
+        }
+
+        // 채널 or 타입 셀렉트박스 선택값 변경 시
+        function clickedSearchBtn() {
+            const selectedChannel = channelElement.value;
+            const selectedType = typeElement.value;
+
+            if (!!currentGrid) {
+                currentGrid.setGridOption("loading", true);
+            }
+
+            const params = {
+                channel: selectedChannel,
+                type: selectedType,
+            };
+
+            let columnDefs = setTableColumns(selectedType);
+            
+            const loadDataPromise = new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "/myPage/empVerificationList",
+                    type: "POST",
+                    data: JSON.stringify(params),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: (data) => {
+                        resolve(data);
+                    },
+                    error: (e) => {
+                        console.error("error:", e);
+                        reject();
+                    }
+                });
+            });
+
+            Promise.all([loadDataPromise]).then((data) => {
+                const result = data[0];
+                renderTableData(columnDefs, result);
+            });
+        }
+
+        function getCoulmn(columnNumber, type) {
+            let resultColumn = {
+                unSortIcon: true,
+                cellStyle: { 
+                    textAlign: "center"
+                },
+                tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+            };
+            let columnHeaderName = '';
+            let columnField = '';
+            let columnCellRenderer = '';
+
+            if (columnNumber == 'column1') {
+                switch(type) {
+                    case 'approved':
+                        columnHeaderName = 'Approved Date';
+                        columnField = 'approved_date';
+                        break;
+                    case 'rejected':
+                        columnHeaderName = 'Reason';
+                        columnField = 'reject_reason';
+                        break;
+                    default:
+                        break;
+                }
+            } else if (columnNumber == 'column2') {
+                // 버튼 렌더링
+                columnCellRenderer = (params) => {
+                    return renderTableButton(type, params);
+                };
+
+                switch(type) {
+                    case 'pending':
+                        columnHeaderName = 'Approve / Reject';
+                        break;
+                    case 'approved':
+                        columnHeaderName = 'Deletion';
+                        break;
+                    case 'rejected':
+                        columnHeaderName = 'Rejected ID';
+                        // columnField = '';
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            resultColumn['headerName'] = columnHeaderName;
+            resultColumn['field'] = columnField;
+            resultColumn['cellRenderer'] = columnCellRenderer;
+
+            return resultColumn;
+        }
+
+        function renderTableButton(type, params) {
+            // 버튼이 여러 개 필요할 경우 주석 제거 후 코드 수정
+            const renderButton = document.createElement('button');
+            renderButton.type = "button";
+
+            let btnOnclick = '';
+
+            btnOnclick = () => {
+                setRowData(type, params);
+                openProcessRequest(type, 'employment');
+            }
+            switch(type) {
+                case 'pending':
+                    renderButton.classList.add("btn_table_s", "blue");
+                    renderButton.innerText = "Select";
+                    break;
+                case 'approved':
+                    renderButton.classList.add("btn_table_s", "red");
+                    renderButton.innerText = "Delete";
+                    break;
+                case 'rejected':
+                    if (params.data.reject_email != "auto") {
+                        return params.data.reject_email;
+                    }
+                    renderButton.classList.add("btn_table_s", "blue");
+                    renderButton.innerText = "Select";
+                    break;
+                default:
+                    break;
+            }
+            
+            if (!!btnOnclick) {
+                renderButton.onclick = btnOnclick;
+            }
+
+            return renderButton;
+        }
+
+        function setTableColumns(type) {
+            let columnDefs = [
+                {
+                    headerName: 'Requestor Username',
+                    field: 'requestor_email',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Company',
+                    field: 'bp_name',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Company Code',
+                    field: 'bpid',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+            ];
+
+            columnDefs.push(
+                {
+                    headerName: 'Request Date',
+                    field: 'request_date',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Request Expired Date',
+                    field: 'request_expired_date',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+            );
+            if (!(type == 'rejected')) {
+                columnDefs.push(
+                    {
+                        headerName: 'Role',
+                        field: 'requestor_role',
+                        unSortIcon: true,
+                        cellStyle: { 
+                            textAlign: "center"
+                        },
+                        tooltipValueGetter: (params) => {
+                            return params.value;
+                        },
+                    },
+                );
+            }
+
+
+            let column1 = '';
+            if (type != 'pending') {
+                column1 = getCoulmn("column1", type);
+            }
+            if (!!column1) {
+                columnDefs.push(column1);
+            }
+
+            if ((type == 'approved')) {
+                columnDefs.push(
+                    {
+                        headerName: 'Approver ID',
+                        field: 'approver_email',
+                        unSortIcon: true,
+                        cellStyle: { 
+                            textAlign: "center"
+                        },
+                        tooltipValueGetter: (params) => {
+                            return params.value;
+                        },
+                    }
+                );
+            }
+
+            let column2 = getCoulmn("column2", type);
+            if (!!column2) {
+                columnDefs.push(column2);
+            }
+
+            return columnDefs;
+        }
+
+        function renderTableData(columnDefs, oTableData) {
+            // Table Header and Data Setting
+            const gridData = {
+                'header': columnDefs,   // header
+                'results': oTableData,  // data
+            };
+
+            // console.log('columnDefs:', columnDefs);
+            // console.log('oTableData:', oTableData);
+
+            renderResultTable(gridData);
+        }
+
+        // Reponse Data 콘솔 출력용 Function
+        function tableData(consent){
+            let oTableData = [[${consents}]] || '';
+
+            // search 클릭 후 render 시에 동작
+            if (!!consent) {
+                oTableData = consent;
+            }
+
+            const channel = [[${channel}]] || '';
+            const type = [[${type}]] || '';
+            const allLocation = [[${location}]] || '';
+            const session_channel = [[${session_channel}]] || '';
+            const session_display_channel = [[${session_display_channel}]] || '';
+            const companyDataResult = [[${companyDataResult}]] || '';
+            const role = [[${role}]] || '';
+
+            // console.log("channel", channel);
+            // console.log("type", type);
+            // console.log("location", allLocation);
+            // console.log("session_channel", session_channel);
+            // console.log("session_display_channel", session_display_channel);
+            // console.log("role", role);
+
+            // console.log(oTableData);
+        }
+
+
+        $(document).ready(() => {
+            // 권한 별 접근 제어
+            if (blackListRole.includes(/*[[${channelHeader['myRole']}]]*/ '')) {
+                accessDenied();
+                return;
+            }
+            tableData(null);
+            clickedSearchBtn();
+
+            // 에러코드가 있을 경우 에러 모달(+메세지) 출력
+            if ((typeof responseErrorCode) != 'string') {
+                let modalType = '';
+                let modalText = '';
+                const setResponseTextPromise = new Promise((resolve, reject) => {
+                    if (!!responseErrorCode) {
+                        modalType = 'error';
+                        modalText = serverErrorText;
+                    } else {
+                        modalType = 'success';
+                        modalText = "Success";
+                    }
+                    if (!!modalText) {
+                        resolve();
+                    }
+                });
+                
+                Promise.all([setResponseTextPromise]).then(() => {
+                    openModal(modalType, '', modalText);
+                });
+            }
+        });
+    </script>
+</th:block>
+</html>

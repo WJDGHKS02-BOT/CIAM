@@ -1,0 +1,37 @@
+:root {
+  --color-point: #0068ea;
+  --color-point-dark: #0654b6;
+  
+  --color-error: #e03030;
+  --color-error-dark: #b92525;
+  
+  --color-black: #000000;
+  --color-gray-01: #313131;
+  --color-gray-02: #757575;
+  --color-gray-03: #8f8f8f;
+  --color-gray-04: #bbbbbb;
+  --color-gray-05: #dddddd;
+  --color-white: #ffffff;
+  
+  --color-bg-gray: #f7f7f7;
+  --color-bg-light-blue: #f5f7fe;
+  --color-bg-light-red: #f5f0f5;
+  
+  --samsung-800-40: 800 40px/48px "SamsungOne";
+  --samsung-800-24: 800 24px/32px "SamsungOne";
+  --samsung-800-18: 800 18px/24px "SamsungOne";
+  
+  --samsung-700-32: 700 32px/40px "SamsungOne";
+  --samsung-700-24: 700 24px/32px "SamsungOne";
+  --samsung-700-20: 700 20px/28px "SamsungOne";
+  --samsung-700-18: 700 18px/24px "SamsungOne";
+  --samsung-700-16: 700 16px/24px "SamsungOne";
+  --samsung-700-14: 700 14px/20px "SamsungOne";
+  --samsung-700-12: 700 12px/18px "SamsungOne";
+  
+  --samsung-400-16: 400 16px/24px "SamsungOne";
+  --samsung-400-14: 400 14px/20px "SamsungOne";
+  --samsung-400-12: 400 12px/18px "SamsungOne";
+  
+  --samsung-200-12: 200 12px/18px "SamsungOne";
+}

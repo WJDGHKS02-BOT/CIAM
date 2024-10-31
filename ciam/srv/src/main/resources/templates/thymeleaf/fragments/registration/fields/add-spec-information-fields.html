@@ -1,0 +1,103 @@
+<html xmlns:th="http://www.thymeleaf.org">
+  <th:block th:fragment="add-spec-information-fields(shortFieldList, longFieldList, type)">
+    <th:block th:if="${#arrays.length(shortFieldList) != 0} or ${#arrays.length(longFieldList) != 0}">
+      <h3 th:if="${type == 'specific'}">Channel-Specific Information</h3>
+      <h3 th:if="${type == 'additional'}">Additional Information</h3>
+      <ul class="mem_form_list2"
+          id="dynamicFields">
+        <!--    Input Short List : START    -->
+        <th:block th:if="${#arrays.length(shortFieldList) != 0}">
+          <th:block th:each="chunk : ${shortFieldList}">
+            <li>
+              <div class="col_wrap1">
+                <th:block th:each="fieldInfo : ${chunk}">
+                  <th:block th:if="${fieldInfo.type == 'text'}">
+                    <th:block th:if="${fieldInfo.channel == 'sba'}">
+                        <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                          'selfregisteration.'+ ${fieldInfo.label} + '.sba',
+                          ${fieldInfo.elementName},
+                          ${fieldInfo.elementId},
+                          ${accountObject != null and accountObject[fieldInfo.elementId] != null ? accountObject[fieldInfo.elementId] : (companyObject != null and companyObject.registerCompany != null and companyObject.registerCompany[fieldInfo.elementId] != null ? companyObject.registerCompany[fieldInfo.elementId] : '')},
+                          ${fieldInfo.maxlength},
+                          ${fieldInfo.requiredYn == 'Y' ? true : false},
+                          ${fieldInfo.readonly == 'N' ? false : true},
+                          ${fieldInfo.disabled == 'N' ? false : true}
+                      )"></th:block>
+                    </th:block>
+                    <th:block th:unless="${fieldInfo.channel == 'sba'}">
+                        <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                          'selfregisteration.'+ ${fieldInfo.label},
+                          ${fieldInfo.elementName},
+                          ${fieldInfo.elementId},
+                          ${accountObject != null and accountObject[fieldInfo.elementId] != null ? accountObject[fieldInfo.elementId] : (companyObject != null and companyObject.registerCompany != null and companyObject.registerCompany[fieldInfo.elementId] != null ? companyObject.registerCompany[fieldInfo.elementId] : '')},
+                          ${fieldInfo.maxlength},
+                          ${fieldInfo.requiredYn == 'Y' ? true : false},
+                          ${fieldInfo.readonly == 'N' ? false : true},
+                          ${fieldInfo.disabled == 'N' ? false : true}
+                      )"></th:block>
+                    </th:block>
+                  </th:block>
+
+                  <th:block th:if="${fieldInfo.type == 'select'}">
+                    <th:block th:if="${fieldInfo.channel == 'sba'}">
+                      <th:block th:replace="fragments/registration/fields/field-element :: select-box-field(
+                          'selfregisteration.'+ ${fieldInfo.label} + '.sba',
+                          ${fieldInfo.elementName},
+                          ${fieldInfo.elementId},
+                          ${fieldInfo.options},
+                          ${fieldInfo.requiredYn == 'Y' ? true : false},
+                          ${fieldInfo.disabled == 'Y' ? true : false},
+                          ${accountObject != null and accountObject[fieldInfo.elementId] != null ? accountObject[fieldInfo.elementId] : (companyObject != null and companyObject.registerCompany != null and companyObject.registerCompany[fieldInfo.elementId] != null ? companyObject.registerCompany[fieldInfo.elementId] : '')}
+                      )"></th:block>
+                    </th:block>
+                    <th:block th:unless="${fieldInfo.channel == 'sba'}">
+                      <th:block th:replace="fragments/registration/fields/field-element :: select-box-field(
+                          'selfregisteration.'+ ${fieldInfo.label},
+                          ${fieldInfo.elementName},
+                          ${fieldInfo.elementId},
+                          ${fieldInfo.options},
+                          ${fieldInfo.requiredYn == 'Y' ? true : false},
+                          ${fieldInfo.disabled == 'Y' ? true : false},
+                          ${accountObject != null and accountObject[fieldInfo.elementId] != null ? accountObject[fieldInfo.elementId] : (companyObject != null and companyObject.registerCompany != null and companyObject.registerCompany[fieldInfo.elementId] != null ? companyObject.registerCompany[fieldInfo.elementId] : '')}
+                      )"></th:block>
+                    </th:block>
+
+                  </th:block>
+                  <!-- TODO: 버튼과 필드 연결 필요-->
+                  <!--                  <th:block th:if="${fieldInfo.type == 'button'}">-->
+                  <!--                    <button class="btn_l"-->
+                  <!--                            type="button"-->
+                  <!--                            id="${fieldInfo.elementId}"-->
+                  <!--                            style="margin-top:auto;flex:1;margin-left:10px;"-->
+                  <!--                            th:onclick="function hi () {console.log('hi')}; hi();"-->
+                  <!--                            th:text="${fieldInfo.label}"></button>-->
+                  <!--                  </th:block>-->
+                </th:block>
+              </div>
+            </li>
+          </th:block>
+        </th:block>
+        <!--    Input Short List : END    -->
+
+        <!--    Input Long List : START    -->
+        <th:block th:if="${#arrays.length(longFieldList) != 0}">
+          <th:block th:each="field : ${longFieldList}">
+            <li>
+              <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                            'selfregisteration.'+ ${field.label},
+                            ${field.elementName},
+                            ${field.elementId},
+                            ${accountObject != null and accountObject[field.elementId] != null ? accountObject[field.elementId] : (companyObject != null and companyObject.registerCompany != null and companyObject.registerCompany[field.elementId] != null ? companyObject.registerCompany[field.elementId] : '')},
+                            ${field.maxlength},
+                            ${field.requiredYn == 'Y' ? true : false},
+                            ${field.readonly == 'N' ? false : true},
+                            ${field.disabled == 'N' ? false : true}
+                      )"></th:block>
+            </li>
+          </th:block>
+        </th:block>
+        <!--    Input Long List : END    -->
+      </ul>
+    </th:block>
+  </th:block>
+</html>

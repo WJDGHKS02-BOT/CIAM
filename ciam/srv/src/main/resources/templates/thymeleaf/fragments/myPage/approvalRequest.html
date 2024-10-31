@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+    <th:block th:fragment="approvalRequest">
+        <script th:inline="javascript">
+            // let userDataResult = [[${userDataResult}]] || {};
+            // console.log(userDataResult);
+        </script>
+        <h2>Approval Request</h2>
+        <form method="POST" class="content_ty1" id="approvalRequestForm">
+            <h3>General Information</h3>
+            <ul id="userInformation" class="form_list1">
+                <li>
+                    <div class="col_wrap1">
+                        <div>
+                            <p class="tit">Channel</p>
+                                <dd>
+                                    <select name="channel" id="channel" class="select" onchange="channelChange()" th:aria-readonly="${role != null && role != 'CIAM Admin'}">
+                                        <option th:each="curChannel: ${channel}"
+                                                th:if="${curChannel != null}"
+                                                th:value="${curChannel.channelName}"
+                                                th:utext="${curChannel.channelDisplayName}"
+                                                th:selected="${curChannel.channelName == session_channel}">
+                                        </option>
+                                    </select>
+                                </dd>
+                            </div>
+                        <div>
+                            <p class="tit">Role</p>
+                            <input type="text" name="requestor_role" id="requestor_role" th:value="${role != null ? role : ''}" class="input" readonly>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="col_wrap1">
+                        <div>
+                            <p class="tit">Approval Type</p>
+                            <select name="approvalType" id="approvalType" class="select" onchange="approvalTypeChange(this.options[this.selectedIndex].value)">
+                                <option value="domain" 
+                                        th:unless="${role == 'General User'}">Company Domain</option>
+                                <option value="role"
+                                        th:if="${role == 'General User' || role == 'Partner Admin'}">Role Management</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div id="businessLocationBlock">
+                                <p class="tit requ">Business Location</p>
+                                <select name="businessLocation" id="businessLocation" class="select" th:aria-readonly="${role != null && role == 'Partner Admin'}">
+                                    <option th:each="curLocation: ${countries}"
+                                        th:if="${curLocation != null}"
+                                        th:value="${curLocation.countryCode}"
+                                        th:utext="${curLocation.country}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <div class="margin_div1" id="companyDomainComponent">
+                    <li th:if="${role == 'Partner Admin'}">
+                        <p class="tit">Company Name</p>
+                        <input type="text" name="bp_name" id="bp_name" th:value="${companyDataResult['orgName']}" class="input" readonly>
+                    </li>
+                    <li th:unless="${role == 'Partner Admin'}">
+                        <p class="tit">Company Name</p>
+                        <div class="col_wrap2">
+                            <div class="inp_sec">
+                                <input type="text" name="bp_name" id="bp_name" value="" placeholder="" class="input">
+                            </div>
+                            <div class="bt_sec">
+                                <!-- <button type="button" class="btn_l btn_gray">Reset</button> -->
+                                <button id="resetBtn" type="button" class="btn_l btn_gray" onclick="clickedResetBtn()" th:text=#{selfregisteration.reset}>Reset</button>
+                                <!-- <button type="button" class="btn_l">Search company</button> -->
+                                <button id="searchCompany" type="button" class="btn_l" onclick="onSearchCompany()" th:text="#{selfregisteration.searchCompany}">Search company</button>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <p class="tit">Request Domain</p>
+                        <div class="input_clear">
+                            <input type="text" name="email_domain" id="email_domain" th:placeholder="#{myPage.approvalRequest.placeholder.domain}" class="input"
+                            >
+                            <button type="button" class="clear_btn" style="right: 10px;"><span class="blind">삭제</span></button>
+                        </div>
+                    </li>
+                </div>
+
+                <div class="margin_div1" id="roleManagementComponent" style="display: none;">
+                    <li>
+                        <p class="tit">Current Role</p>
+                        <input type="text" name="currentRole" id="currentRole" th:value="${role != null ? role : ''}" class="input" readonly>
+                    </li>
+                    <li>
+                        <div>
+                            <p class="tit">Change Role</p>
+                            <!-- Change Role Selectbox 하드코딩 -->
+                            <select name="changeRole" id="changeRole" class="select">
+                                <option value="General User" th:if="${role == 'Partner Admin'}" selected>General User</option>
+                                <option value="Partner Admin" th:if="${role == 'General User'}" selected>Partner Admin</option>
+                            </select>
+                        </div>
+                    </li>
+                </div>
+            </ul>
+
+            <div class="wrap_btn2">
+                <button id="" type="button" class="btn_l" onclick="clickedSubmitRequestBtn()">Submit request</button>
+            </div>
+
+            <input type="hidden" name="bpid" id="bpid" th:value="${companyDataResult['bpid']}">
+
+            <button id="submit" type="submit"></button>
+        </form>
+        <th:block th:replace="~{popups/myPageSearchCompany}"></th:block>
+        <th:block th:replace="~{popups/newPartnerSearchCompany}"></th:block>
+    </th:block>
+    <script th:inline="javascript">
+        const formElement = document.querySelector('#approvalRequestForm');
+        const submitBtn = document.getElementById('submit');
+
+        const companyNameElement = document.getElementById('bp_name');
+        const bpidElement = document.getElementById('bpid');
+        const emailDomainElement = document.getElementById('email_domain');
+        const approvalTypeElement = document.getElementById('approvalType');
+
+        const businessLocationBlockComponent = document.getElementById("businessLocationBlock");
+        const companyDomainComponent = document.getElementById('companyDomainComponent');
+        const roleManagementComponent = document.getElementById('roleManagementComponent');
+
+        const changeRoleComponent = document.getElementById('changeRole');
+
+        const channelElement = document.getElementById('channel');
+        const businessLocationElement = document.getElementById('businessLocation');
+
+        const approvalRequestDomainAlertText = [[#{myPage.approvalRequest.domainAlertText}]] || '';
+        const approvalRequestRoleAlertText = [[#{myPage.approvalRequest.roleAlertText}]] || '';
+        const approvalRequestSuccessText = [[#{myPage.approvalRequest.successText}]] || '';
+
+        
+        const approvalRequestEnterDomainText = [[#{myPage.approvalRequest.enterDomainText}]] || '';
+        const approvalRequestSelectCompanyText = [[#{myPage.approvalRequest.selectCompanyText}]] || '';
+        const approvalRequestInvalidDomianText = [[#{myPage.approvalRequest.invalidDomain}]] || '';
+
+        const approvalRequestSelectChangeRoleText = [[#{myPage.approvalRequest.selectChangeRole}]] || '';
+
+        const approvalRequestAlreadyUsedDomainText = [[#{myPage.approvalRequest.alreadyUsedDomainText}]] || '';
+        const approvalRequestBlackListDomainText = [[#{myPage.approvalRequest.blackListDomainText}]] || '';
+        const approvalRequestAlreadyAppliedDomainText = [[#{myPage.approvalRequest.alreadyAppliedDomainText}]] || '';
+
+        function clickedSubmitRequestBtn() {
+            let modalText = '';
+            let alertText = '';
+            let submitCallbackFunction = '';
+            let submitAction = "";
+
+            switch(approvalTypeElement.value) {
+                case 'domain':
+                    submitAction = "/myPage/requestDomainSubmit";
+                    modalText = approvalRequestDomainAlertText;
+                    if (!(emailDomainElement.value)) {
+                        alertText = approvalRequestEnterDomainText;
+                    }
+                    if (emailDomainElement.value.includes("@")) {
+                        alertText = approvalRequestInvalidDomianText;
+                    }
+                    if (!(companyNameElement.value)) {
+                        alertText = approvalRequestSelectCompanyText;
+                    }
+                    break;
+                case 'role':
+                    submitAction = "/myPage/requestRoleSubmit";
+                    modalText = approvalRequestRoleAlertText;
+                    if (!(changeRoleComponent.value)) {
+                        alertText = approvalRequestSelectChangeRoleText;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            if (!alertText) {
+                submitCallbackFunction = () => {
+                    submitBtn.click();
+                };
+            } else {
+                modalText = alertText;
+            }
+
+            formElement.action = submitAction;
+
+            openModal('alert', submitCallbackFunction, modalText);
+        }
+
+        function setBusinessLocationList() {
+            const params = {
+                channel: channelElement.value,
+            };
+
+            businessLocationElement.innerHTML = '';
+
+            $.ajax({
+                url: "/myPage/searchBusinessLocationList",
+                type: "POST",
+                data: JSON.stringify(params),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (oResult) {
+                    for (let locationInfo of oResult) {
+                        let businessLocationOptionElement = document.createElement('option');
+
+                        businessLocationOptionElement.value = locationInfo.countryCode;
+                        businessLocationOptionElement.innerText = locationInfo.country;
+
+                        businessLocationElement.appendChild(businessLocationOptionElement);
+                    }
+                },
+                error: function (e) {
+                    console.err('error: ', e);
+                },
+            });
+        }
+
+        // 선택된 채널이 CUSTOMER 채널인지 아닌지 여부 확인
+        function isCustomerChannel() {
+            let result = false;
+
+            const allChannelInfo = [[${channel}]];
+            const currentSelectedChannel = channelElement.value;
+
+            for (let channelInfo of allChannelInfo) {
+                if (channelInfo.channelName == currentSelectedChannel && channelInfo.channelType == 'CUSTOMER') {
+                    result = true;
+                    break;
+                }
+            }
+
+            return result;
+        }
+
+        // Reset Button
+        function clickedResetBtn() {
+            bpidElement.value = '';
+            companyNameElement.value = '';
+            companyNameElement.readOnly = false;
+        }
+
+        // get selected channgel type
+        function getSelectedChanngelType() {
+            const allChannelInfo = [[${channel}]];
+            const allChannelInfoLength = allChannelInfo.length;
+            console.log(channelElement.value);
+            let i = 0;
+            for (let curChannel of allChannelInfo) {
+                console.log(curChannel.channelName);
+                if (curChannel.channelName == channelElement.value) {
+                    return curChannel.channelType;
+                }
+                i++;
+            }
+
+            if (i == allChannelInfoLength) {
+                return null;
+            }
+        }
+
+        // Open Company Search Popup
+        function onSearchCompany() {
+            let currentChannelType = getSelectedChanngelType();
+            const companyNameElementValue = companyNameElement.value;
+            
+            if (!currentChannelType) {
+                return;
+            } else if (currentChannelType == 'VENDOR') {
+                $('#filter_name').val(companyNameElementValue);
+                executeSearchCompanyWithName(companyNameElement, true);
+            } else if (currentChannelType == 'CUSTOMER') {
+                $("#newPartnerSearchCompanyModalFilter_name").val(companyNameElementValue);
+                executeNewPartnerSearchCompany(companyNameElement);
+            }
+        }
+
+        function setCompanyInformation(oSelectedRow) {
+            if (!!oSelectedRow) {
+                bpidElement.value = oSelectedRow.bpid;
+                companyNameElement.value = oSelectedRow.name;
+                companyNameElement.readOnly = true;
+            }
+        }
+
+        function renderTableData(consent){
+            const channel = [[${channel}]] || '';
+            const type = [[${type}]] || '';
+            const allLocation = [[${location}]] || '';
+            const session_channel = [[${session_channel}]] || '';   
+            const session_display_channel = [[${session_display_channel}]] || '';
+            const role = [[${role}]] || '';
+            const companyDataResult = [[${companyDataResult}]] || '';
+            const countries = [[${countries}]] || '';
+
+            console.log("channel", channel);
+            console.log("type", type);
+            console.log("location", allLocation);
+            console.log("role", role);
+            console.log("session_channel", session_channel);
+            console.log("session_display_channel", session_display_channel);
+            console.log("companyDataResult", companyDataResult);
+            console.log("countries", countries);
+        }
+
+        function channelChange() {
+            businessLocationBlockComponent.style.display = '';
+            setBusinessLocationList();
+        }
+
+        function approvalTypeChange(value) {
+            if (value == 'role') {
+                companyDomainComponent.style.display = 'none';
+                businessLocationBlockComponent.style.display = 'none';
+                roleManagementComponent.style.display = '';
+            } else if (value == 'domain') {
+                companyDomainComponent.style.display = '';
+                channelChange();
+                roleManagementComponent.style.display = 'none';
+            }
+        }
+
+        $(document).ready(() => {
+            renderTableData(null);
+            approvalTypeElement.dispatchEvent(new Event('change', { bubbles: true }));
+
+            if ((typeof responseErrorCode) != 'string') {
+                let modalType = '';
+                let modalText = '';
+                const setResponseTextPromise = new Promise((resolve, reject) => {
+                    if (!!responseErrorCode) {
+                        modalType = 'error';
+                        switch(responseErrorCode) {
+                            case 50001:
+                                modalText = approvalRequestBlackListDomainText;
+                                break;
+                            case 50002:
+                                modalText = approvalRequestAlreadyUsedDomainText;
+                                break;
+                            case 50003:
+                                modalText = approvalRequestAlreadyAppliedDomainText;
+                                break;
+                            default:
+                                modalText = serverErrorText;
+                                break;
+                        }
+                    } else {
+                        modalType = 'success';
+                        modalText = approvalRequestSuccessText;
+                    }
+                    if (!!modalText) {
+                        resolve();
+                    }
+                });
+                
+                Promise.all([setResponseTextPromise]).then(() => {
+                    openModal(modalType, '', modalText);
+                });
+            }
+        });
+
+    </script>
+
+</html>

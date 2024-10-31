@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Toast Notifications</title>
+    <link th:href="@{/theme/assets/vendor/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/theme/assets/fontawesome/css/all.css}" rel="stylesheet">
+</head>
+<body>
+<div aria-live="polite" aria-atomic="true" class="bg-dark position-relative">
+    <div class="toast-container position-fixed p-3 top-0 end-0" id="toastPlacement">
+        <div class="toast align-items-center text-white bg-success border-0">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Success message here!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="toast align-items-center text-white bg-secondary border-0" data-bs-delay="10000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Info message here!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="toast align-items-center text-white bg-danger border-0">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Danger message here!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="toast align-items-center text-white bg-warning border-0">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Warning message here!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/theme/assets/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/theme/assets/fontawesome/js/all.js}"></script>
+<script th:src="@{/theme/assets/js/main.js}"></script>
+
+<script th:inline="javascript">
+    /* Example */
+    /* var description = 'Hello, world! This is a toast message.';
+    var toast = new Toast(description,'bg-success');
+    toast.show(); */
+
+    function Toast(description, bgColor) {
+        var toastElement = buildToast(description, bgColor);
+        var toastWrapper = getOrCreateToastWrapper();
+        toastWrapper.append(toastElement);
+        this.bootstrapToast = bootstrap.Toast.getOrCreateInstance(toastElement);
+
+        this.show = function () {
+            this.bootstrapToast.show();
+        }
+
+        this.hide = function () {
+            this.bootstrapToast.hide();
+        }
+
+        this.dispose = function () {
+            this.bootstrapToast.dispose();
+        }
+    }
+
+    function getOrCreateToastWrapper() {
+        var toastWrapper = document.querySelector('body > [data-toast-wrapper]');
+
+        if (!toastWrapper) {
+            toastWrapper = document.createElement('div');
+            toastWrapper.style.zIndex = 11;
+            toastWrapper.style.position = 'fixed';
+            toastWrapper.style.top = 0;
+            toastWrapper.style.right = 0;
+            toastWrapper.style.padding = '1rem';
+            toastWrapper.setAttribute('data-toast-wrapper', '');
+            document.body.append(toastWrapper);
+        }
+
+        return toastWrapper;
+    }
+
+    function buildToastBody(description) {
+        var toastBody = document.createElement('div');
+        toastBody.setAttribute('class', 'toast-body text-white');
+        toastBody.textContent = description;
+
+        return toastBody;
+    }
+
+    function buildToast(description, bgColor) {
+        var toast = document.createElement('div');
+        toast.setAttribute('class', 'toast ' + bgColor);
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+
+        var bodyWrapper = document.createElement('div');
+        bodyWrapper.setAttribute('class', 'd-flex');
+
+        var toastBody = buildToastBody(description);
+
+        var toastBtn = document.createElement('button');
+        toastBtn.setAttribute('class', 'btn-close btn-close-white me-2 m-auto');
+        toastBtn.setAttribute('data-bs-dismiss', 'toast');
+        toastBtn.setAttribute('aria-label', 'Close');
+        bodyWrapper.append(toastBody);
+        bodyWrapper.append(toastBtn);
+        toast.append(bodyWrapper);
+
+        return toast;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var toastElements = document.querySelectorAll('.toast');
+        toastElements.forEach(function (toastElement) {
+            var toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        });
+    });
+</script>
+</body>
+</html>

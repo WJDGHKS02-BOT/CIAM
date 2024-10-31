@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consent Update Test</title>
+</head>
+<body>
+<h1>Consent Update Test</h1>
+<form id="consentForm" method="POST">
+    <label for="key">Key (Channel):</label>
+    <input type="text" id="key" name="key" required><br><br>
+
+    <label for="uid">UID:</label>
+    <input type="text" id="uid" name="uid" required><br><br>
+
+    <button type="submit">Submit</button>
+</form>
+
+<script>
+    document.getElementById("consentForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // 기본 제출 동작을 막음
+
+        var key = document.getElementById("key").value;
+        var uid = document.getElementById("uid").value;
+
+        // POST 요청을 생성하여 key는 URL로, uid는 폼 데이터로 보냄
+        var form = document.createElement("form");
+        form.method = "POST";
+        form.action = `/consent-update/${key}`;
+
+        // uid 값을 POST 폼 데이터로 추가
+        var inputUid = document.createElement("input");
+        inputUid.type = "hidden";
+        inputUid.name = "uid";
+        inputUid.value = uid;
+
+        form.appendChild(inputUid);
+        document.body.appendChild(form);
+        form.submit(); // 폼 제출
+    });
+</script>
+</body>
+</html>

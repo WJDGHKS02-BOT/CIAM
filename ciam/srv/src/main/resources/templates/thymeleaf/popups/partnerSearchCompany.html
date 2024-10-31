@@ -1,0 +1,114 @@
+<!-- Search Company Functions -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    let header = [[${mobileHeader}]];
+    let channel = /*[[${channel}]]*/ 'defaultChannel';
+    /*]]>*/
+    // const isSbaChannel =
+</script>
+<script src="/scripts/partnerSearchCompany.js"></script>
+
+<link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+
+<style>
+    .isVisible {
+        display: none;
+    }
+    .isActive {
+        display: inline;
+    }
+    .modal_content {
+        max-height: 100% !important;
+    }
+    .ag-root-wrapper-body {
+        height: 272px !important;
+    }
+</style>
+
+<!-- Modal Dimmed -->
+<div class="modal_wrap custom_modal" id="searchCompanyModal">
+    <div class="modal modal_dimmed">
+        <div class="modal_header">
+            <h4>Company Search</h4>
+            <button type="button" class="modal_close_btn" onclick="ModalOpenClose('#searchCompanyModal')"><span class="blind">닫기</span></button>
+        </div>
+        <div class="modal_content">
+            <!-- search -->
+            <div class="mem_wrap1">
+                <ul class="mem_form_list2">
+                    <li>
+                        <p class="tit">Company Name</p>
+                        <div class="input_search">
+                            <input id="filter_name" type="text" title="Company Name" placeholder="Company Name" class="input" onkeyup="doSearchCompany(event)">
+                            <button type="button" onclick="doSearchCompany()"><span class="blind" th:text="#{selfregisteration.search}">Search</span></button>
+                            <p id="filterNameError"></p>
+                        </div>
+                    </li>
+                    <li id="advancedFiltersSection1" >
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.businessLicenseNumber}">Business License Number</p>
+                                <input type="text" id="filter_bizregno1" th:placeholder="#{selfregisteration.businessLicenseNumber}" class="input">
+                            </div>
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.dunsNumber}">DUNS NO</p>
+                                <input type="text" id="filter_dunsNo" th:placeholder="#{selfregisteration.dunsNumber}" class="input">
+                            </div>
+                        </div>
+                    </li>
+                    <li id="advancedFiltersSection2" >
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.accountId}">Account ID</p>
+                                <input type="text" id="filter_accountId" th:placeholder="#{selfregisteration.accountId}" class="input">
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+
+                <!-- button -->
+                <div id="advancedFiltersBtnGroup" class="bt_wrap3">
+                    <div>
+                        <button type="button" class="btn_m btn_gray" onclick="resetSearchCompanyFilters()" th:text="#{selfregisteration.reset}">Reset</button>
+                    </div>
+                    <div class="col_wrap1">
+                        <button type="button" class="btn_m search" onclick="doSearchCompany()" th:text="#{selfregisteration.search}">Search</button>
+                    </div>
+                </div>
+                <!-- //button -->
+            </div>
+            <!-- //search -->
+
+            <h5 th:text="#{selfregisteration.searchResult}">Search result</h5>
+
+            <!-- pc grid 영역  -->
+            <div id="searchCompanyResult" class="pc_grid_wrap ag-theme-quartz custom_ag_grid"></div>
+            <!-- //pc grid 영역  -->
+
+            <!-- mo result 영역 -->
+            <div class="mo_result_list">
+                <dl id="searchCompanyResultMobile" class="accodion">
+                </dl>
+
+                <!-- button -->
+                <button id="mobileMoreBtn" type="button" class="btn_m btn_white" style="display: none;" onclick="addElementsForMobile(true)">+ More</button>
+                <!-- //button -->
+
+                <!-- nodata -->
+                <div id="noDataResult" class="nodata" style="display: none;" th:text="#{selfregisteration.noMatchFound}">No match found</div>   
+                <!-- //nodata -->
+
+            </div>
+            <!-- //mo result 영역 -->
+
+        </div>
+        <div class="modal_footer">
+            <div class="bt_wrap2">
+                <button id="createCompanyButton" type="button" class="btn_m isVisible" onclick="handleClickCreateCompanyButton()" th:text="#{selfregisteration.create}" th:if="${companyObject['registration_type'] != 'conversion'}">Create</button>
+                <button id="selectCompanyBtn" type="button" class="btn_m" onclick="onSelectCompany()" style="display: none;" th:text="#{selfregisteration.selectCompamy}">Select company</button>
+            </div> 
+        </div>
+    </div>
+    <div class="dimmer" aria-hidden="true"></div>
+</div>
+<!-- // Modal Dimmed -->

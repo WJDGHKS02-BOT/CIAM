@@ -1,0 +1,105 @@
+.custom_ag_grid .ag-overlay-no-rows-wrapper {
+    background:url('/theme/assets/image/common/ico_nodata_50.png') no-repeat;
+    background-position: 50% 48%;
+}
+.custom_ag_grid .ag-overlay-no-rows-wrapper > span {
+    font-size:16px;
+    font-weight:700;
+    margin-top: 100px;
+}
+
+.custom_ag_grid .ag-root-wrapper-body.ag-layout-normal {
+    min-height: 300px !important;
+    height: 100% !important;
+}
+
+.custom_ag_grid .ag-root.ag-layout-normal {
+    height: auto;
+}
+
+.custom_modal .modal_dimmed .modal_content {
+    max-height: 600px !important;
+}
+
+.custom_ag_grid .ag-cell-value.ag-cell.ag-cell-not-inline-editing.ag-cell-normal-height {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ag-theme-quartz .ag-overlay-no-rows-wrapper.ag-layout-auto-height {
+    padding-top: 0px;
+}
+
+.no-background .ag-overlay-no-rows-wrapper {
+    background: none;
+}
+
+.no-background .ag-overlay-no-rows-wrapper > span {
+    margin-top: 50px;
+}
+
+.header-cell-center .ag-header-cell-center .ag-header-cell-label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+}
+
+.header-cell-center .ag-header-group-cell-label, .ag-header-cell-label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+}
+
+.header-cell-center .ag-cell {
+    text-align: center;
+}
+
+.header-cell-center .ag-cell-wrapper {
+    justify-content: center;
+}
+
+.custom-pagination-grid .ag-paging-page-size {
+    display: none;
+}
+
+.custom-pagination-grid .ag-paging-row-summary-panel {
+    display: none;
+}
+
+.custom-pagination-grid .ag-paging-panel.ag-unselectable.ag-focus-managed {
+    display: flex;
+    justify-content: center;
+}
+
+.custom-pagination-grid .ag-center-cols-viewport {
+    min-height: 40px !important;
+}
+
+.custom-pagination-grid .ag-paging-panel {
+    border-top: none;
+}
+
+.custom-pagination-grid .ag-sticky-bottom {
+    bottom: 0 !important;
+}
+
+.custom-subTitle-margin {
+    margin-top: 50px;
+}
+
+.custom_form dt {
+    min-width: 0px !important;
+}
+
+.green_row {
+    background-color: #8bff6db6;
+}
+
+.blue_row {
+    background-color: #9cc2ffb6;
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var cdcKey = /*[[${cdcKey}]]*/ '';
+        var redirectTo = /*[[${redirectTo}]]*/ '';
+        var gigyaScriptUrl = 'https://cdns.gigya.com/js/gigya.js?apikey=' + cdcKey;
+        var g = document.createElement("script");
+        g.type = "text/javascript";
+        g.src = gigyaScriptUrl;
+        document.head.appendChild(g);
+        /*]]>*/
+    </script>
+</head>
+
+<body>
+<div id="container"></div>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function onGigyaServiceReady() {
+      gigya.hasSession().then(function (sessionExist) {
+        if (sessionExist) {
+          alert("test1");
+          logout();
+        } else {
+          window.location.href = redirectTo;
+        }
+      });
+    }
+
+    function onLogout(response) {
+      if (response.errorCode == 0) {
+        alert("test2");
+        window.location.href = redirectTo;
+      } else {
+        alert('Error :' + response.errorMessage);
+        location.reload();
+      }
+    }
+
+    function logout() {
+      alert("test3");
+      gigya.accounts.logout({
+        callback: onLogout,
+        forceProvidersLogout: true
+      });
+    }
+
+    /*]]>*/
+</script>
+</body>
+
+</html>

@@ -1,0 +1,21 @@
+#response-message {
+  font: var(--samsung-700-16);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.message {
+  display: none;
+}
+
+.message.success {
+  color: var(--color-point);
+}
+
+.message.error {
+  color: var(--color-error);
+}
+
+.message.show {
+  display: block;
+}

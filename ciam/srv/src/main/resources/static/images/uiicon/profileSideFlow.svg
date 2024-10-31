@@ -1,0 +1,20 @@
+<svg
+      class="group-3"
+      width="25"
+      height="25"
+      viewBox="0 0 25 25"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle
+        cx="12.5352"
+        cy="12.2441"
+        r="11.3241"
+        stroke="#006BEA"
+        stroke-width="1.35175"
+      />
+      <path
+        d="M10.0173 5.65047L17.2969 12.4092L10.0173 19.168L8.72521 17.9683L14.7126 12.4092L8.72521 6.85015L10.0173 5.65047Z"
+        fill="#006BEA"
+      />
+    </svg>

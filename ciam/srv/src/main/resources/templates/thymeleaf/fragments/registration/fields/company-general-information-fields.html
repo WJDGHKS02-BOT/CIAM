@@ -1,0 +1,253 @@
+<!--
+  info: companyObject 객체
+  type: vendor | partner
+-->
+
+<html xmlns:th="http://www.thymeleaf.org">
+  <th:block th:fragment="company-general-information-fields(info, type)">
+    <h3>General Information</h3>
+    <ul class="mem_form_list2">
+      <li>
+        <p class="tit requ"
+           th:text="#{selfregisteration.companyName}">
+          Company Name </p>
+        <div class="col_wrap2">
+          <div class="inp_sec">
+            <input class="input"
+                   id="name"
+                   maxlength="300"
+                   name="name"
+                   placeholder="Company Name"
+                   required
+                   th:readonly="${companyObject.registration_type != null and (companyObject.registration_type == 'invitation' or companyObject.registration_type == 'ssoAccess' or (companyObject.registration_type == 'conversion' and (convertAccountId != null and convertAccountId != '')))}"
+                   th:value="${companyObject.registerCompany['name'] != null ? companyObject.registerCompany['name'] : ''}"
+                   type="text" />
+          </div>
+          <div class="bt_sec"
+               th:if="${companyObject.registration_type != null and companyObject.registration_type != 'invitation' and companyObject.registration_type != 'ssoAccess'and (companyObject.registration_type != 'conversion' or (convertAccountId == null or convertAccountId == ''))}">
+            <button class="btn_l btn_gray"
+                    id="resetBtn vendor"
+                    th:if="${type} == 'vendor'"
+                    th:onclick="clickedResetBtn()"
+                    th:text="#{selfregisteration.reset}"
+                    type="button">
+              Reset
+            </button>
+            <button class="btn_l btn_gray"
+                    id="resetBtn partner"
+                    th:if="${type} == 'partner'"
+                    th:onclick="resetCompanyInformationField()"
+                    th:text="#{selfregisteration.reset}"
+                    type="button">
+                    Reset
+            </button>
+            <button class="btn_l"
+                    id="searchCompany"
+                    onclick="onSearchCompany()"
+                    th:text="#{selfregisteration.searchCompany}"
+                    type="button">
+              Search company
+            </button>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="col_wrap1">
+          <th:block th:replace="fragments/registration/fields/field-element :: country-select-box-field(
+                  'selfregisteration.businessLocation',
+                  'country',
+                  'country',
+                  ${companyObject.countries},
+                  ${companyObject.registerCompany['country'] != null ? companyObject.registerCompany['country'] : ''},
+                  true,
+                  true,
+                  true
+                  )"></th:block>
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                  'selfregisteration.state',
+                  'state',
+                  'state',
+                  ${companyObject.registerCompany['state'] != null ? companyObject.registerCompany['state'] : ''},
+                  50,
+                  false,
+                  true,
+                  false
+              )"></th:block>
+        </div>
+      </li>
+      <li>
+        <div class="col_wrap1">
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.region',
+                      'region',
+                      'region',
+                      ${companyObject.registerCompany['region'] != null ? companyObject.registerCompany['region'] : ''},
+                      50,
+                      false,
+                      true,
+                      false
+                  )"></th:block>
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.city',
+                      'city',
+                      'city',
+                      ${companyObject.registerCompany['city'] != null ? companyObject.registerCompany['city'] : ''},
+                      70,
+                      false,
+                      true,
+                      false
+                  )"></th:block>
+        </div>
+      </li>
+      <li>
+        <div class="col_wrap1">
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.street',
+                      'street_address',
+                      'street_address',
+                      ${companyObject.registerCompany['street_address'] != null ? companyObject.registerCompany['street_address'] : ''},
+                      100,
+                      false,
+                      true,
+                      false
+                  )"></th:block>
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.zipcode',
+                      'zip_code',
+                      'zip_code',
+                      ${companyObject.registerCompany['zip_code'] != null ? companyObject.registerCompany['zip_code'] : ''},
+                      10,
+                      false,
+                      true,
+                      false
+                  )"></th:block>
+        </div>
+      </li>
+      <li>
+        <div class="col_wrap1">
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.phoneNumber1',
+                      'phonenumber1',
+                      'phonenumber1',
+                      ${companyObject.registerCompany['phonenumber1'] != null ? companyObject.registerCompany['phonenumber1'] : ''},
+                      40,
+                      false,
+                      true,
+                      false
+                  )"></th:block>
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.fax',
+                      'fax',
+                      'fax',
+                      ${companyObject.registerCompany['fax'] != null ? companyObject.registerCompany['fax'] : ''},
+                      40,
+                      false,
+                      true,
+                      false
+                  )"></th:block>
+        </div>
+      </li>
+      <li>
+        <div class="col_wrap1">
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'registration.website',
+                      'email',
+                      'email',
+                      ${companyObject.registerCompany['email'] != null ? companyObject.registerCompany['email'] : ''},
+                      100,
+                      false,
+                      true,
+                      false
+                  )"></th:block>
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.businessLicenseNumber',
+                      'bizregno1',
+                      'bizregno1',
+                      ${companyObject.registerCompany['bizregno1'] != null ? companyObject.registerCompany['bizregno1'] : ''},
+                      20,
+                      false,
+                      true,
+                      false
+                  )"></th:block>
+        </div>
+      </li>
+      <li>
+        <div class="col_wrap1"
+             th:if="${type} == 'vendor'">
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.representative',
+                      'representative',
+                      'representative',
+                      ${companyObject.registerCompany['representative'] != null ? companyObject.registerCompany['representative'] : ''},
+                      14,
+                      false,
+                      true,
+                      false
+                  )"></th:block>
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.vendorCode',
+                      'vendorcode',
+                      'vendorcode',
+                      ${companyObject.registerCompany['vendorcode'] != null ? companyObject.registerCompany['vendorcode'] : ''},
+                      255,
+                      true,
+                      true,
+                      false
+                  )"></th:block>
+        </div>
+        <div class="col_wrap1"
+             th:if="${type} == 'partner'">
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.representative',
+                      'representative',
+                      'representative',
+                      ${companyObject.registerCompany['representative'] != null ? companyObject.registerCompany['representative'] : ''},
+                      14,
+                      false,
+                      true,
+                      false
+                  )"></th:block>
+          <th:block th:replace="fragments/registration/fields/field-element :: text-field(
+                      'selfregisteration.accountId',
+                      'vendorcode',
+                      'vendorcode',
+                      ${companyObject.registerCompany['vendorcode'] != null ? companyObject.registerCompany['vendorcode'] : ''},
+                      255,
+                      true,
+                      true,
+                      false
+                  )"></th:block>
+        </div>
+      </li>
+    </ul>
+  </th:block>
+
+  <script th:inline="javascript">
+    function onSearchCompany() {
+      // reference file : ~/scripts/search_company.js
+      executeSearchCompany();
+    }
+
+    $(document).on('keydown', 'input', async (event) => {
+      const keyCode = event.keyCode;
+      const target = event.target;
+      const id = target.id;
+      const value = target.value;
+
+      if (keyCode === 13) {
+        event.preventDefault();
+        if (id === "name") {
+          const message = "please enter a company name";
+          if (!value) {
+            setErrorModalMsg(message);
+            ModalAlertOpen('#errorDialogBox');
+            return;
+          }
+          onSearchCompany();
+        }
+      }
+
+    });
+  </script>
+</html>
+

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment= "headScript">
+    <script th:inline="javascript">
+        console.log(">>> login start ");
+    
+        // 변수 선언
+        const apiKey = [[${ apiKey }]] || '';
+        const channel = [[${ channel }]] || '';
+        const isBTPLogin = [[${ isBTPLogin }]] || '';
+        const loginAPISrc = [[${ loginAPISrc }]] || '';
+        const newChannel = [[${ newChannel }]] || [];
+        const curCon = [[${content}]] || '';
+    </script>
+    <th:block th:if="loginAPISrc != '' and apiKey != ''">
+        <script th:inline="javascript" th:src="|${loginAPISrc}${apiKey}|"></script>
+    </th:block>
+    
+    <script>
+        debugger;
+        let startScreen = '';
+        let currentCloseModal = '';
+        if (curCon.includes("login")) {
+            currentCloseModal = 'loadingLogin';
+            startScreen = 'gigya-login-screen';
+        } else if (curCon.includes("pwd")) {
+            currentCloseModal = 'loadingResetPwd';
+            startScreen = 'gigya-reset-password-screen';
+        }
+        const onGigyaServiceReady = () => {
+            debugger;
+            const gigya_events = gigya.getUrlParam('events');
+            const now = location.host;
+            let gigyaSource = '';
+            if (isBTPLogin) {
+                debugger;
+                gigya.socialize.addEventHandlers({
+                    onLogin: function () {
+                        gigya.fidm.saml.continueSSO();
+                    }
+                });
+                gigyaSource = `${now}/signin/toolmate/saml-ad`;
+            } else {
+                debugger;
+                gigya.socialize.addEventHandlers({
+                    onLogin: () => gigya.accounts.getAccountInfo({
+                        callback: async(e) => {
+                            if (e.data.channels[gigya.thisScript.globalConf.channel].approvalStatus !== 'approved'
+                                && e.data.channels[gigya.thisScript.globalConf.channel].approvalStatus !== 'inactive'){
+                                async function handleSearchLocale(UID) {
+                                    const myHeaders = new Headers();
+                                    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+                                    const urlencoded = new URLSearchParams();
+                                    urlencoded.append("query", `SELECT profile.locale
+                              from accounts
+                              WHERE UID = '${UID}'`);
+                                    urlencoded.append("apiKey", "4_lMgx5eUigEBzUwBvUv_Xdw");
+                                    urlencoded.append("secret", "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh");
+                                    urlencoded.append("userKey", "ADfHBAQvhUZR");
+
+                                    const requestOptions = {
+                                        method: "POST",
+                                        headers: myHeaders,
+                                        body: urlencoded,
+                                        redirect: "follow"
+                                    };
+
+                                    return fetch("https://accounts.au1.gigya.com/accounts.search", requestOptions)
+                                        .then((response) => {
+                                            return response.text();
+                                        })
+                                        .then((result) => {
+                                            return result;
+                                        })
+                                        .catch((error) => {
+                                            throw new Error(error);
+                                        });
+                                }
+
+                                const data = await handleSearchLocale(e.UID);
+                                const langLocale = JSON.parse(data).results[0].profile.locale;
+
+                                location.href =
+                                    `${gigya.thisScript.globalConf.noChannelPermissionJAVAURL}?apiKey=${gigya.apiKey}&UID=${e.UID}&approvalStatus=${e.data.channels[gigya.thisScript.globalConf.channel].approvalStatus}&langLocale=${langLocale}`
+                            } else {
+                                if ((new Date() - new Date(e.data.channels[gigya.thisScript.globalConf
+                                    .channel].lastLogin || '2000-01-01T00:00:00Z')) / 86400000 > 90) {
+                                    gigya.accounts.showScreenSet({
+                                        screenSet: 'Default-RegistrationLogin',
+                                        startScreen: 'gigya-password-change-required-screen'
+                                    });
+                                } else {
+                                    gigya.accounts.setAccountInfo({
+                                        data: {
+                                            channels: {
+                                                [gigya.thisScript.globalConf.channel]: {
+                                                    lastLogin: new Date().toISOString()
+                                                }
+                                            }
+                                        },
+                                        callback: () => gigya.fidm.saml.continueSSO(),
+                                    });
+                                }
+                            }
+                        }
+                    }),
+                });
+                gigyaSource = `${now}/signin/${channel}/saml-ad`;
+            }
+            if (!gigya_events) {
+                const g = document.createElement("iframe");
+                g.src = gigyaSource;
+                g.style = 'display: none;';
+                document.body.appendChild(g);
+            } else if (gigya_events.includes('socialize.login')) {
+                const params = new URLSearchParams(location.search);
+                if (params.get('errorCode') === '0')
+                    gigya.socialize.notifyLogin({
+                        dontHandleScreenSet: true,
+                        siteUID: params.get('UID'),
+                        UIDSig: params.get('UIDSignature'),
+                        UIDTimestamp: params.get('signatureTimestamp'),
+                        callback: e =>
+                            e.profile?.username || (location.href =
+                                `${gigya.thisScript.globalConf.noChannelPermissionJAVAURL}?apiKey=${apiKey}&regToken=${e.regToken}&newADLogin=true`
+                            )
+                    }
+                    )
+            };
+            const screenSet = newChannel.includes(channel) ? 'Default-NewRegistrationLogin' : 'Default-RegistrationLogin';
+            gigya.hasSession().then(se => se ?
+                gigya.fidm.saml.continueSSO() :
+                !gigya.getUrlParam('events') && gigya.accounts.showScreenSet({
+                    screenSet: screenSet,
+                    startScreen: startScreen,
+                    containerID: "CDC_OnPage"
+                })
+            );
+            if (!!currentCloseModal) {
+                ModalAlertClose(`#${currentCloseModal}`);
+            }
+        }
+    
+    </script>
+    
+    <style>
+        @font-face {
+            font-family: "SamsungOne" !important;
+            font-weight: 200;
+            src: url('/theme/assets/fonts/SamsungOne-200.eot');
+            src: local('※'), url('/theme/assets/fonts/SamsungOne-200.eot?#iefix') format('embedded-opentype'), url('/theme/assets/fonts/SamsungOne-200.woff') format('woff'), url('/theme/assets/fonts/SamsungOne-200.woff2') format('woff2');
+        }
+    
+        @font-face {
+            font-family: "SamsungOne" !important;
+            font-weight: 400;
+            src: url('/theme/assets/fonts/SamsungOne-400.eot');
+            src: local('※'), url('/theme/assets/fonts/SamsungOne-400.eot?#iefix') format('embedded-opentype'), url('/theme/assets/fonts/SamsungOne-400.woff') format('woff'), url('/theme/assets/fonts/SamsungOne-400.woff2') format('woff2');
+        }
+    
+        @font-face {
+            font-family: "SamsungOne" !important;
+            font-weight: 700;
+            src: url('/theme/assets/fonts/SamsungOne-700.eot');
+            src: local('※'), url('/theme/assets/fonts/SamsungOne-700.eot?#iefix') format('embedded-opentype'), url('/theme/assets/fonts/SamsungOne-700.woff') format('woff'), url('/theme/assets/fonts/SamsungOne-700.woff2') format('woff2');
+        }
+    
+        @font-face {
+            font-family: "SamsungOne" !important;
+            font-weight: 800;
+            src: url('/theme/assets/fonts/SamsungOne-800.eot');
+            src: local('※'), url('/theme/assets/fonts/SamsungOne-800.eot?#iefix') format('embedded-opentype'), url('/theme/assets/fonts/SamsungOne-800.woff') format('woff'), url('/theme/assets/fonts/SamsungOne-800.woff2') format('woff2');
+        }
+    
+        html, body, div, ul, ol, dl, li, dt, dd, p, h1, h2, h3, h4, h5, h6, table, thead, tbody, tr, th, td, caption, address, article, aside,
+        canvas, details, figure, figcaption, main, footer, header, menu, nav, section,
+        button, select, textarea, input, fieldset, legend, label, a, span, strong, em, address, dfn, small, i, b, form {margin:0; padding:0; border:0; list-style:none; font-style:normal; font-size:inherit; font-weight:inherit; font-family:inherit; color:inherit; box-sizing:inherit; -webkit-box-sizing:inherit; -moz-box-sizing:inherit; -o-box-sizing:inherit; -webkit-print-color-adjust:exact;}
+    
+        main, article, aside, canvas, details, figure, figcaption, footer, header, menu, nav, section {display:block;}
+        body {font-family:'SamsungOne', 'sans-serif'; font-size:14px; color:#313131; line-height:1; word-break:keep-all; word-wrap:break-word; box-sizing:border-box; -webkit-box-sizing:border-box; -moz-box-sizing:border-box; -o-box-sizing:border-box; -webkit-text-size-adjust: none; -moz-text-size-adjust: none; -ms-text-size-adjust: none;}
+    
+        /* Default */
+        body, html {height:100%; background-color: #F7F7F7;}
+        .wrapper {min-height:100%;}
+        .wrapper, .container, .content, .content-body {display:flex; flex-direction:column; flex-grow:1; flex-basis:auto;}
+        .header, .footer, .content-header, .content-footer {flex:none;}      
+        /* .header {display: flex; align-items: center; height:80px;} */
+        .header {display: flex; align-items: center;}
+         
+        /* .header h1 {font-size:24px; color:#000; font-weight:800} */
+        .header h1 img {vertical-align: middle; margin:-4px 16px 0 0;}    
+        .container {min-height:500px; padding:80px 0 60px;}
+        /* .footer {display:flex; justify-content: space-between; height:60px; padding:21px 80px; font-weight:400; color:#757575;}   */
+    
+        /* login */
+        /* .login_content {width:550px !important; margin:0 auto;} */
+    
+        .login_inner_white {background-color:#fff; padding:40px 50px;  border-radius:8px;}
+        .login_inner_white h3 {font-size:40px; font-weight:800; text-align:center; padding-bottom:40px;}
+        .login_inner_white h4 {font-size:16px; font-weight:700; text-align:center; padding-bottom:10px; color:#757575;}
+    
+        .login_wrap .inner {background-color:#fff; padding:40px 50px; border-bottom-left-radius:8px; border-bottom-right-radius:8px;}
+    
+        .txt_login_link {color:#0068EA; font-weight:400;}
+    
+        /* .txt_login1 {width: 550px !important; background-color:#fff; border-top-left-radius:8px; border-top-right-radius: 8px; text-align: center; font-size:14px; color:#757575; padding:40px 50px 0;} */
+        .txt_login1 {background-color:#fff; border-top-left-radius:8px; border-top-right-radius: 8px; text-align: center; font-size:14px; color:#757575; padding:40px 50px 0;}
+        .txt_login1 h2 {font-size:40px; color:#313131; font-weight:800; padding:0 0 24px;}
+    
+        .txt_login2 {font-size:16px; font-weight:400; text-align:center; line-height:1.3; color:#757575;}
+        .txt_login2 ~ .mem_form_list1 {margin-top:40px;}
+    
+        .txt_login3 {font-weight:700; text-align:center; line-height:1.3; }
+        .txt_login3:before {content:''; display:inline-block; vertical-align: middle; margin:-1px 3px 0 0; width:24px; height:24px; background:url('/theme/assets/image/common/ico_email.png') no-repeat;}
+    
+        .txt_login4 {margin:20px 0 24px; padding:17px 10px 17px 54px; background-color:#F5F7FE; position: relative; font-weight: 400; color: #757575;;}
+        .txt_login4:before {content:''; display:block; position:absolute; top:50%; left:20px; transform: translate(0, -50%); width:24px; height:24px; background:url('/theme/assets/image/common/ico_info_bl.png') no-repeat;}
+    
+        .qr_section {margin:30px 0 40px; text-align:center;}
+        .qr_section p {margin-bottom:10px; font-size:18px; font-weight:700; color:#0068EA;}
+    
+        .login-header {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+        }
+    
+        .gigya-screen, .gigya-screen * {
+            /* margin: 0 !important; */
+            font-family: "SamsungOne" !important;
+            font-size: 14px !important;
+        }
+        
+        .gigya-composite-control-label {
+            text-align: center !important;
+        }	
+
+        .gigya-required-display {
+            padding: 0 2px !important;
+        }
+    
+        .gigya-screen {
+            font-family: "SamsungOne" !important;
+            font-weight: 400 !important;
+            width: 550px !important;
+            background-color:#fff !important; 
+            padding-top: 0px !important;
+            padding-right: 50px !important;
+            padding-bottom: 40px !important;
+            padding-left: 50px !important;
+            border-bottom-left-radius:8px !important; 
+            border-bottom-right-radius:8px !important;
+        }
+        
+        .gigya-screen v2 portrait {
+            padding-top: 0px !important;
+            padding-right: 0px !important;
+            padding-bottom: 0px !important;
+            padding-left: 0px !important;
+        }
+
+        .gigya-screen.portrait {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+    
+        .gigya-info-message-strip {
+            /* display : block !important; */
+            padding: 17px 10px 17px 17px !important;
+            background-color: #F5F7FE !important;
+        }
+    
+        .gigya-tfa-verification-device-body {
+            padding-left: 0px !important;
+            padding-right: 0px !important;
+        }
+    
+        .gigya-tfa-verification-device-body-content {
+            padding-left: 0px !important;
+            padding-right: 0px !important;
+        }
+    
+        .gigya-info-message-strip-text {
+            font-size: 14px !important;
+        }
+    
+        .gigya-tfa-management-method-header {
+            display: none;
+        }
+    
+        .gigya-tfa-verification-method-header {
+            display: none;
+        }
+    
+        .gigya-screen-caption {
+            display: none !important;
+        }
+    
+        .samsung-logo-blue-1 {
+            flex-shrink: 0;
+            width: 198.02px;
+            position: relative;
+            margin-top: 80px;
+        }
+    
+        /* .gigya-label-text {
+            font-family: "SamsungOne" !important;
+        } */
+    
+        .gigya-composite-control-header {
+            padding-bottom: 40px !important; background-color:#fff !important; border-top-left-radius:8px !important; border-top-right-radius: 8px !important; text-align: center !important; font-size:14px !important; color:#757575 !important;
+        }
+
+        .gigya-screen-content div.gigya-screen.landscape {
+            max-width: 100% !important;
+            width: auto !important;
+        }
+    
+        .gigya-input-submit {
+            font-family: "SamsungOne" !important;
+            height: 60px !important;
+            font-size: 18px !important;
+            font-weight: 700 !important;
+        }
+    
+        .gigya-tfa-method-icon {
+            vertical-align:middle !important;
+            padding-right : 5px !important;
+        }
+    
+        .gigya-tfa-verification-device-label{
+            font-weight:700 !important;
+            text-align:center !important;
+            line-height:1.3 !important;
+            display: contents !important;
+        }
+        
+        .gigya-tfa-verification-title {
+            font-size:16px !important;
+            font-weight:700 !important;
+            text-align:center !important;
+            color:#757575 !important;
+        }
+    
+        .gigya-tfa-verification-device {
+            border:none !important;
+            box-shadow:none !important;
+            padding : 0px !important;
+        }
+    
+        .gigya-label-text {
+            font-weight : 700 !important;
+            /* width: 70% !important; */
+            /* display: block !important; */
+            /* margin-right: auto !important;
+            margin-left: auto !important; */
+        }
+    
+        .gigya-input-text {
+            font-weight : 400 !important;
+            /* font-weight : 700 !important; */
+            /* width: 70% !important; */
+            /* display: block !important; */
+            /* margin-right: auto !important;
+            margin-left: auto !important; */
+        }
+        .gigya-tfa-verification-device-header {
+            text-align: center !important;
+            align-items: normal !important;
+            display: block !important;
+        }
+    
+        .gigya-layout-cell {
+            text-align : right !important;
+        }
+    
+        .gigya-label {
+            margin-bottom: 10px !important;
+        }
+    
+        /* AD로그인 버튼 숨김 */
+        /*.ss-saml-login {*/
+        /*    display: none !important;*/
+        /*}*/
+    </style>
+</head>
+</html>
+

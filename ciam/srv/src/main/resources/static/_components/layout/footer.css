@@ -1,0 +1,15 @@
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 80px;
+  font: var(--samsung-400-12);
+  color: var(--color-gray-02);
+}
+
+@media screen and (max-width: 768px) {
+  .footer {
+    padding: 0 24px;
+  }
+}

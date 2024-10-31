@@ -1,0 +1,12 @@
+.ck-editor__editable, .ck-source-editing-area {
+    min-height: 300px;
+    /* max-height: 300px; */
+}
+
+.ck-source-editing-area textarea {
+    overflow: auto;
+}
+
+.ck.ck-editor__editable_inline {
+    overflow: visible !important;
+}

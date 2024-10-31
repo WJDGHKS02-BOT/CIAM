@@ -1,0 +1,377 @@
+<!--
+    fieldMap
+    userDataResult
+    - cdc_uid
+    - city
+    - country_code
+    - email
+    - firstName
+    - jobtitle
+    - language
+    - lastName
+    - salutation
+    - state
+    - userDepartment
+    - username
+    - workPhone
+    - workPhoneCode
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+    <script th:inline="javascript">
+        const urlParams = new URLSearchParams(window.location.search);
+        const isSbaChannel = urlParams.get('param') === "sba";
+        console.log('userDataResult', /*[[${userDataResult}]]*/ '');
+        console.log('fieldMap', /*[[${fieldMap}]]*/ '');
+        console.log('channelHeader', /*[[${channelHeader}]]*/ '');
+        console.log('channelHeader channelName', /*[[${channelHeader["channelName"]}]]*/ '');
+    </script>
+    <th:block th:fragment="personalInformation">
+        <h2>Personal Information</h2>
+        <form  method="POST" class="content_ty1" id="personalInformationForm" th:action="@{/myPage/savePersonalInformation}">
+            <input type="hidden" name="cdc_uid" id="cdc_uid" th:value="${userDataResult != null ? userDataResult?.cdc_uid: ''}">
+            <input type="hidden" name="locale" id="locale" th:value="${userDataResult != null ? userDataResult?.language: ''}">
+            <h3>General Information</h3>
+            <ul id="userInformation" class="form_list1">
+                <li>
+                    <p class="tit requ" th:value="#{selfregisteration.loginId}">Login ID</p>
+                    <input type="text" name="email" id="email"  placeholder="" class="input"
+                        th:value="${userDataResult != null ? userDataResult?.email : ''}"
+                    maxlength="100"
+                    readonly required>
+                </li>
+                <li>
+                    <p class="tit requ" th:text=#{selfregisteration.preferredLanguage}>Preferred Language</p>
+                    <select name="language" id="language" class="select" required aria-readonly="true">
+                        <option th:each="language: ${languages}"
+                                th:if="${language != null}"
+                                th:value="${language.value}"
+                                th:utext="${language.name}"
+                                th:selected="${language.value == userDataResult['language']}">
+                        </option>
+                    </select>
+                    <input type="hidden" name="languages" id="languages" th:value="${userDataResult != null ? userDataResult['language']: ''}">
+                </li>
+                <li>
+                    <div class="col_wrap1">
+                        <div>
+                            <p class="tit requ" th:text="#{selfregisteration.firstName}">First Name</p>
+                            <input type="text" name="firstName" id="firstName"
+                            maxlength="100"
+                            th:value="${userDataResult != null ? userDataResult?.firstName : ''}"
+                            placeholder="" class="input characterValidation" required readonly>
+                            <p id="firstNameError"></p>
+                        </div>
+                        <div>
+                            <p class="tit requ" th:text=#{selfregisteration.lastName}>Last Name</p>
+                            <input type="text" name="lastName" id="lastName"
+                            maxlength="40"
+                            th:value="${userDataResult != null ? userDataResult?.lastName : ''}"
+                            placeholder="" class="input characterValidation" required readonly>
+                            <p id="lastNameError"></p>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <p class="tit" th:text="#{selfregisteration.phone}">Phone</p>
+                    <div class="col_wrap4">
+                        <select name="country_code_work" id="country_code_work" class="select" aria-readonly="true">
+                            <option value="">-</option>
+                            <option th:each="code: ${country_code_work}"
+                                    th:if="${code != null}"
+                                    th:value="${code.value}"
+                                    th:utext="|${code.name}|"
+                                    th:selected="|+${code.value}| == ${userDataResult['workPhoneCode']}">
+                            </option>
+                        </select>
+                        <input type="text" name="workPhone" id="workPhone"
+                        maxlength="40"
+                        th:value="${userDataResult != null and userDataResult['workPhone'] != null ? userDataResult['workPhone'] : ''}"
+                        placeholder="" class="input phoneNumberValidation" readonly>
+                        <input type="hidden" name="workPhoneCode" id="workPhoneCode">
+                    </div>
+                </li>
+                <li>
+                    <div class="col_wrap1">
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.department}">Department</p>
+                                <select name="secDept requ" id="secDept" class="select" required aria-readonly="true">
+                                    <option th:each="division: ${divisions}"
+                                            th:if="${division != null}"
+                                            th:value="${division.value}"
+                                            th:utext="${division.name}"
+                                            th:selected="${division.value == userDataResult['userDepartment']}"></option>
+                                </select>
+                                <input type="hidden" name="userDepartment" id="userDepartment">
+                            </div>
+                        <div>
+                            <p class="tit" th:text="#{selfregisteration.jobTitle}">Job Title</p>
+                            <input type="text" name="jobtitle" id="jobtitle"
+                            th:value="${userDataResult != null ? userDataResult?.jobtitle : ''}"
+                            placeholder="" class="input" readonly>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+
+            <!-- 이메일이 @samsung.com, @*.samsung.com 또는 @partner.samsung.com일 경우에는 필드를 출력하지 않음 -->
+            <th:block th:if="${!socialProviders.contains('saml-samsung-ad')}">
+                    <!-- Additional Information Fields : START -->
+                    <th:block th:replace="fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelUserAdditionalShortFieldList}, ${fieldMap.channelUserAdditionalLongFieldList}, 'additional')"></th:block>
+                    <!-- Additional Information Fields : END -->
+
+                    <!-- Specific Information Fields : START -->
+                    <th:block th:replace="fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelUserSpecShortFieldList}, ${fieldMap.channelUserSpecLongFieldList}, 'specific')"></th:block>
+                    <!-- Specific Information Fields : END -->
+            </th:block>
+
+            <div class="wrap_btn2 ">
+                <button id="editCancel" type="button" class="btn_l btn_white" onclick="clickedEditCancelBtn(this)" style="visibility: hidden;">Cancel</button>
+                <button id="editSave" type="button" class="btn_l" onclick="clickedEditBtn(this)" style="visibility: hidden;">Save</button>
+                <button id="edit" type="button" class="btn_l" onclick="clickedEditBtn(this)">Edit</button>
+            </div>
+
+            <button id="submit" type="submit"></button>
+        </form>
+
+    </th:block>
+
+    <script th:inline="javascript">
+            let editMode = false;
+
+            let userDataResult = [[${userDataResult}]] || {};
+            const alertMessage = [[#{myPage.cancelAlertText}]] || '';
+            const changeSuccessText = [[#{myPage.personalInformation.changeSuccessText}]] || '';
+            const submitBtn = document.getElementById('submit');
+            const socialProviders = /*[[${socialProviders}]]*/ '';
+
+
+            let allFieldsData = {};
+
+            const unchangeableFields = [
+                "email",
+                "channel",
+                "role",
+            ];
+
+            function setHiddenInputValue() {
+                const locale = document.getElementById('locale');
+                const language = document.getElementById('language');
+                const languages = document.getElementById('languages');
+                const workPhoneCode = document.getElementById('workPhoneCode');
+                const country_code_work = document.getElementById('country_code_work');
+                const userDepartment = document.getElementById('userDepartment');
+                const secDept = document.getElementById('secDept');
+
+                const languageValue = language.value;
+
+                locale.value = languageValue;
+                languages.value = languageValue;
+
+                workPhoneCode.value = country_code_work.value;
+
+                userDepartment.value = secDept.value;
+            }
+
+            function setNoneRequiredAllFields() {
+                $("input").removeAttr("required");
+                $("select").removeAttr("required");
+                let allInputFields = document.querySelector("#personalInformationForm").querySelectorAll('input');
+                let allPFields = document.querySelector("#personalInformationForm").querySelectorAll('p');
+                let allSelectFields = document.querySelector("#personalInformationForm").querySelectorAll('select');
+
+                let allFields = [...allInputFields, ...allPFields, ...allSelectFields];
+
+                for (let component of allFields) {
+                    component.removeAttribute("required");
+                    component.classList.remove("requ");
+                }
+            }
+
+            async function setEditableFieldsElement(elementsType) {
+                // #userInformation 내의 모든 필드를 선택
+                let fields = document.querySelector("#userInformation").querySelectorAll(elementsType);
+                // #dynamicFields 내의 모든 필드를 추가로 선택
+                let dynamicFields = document.querySelector("#dynamicFields")
+                    ? document.querySelector("#dynamicFields").querySelectorAll(elementsType)
+                    : [];                // fields와 dynamicFields를 병합
+                let allFields = [...fields, ...dynamicFields];
+                // 변경 가능한 필드들만 필터링 (unchangeableFields에 포함되지 않은 것들)
+                const editableFields = await Object.entries(allFields).filter(([key, component]) => {
+                    return !(unchangeableFields.includes(component.id));
+                });
+
+                let changeElement = '';
+                if (elementsType == 'input') {
+                    changeElement = 'readOnly';
+                } else if (elementsType == 'select') {
+                    changeElement = 'ariaReadOnly';
+                }
+                for await (let valueArray of editableFields) {
+                    valueArray[1][changeElement] = editMode;
+                }
+                // 특화 필드 editable 처리
+                for (let dynamicField of dynamicFields) {
+                    dynamicField['disabled'] = editMode;
+                }
+            }
+
+            function toggleVisibility(target) {
+                let currentVisibility = target.style.visibility;
+                let visibility = '';
+
+                if (currentVisibility == 'hidden') {
+                    visibility = 'visible';
+                } else if (currentVisibility == 'visible') {
+                    visibility = 'hidden';
+                }
+                target.style.visibility = visibility;
+            }
+
+            function toggleDisplay(target) {
+                let currentDisplay = target.style.display;
+                let display = "";
+
+                if (!currentDisplay) {
+                    display = 'none';
+                } else {
+                    display = '';
+                }
+                target.style.display = display;
+            }
+
+            function clickedEditCancelBtn(target) {
+                openModal('alert', reloadMyPage, alertMessage);
+            }
+
+            function changeSuccessFunction() {
+                submitBtn.click();
+            }
+
+            // Edit, Save btn onclick function
+            async function clickedEditBtn(target) {
+                const type = target.id;
+                const editCancelBtn = document.getElementById("editCancel");
+                const editSaveBtn = document.getElementById("editSave");
+                const editBtn = document.getElementById("edit");
+                if (type == 'editSave') {
+                    const requiredFields = $("[required]");
+                    // 필수 필드 Validation
+                    const saveValidationPromise = new Promise((resolve, reject) => {
+                        let requiredFieldsLength = requiredFields.length;
+                        let i = 0;
+                        for (let element of requiredFields) {
+                            if (!element.value) {
+                                reject();
+                            }
+                            i++;
+                        }
+
+                        if (i == requiredFieldsLength) {
+                            resolve(true);
+                        }
+                    });
+
+                    Promise.all([saveValidationPromise]).then((result) => {
+                        // 도메인 검사
+                        // const email = document.getElementById('email').value;
+                        // const bannedDomains = ['@samsung.com', '@.*\\.samsung\\.com']; // @*.samsung.com을 정규식으로 대체
+                        //
+                        // // 이메일 도메인 추출
+                        // const emailDomain = email.substring(email.indexOf('@'));
+                        //
+                        // // 금지된 도메인 여부 확인
+                        // const isBanned = bannedDomains.some((domain) => {
+                        //     const regex = new RegExp(domain);
+                        //     return regex.test(emailDomain);
+                        // });
+                        //
+                        // // 삼성 도메인인 경우, Gigya 로그인 호출
+                        // if (isBanned) {
+                        if (socialProviders.includes('saml-samsung-ad')) {
+
+                            setHiddenInputValue();
+
+                            // API key를 동적으로 포함하는 스크립트 추가
+                            const g = document.createElement("script");
+                            var apiKey = /*[[${apiKey}]]*/ 'defaultApiKey';  // apiKey 변수는 서버에서 전달된 값을 사용
+                            g.type = "text/javascript";
+                            g.src = `https://cdns.au1.gigya.com/JS/gigya.js?apiKey=${apiKey}`;
+
+                            loading("open");
+
+                            // gigya.js가 로드된 후 로그인 호출
+                            g.onload = function() {
+                                debugger;
+                                gigya.accounts.socialLogin({
+                                    provider: 'saml-samsung-ad',
+                                    authFlow: 'popup',
+                                    ignoreInterruptions: true,
+                                    callback: function(sl) {
+                                        loading("close");
+                                        // 콜백 함수에서 필요한 로직 실행
+                                        executeSamsungVerifyingAccount();
+                                    }
+                                });
+                            };
+
+                            // 스크립트를 head에 추가
+                            document.head.appendChild(g);
+                        } else {
+                            // 금지된 도메인이 아닐 경우
+                            setHiddenInputValue();
+                            executeReAuthentication('', changeSuccessFunction);
+                        }
+                    }).catch((e) => {
+                        openModal('alert', '', `Please fill required fields`);
+                    });
+
+                    return;
+                }
+
+                // 필드 editable 설정
+                await setEditableFieldsElement('input');
+                await setEditableFieldsElement('select');
+
+                // 버튼 visible toggle 설정
+                toggleVisibility(editCancelBtn);
+                toggleVisibility(editSaveBtn);
+                toggleDisplay(editBtn);
+
+                editMode = !(editMode);
+            }
+
+            function clickedSubmitCancelBtn() {
+
+            }
+
+            function clickedSubmitBtn() {
+
+            }
+
+            $(document).ready(() => {
+                if ((typeof responseErrorCode) != 'string') {
+                    let modalType = '';
+                    let modalText = '';
+                    const setResponseTextPromise = new Promise((resolve, reject) => {
+                        if (!!responseErrorCode) {
+                            modalType = 'error';
+                            modalText = serverErrorText;
+                        } else {
+                            modalType = 'success';
+                            modalText = changeSuccessText;
+                        }
+                        if (!!modalText) {
+                            resolve();
+                        }
+                    });
+
+                    Promise.all([setResponseTextPromise]).then(() => {
+                        openModal(modalType, '', modalText);
+                    });
+                }
+            });
+        </script>
+</html>

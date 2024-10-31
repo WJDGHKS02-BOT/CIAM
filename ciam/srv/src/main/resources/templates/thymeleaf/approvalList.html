@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+
+
+<table>
+    <thead>
+    <tr>
+        <th>Channel</th>
+        <th>request Type</th>
+        <th>Requestor ID</th>
+        <th>Company Name</th>
+        <th>Company Code</th>
+        <th>Requested Date</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="row : ${approvalData}">
+        <td th:text="${row.channel}"></td>
+        <td th:text="${row.requestType}"></td>
+        <td th:text="${row.requestorId}"></td>
+        <td th:text="${row.Company}"></td>
+        <td th:text="${row.CompanyCode}"></td>
+        <td th:text="${row.requestedDate}"></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
+
+<script>
+    const channel = [[${channel}]];
+debugger;
+    alert(channel);
+
+</script>

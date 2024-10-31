@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<script>
+
+</script>
+<th:block th:fragment="approvalInformation">
+    <h2>Approval List</h2>
+    <form method="POST" class="content_ty1" id="approvalInformationForm" action="/myPage/approvalListPendingSubmit">
+        <dl class="list_ty3">
+            <dt>Type :</dt>
+            <dd id="requestTypeText"></dd>
+            <dd></dd>
+            <dt>Channel :</dt>
+            <dd th:text="${channels[0]['channelDisplayName']}"></dd>
+        </dl>
+        <input id="bpid"
+               name="bpid"
+               type="hidden"
+               th:value="${companyObject['registerCompany']['bpid']}">
+        <h3>Company Information</h3>
+        <ul class="form_list1">
+            <li>
+                <p class="tit requ" th:text="#{selfregisteration.companyName}">Company Name</p>
+                <div class="col_wrap2">
+                    <div class="inp_sec">
+                        <input
+                                type="text"
+                                class="input"
+                                id="name"
+                                name="name"
+                                th:value="${companyObject['registerCompany']['name']}"
+                                readonly>
+                    </div>
+                    <div class="bt_sec" th:if="${payload.channel == 'toolmate' || payload.channel == 'tnp'}">
+                        <button id="resetBtn" type="button" class="btn_l btn_gray" onclick="clickedResetBtn()" th:text=#{selfregisteration.reset}>Reset</button>
+                        <button id="searchCompany" type="button" class="btn_l" onclick="onSearchCompany()" th:text="#{selfregisteration.searchCompany}">Search company</button>
+                    </div>
+                </div>
+            </li>
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Business Location</p>
+                        <select name="country" id="country"
+                                class="select" aria-readonly="true">
+                            <!--                                    <option value="" th:text="#{selfregisteration.selectOption}"></option>-->
+                            <option th:each="location: ${companyObject.secCountries}" th:if="${location != null}"
+                                    th:value="|${location.countryCode}|" th:utext="${location.country}"
+                                    th:selected="${location.countryCode == companyObject['registerCompany']['country']}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <p class="tit">State</p> 
+                        <input
+                            type="text"
+                            class="input"
+                            id="state"
+                            th:value="${companyObject['registerCompany']['state']}"
+                            readonly>
+                    </div>
+                </div>
+            </li>						
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Region</p>
+                        <input
+                            type="text"
+                            class="input"
+                            id="region"
+                            readonly>
+                    </div>
+                    <div>
+                        <p class="tit">City</p>
+                        <input
+                            type="text"
+                            class="input"
+                            id="city"
+                            th:value="${companyObject['registerCompany']['city']}"
+                            readonly>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Street</p>
+                        <input
+                            type="text"
+                            class="input"
+                            id="street_address"
+                            th:value="${companyObject['registerCompany']['street_address']}"
+                            readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Zip/Postal Code</p>
+                        <input
+                            type="text"
+                            class="input"
+                            id="zip_code"
+                            th:value="${companyObject['registerCompany']['zip_code']}"
+                            readonly>
+                    </div>
+                </div>
+            </li>
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Company Phone Number</p>
+                        <input
+                            type="text"
+                            class="input"
+                            id="phoneNumber1"
+                            th:value="${companyObject['registerCompany']['phonenumber1']}"
+                            readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Company Fax</p> 
+                        <input
+                            type="text"
+                            class="input"
+                            id="fax"
+                            th:value="${companyObject['registerCompany']['fax']}"
+                            readonly>
+                    </div>
+                </div>
+            </li>	
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Web Stie</p>
+                        <input
+                            type="text"
+                            class="input"
+                            id="website"
+                            readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Business License Number</p> 
+                        <input
+                            type="text"
+                            class="input"
+                            id="bizregno1"
+                            th:value="${companyObject['registerCompany']['bizregno1']}"
+                            readonly>
+                    </div>
+                </div>
+            </li>
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Representative</p>
+                        <input
+                            type="text"
+                            class="input"
+                            id="representative"
+                            th:value="${companyObject['registerCompany']['representative']}"
+                            readonly>
+                    </div>
+                    <div>
+                        <p class="tit" th:if="${channels[0].channelType == 'CUSTOMER'}">Account ID</p>
+                        <p class="tit" th:unless="${channels[0].channelType == 'CUSTOMER'}">Vendor Code</p>
+                        <input
+                            type="text"
+                            class="input"
+                            id="vendorcode"
+                            name="vendorcode"
+                            th:value="${companyObject['registerCompany']['vendorcode']}"
+                            readonly>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- Additional Information Fields : START -->
+        <th:block th:replace="~{fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelCompanyAdditionalShortFieldList}, ${fieldMap.channelCompanyAdditionalLongFieldList}, 'additional')}"></th:block>
+        <!-- Additional Information Fields : END -->
+
+        <!-- Specific Information Fields : START -->
+        <th:block th:replace="~{fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelCompanySpecShortFieldList}, ${fieldMap.channelCompanySpecLongFieldList}, 'specific')}"></th:block>
+        <!-- Specific Information Fields : END -->
+
+        <h3 class="mar_ty2">User Information</h3>
+        <ul class="form_list1">
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Login ID</p>
+                        <input
+                            type="text"
+                            class="input"
+                            th:value="${accountObject['loginId']}"
+                            readonly>
+                    </div>
+                </div>
+            </li>
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Preferred Language</p>
+                        <select class="select" aria-readonly="true">
+                            <option th:each="curLanguage: ${accountObject['languages']}"
+                                    th:if="${curLanguage != null}"
+                                    th:value="${curLanguage.value}"
+                                    th:utext="${curLanguage.name}"
+                                    th:selected="${curLanguage.value == accountObject['language']}">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </li>
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">First Name</p>
+                        <input
+                            type="text"
+                            class="input"
+                            th:value="${accountObject['firstName']}"
+                            readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Last Name</p> 
+                        <input
+                            type="text"
+                            class="input"
+                            th:value="${accountObject['lastName']}"
+                            readonly>
+                    </div>
+                </div>
+            </li>
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Department</p>
+                        <input
+                            type="text"
+                            class="input"
+                            th:value="${accountObject['secDept']}"
+                            readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Job Title</p> 
+                        <input
+                            type="text"
+                            class="input"
+                            th:value="${accountObject['job_title']}"
+                            readonly>
+                    </div>
+                </div>
+            </li>
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Phone Number</p>
+                        <input
+                            type="text"
+                            class="input"
+                            th:value="|${accountObject['country_code_work']} ${accountObject['work_phone']}|"
+                            readonly>
+                    </div>
+                </div>
+            </li>
+        </ul>
+        <!-- Additional Information Fields : START -->
+        <th:block th:replace="~{fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelUserAdditionalShortFieldList}, ${fieldMap.channelUserAdditionalLongFieldList}, 'additional')}"></th:block>
+        <!-- Additional Information Fields : END -->
+
+        <!-- Specific Information Fields : START -->
+        <th:block th:replace="~{fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelUserSpecShortFieldList}, ${fieldMap.channelUserSpecLongFieldList}, 'specific')}"></th:block>
+        <!-- Specific Information Fields : END -->
+
+        <h3 class="mar_ty2">Role Management</h3>
+        <ul class="form_list1">	
+            <li>						
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Channel</p>
+                        <input type="text" name="" id="" th:value="${channels[0]['channelDisplayName']}" placeholder="" class="input" readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Role</p>
+                        <select class="select" name="change_role" id="approvalInformationRole" onchange="changeUserRole(this.value)">
+                            <option th:each="curRole: ${accountObject['roles']}"
+                                    th:if="${curRole != null}"
+                                    th:value="${curRole.name}"
+                                    th:utext="${curRole.name}"
+                                    th:selected="${(accountObject['role'] != null ? accountObject['role'] : 'General User') == curRole.name}">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        <h3 class="mar_ty2">Status Update</h3>
+        <ul class="form_list1">	
+            <li>
+                <p class="tit">Status</p>
+                <select name="statusUpdate" id="statusUpdate" class="select" onchange="selectStatusUpdate()">
+                    <option value="approved">Approve</option>
+                    <option value="rejected">Reject</option>
+                </select>
+            </li>
+            <li id="rejectReasonField" style="display: none;">
+                <p class="tit">Reject Reason</p>
+                <input type="text" name="rejectReason" id="rejectReason" placeholder="" class="input">
+            </li>
+        </ul>
+        <div class="wrap_btn2">
+            <button type="button" class="btn_l btn_white" onclick="clickedCancelBtn()">Cancel</button>
+            <button type="button" class="btn_l" onclick="clickedSubmitBtn()">Submit</button>
+        </div>
+
+        <div th:replace="~{popups/grantBizAdminRole}"></div>
+
+        <!-- hidden fields -->
+        <input type="hidden" name="requestType" th:value="${payload['requestType']}">
+        <input type="hidden" name="selectedRowData" th:value="${payload['selectedRowData']}">
+        <input type="hidden" name="channelBizAdminLocationRole" id="channelBizAdminLocationRole">
+        <input type="hidden" name="channelBizAdminSubsidiaryRole" id="channelBizAdminSubsidiaryRole">
+        <input type="hidden" name="channelBizAdminDivisionRole" id="channelBizAdminDivisionRole">
+        <!-- hidden fields End -->
+
+        <button type="submit" id="submit"></button>
+    </form>
+
+
+    <div class="modal_wrap"
+         id="adAlertModal">
+        <div class="modal modal_alert">
+            <div class="modal_header">
+                <button class="modal_close_btn"
+                        onclick="ModalAlertClose('#adAlertModal')"
+                        type="button"><span class="blind">Close</span></button>
+            </div>
+            <div class="modal_content">
+                <p class="alert_ty"
+                   id="adAlertModalTitle">Alert</p>
+                <ul class="list_ty1 mar1"
+                    id="adAlertModalText">
+                  <li th:utext="#{myPage.approvalList.alertText01}">The account you are attempting to approve is using Samsung employee email domain.<br>Please confirm if the the user is a ADSSO user.</li>
+                  <li th:utext="#{myPage.approvalList.alertText02}">If the user is ADSSO user, reject the approval request and inform the user to register through 'Samsung Employee Login' on the Sign-in page.</li>
+                </ul>
+            </div>
+            <div class="modal_footer wrap_btn1">
+                <button class="btn_m"
+                        th:utext="#{myPage.approvalList.alert.submitBtn}"
+                        onclick="clickAdAlertModalSubmitBtn()"
+                        id="adAlertModalConfirmBtn"
+                        type="button">Confirm</button>
+            </div>
+        </div>
+        <div aria-hidden="true"
+             class="dimmer"></div>
+    </div>
+
+    <th:block th:replace="~{${ApprovalSearchCompanyModal}}"></th:block>
+
+    <script th:inline="javascript">
+        console.log('companyObject', [[${companyObject}]])
+        console.log('channelHeader', [[${channelHeader}]]);
+        console.log('channelHeader channelName', [[${channelHeader["channelName"]}]]);
+
+        const submitBtn = document.getElementById('submit');
+        const formElement = document.querySelector('#approvalInformationForm');
+        debugger;
+        const country = /*[[${companyObject['registerCompany']['country']}]]*/ '';
+
+        const statusUpdateElement = document.getElementById('statusUpdate');
+        const rejectReasonFieldElement = document.getElementById('rejectReasonField');
+        const rejectReasonElement = document.getElementById('rejectReason');
+        const requestTypeTextElement = document.getElementById('requestTypeText');
+        const approvalInformationRoleElement = document.getElementById('approvalInformationRole');
+
+        const channelBizAdminLocationRole = document.getElementById('channelBizAdminLocationRole');
+        const channelBizAdminSubsidiaryRole = document.getElementById('channelBizAdminSubsidiaryRole');
+        const channelBizAdminDivisionRole = document.getElementById('channelBizAdminDivisionRole');
+
+        const payloadData = [[${payload}]] || '';
+        const payloadSelectedRowData = payloadData.selectedRowData;
+        const requestType = payloadData.requestType;
+        channel = payloadData.channel;
+
+        const companyValidationFields = {
+            "name": false,
+            "country": false,
+            "companySearch": false,
+            "vendorcode": false,
+        };
+        const companyName = document.getElementById('name');
+        const notIncludeCompanySelectFields = [
+            // "country"
+        ];
+
+
+        // const requestType =
+        const selectedRowData = payloadSelectedRowData ? JSON.parse(payloadSelectedRowData) : '';
+        const socialProvidersYn = [[${accountObject['socialProvidersYn']}]] ?? 'N'; // 기본값 설정
+
+        const requestTypeTextList = {
+            'W01': [[#{myPage.approvalList.requestTypeSelectbox.newApproval}]],
+            'W02': [[#{myPage.approvalList.requestTypeSelectbox.conversionApproval}]],
+            'W03': [[#{myPage.approvalList.requestTypeSelectbox.invitationApproval}]],
+            'W04': [[#{myPage.approvalList.requestTypeSelectbox.adApproval}]],
+            'W05': [[#{myPage.approvalList.requestTypeSelectbox.roleManagement}]],
+            'W06': [[#{myPage.approvalList.requestTypeSelectbox.ssoAccessApproval}]],
+            'W07': [[#{myPage.approvalList.requestTypeSelectbox.companyDomain}]],
+        };
+
+
+        function saveFormData() {
+            localStorage.setItem('requestType', requestType);
+            localStorage.setItem('channel', payloadData.channel);
+            localStorage.setItem('status', payloadData.type);
+        }
+
+        function clickedCancelBtn() {
+            saveFormData();
+
+            loading("open");
+            window.location.href = "/myPage/approvalList";
+        }
+
+        // Status에서 Reject를 선택했을 때에는 Reject reason 필드를 보여줌
+        function selectStatusUpdate() {
+            switch(statusUpdateElement.value) {
+                case 'approved':
+                    rejectReasonFieldElement.style.display = 'none';
+                    rejectReasonElement.value = '';
+                    break;
+                case 'rejected':
+                    rejectReasonFieldElement.style.display = '';
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function setRequestTypeText() {
+            requestTypeTextElement.innerText = requestTypeTextList[requestType];
+        }
+
+        function initiailizeFields() {
+            setRequestTypeText();
+            $("#statusUpdate").val("approved").trigger("change");
+        }
+
+        function submitCallbackFunc() {
+            if (approvalInformationRoleElement.value != 'Channel biz Admin') {
+                setGrantRole(null);
+            }
+            submitBtn.click();
+        }
+
+        function clickedSubmitBtn() {
+            const payload = [[${payload}]];
+            const channel = [[${channels[0]['channelDisplayName']}]];
+            const type = payload.requestType;
+            const status = payload.type
+            // TNP 이고 신규 가입, pending, 삼성 이메일, approved 할 경우
+            if(channel === 'TNPortal' && type === 'W01' && status === 'pending' && socialProvidersYn === 'Y' && statusUpdateElement.value === 'approved') {
+                ModalAlertOpen('#adAlertModal');
+            } else {
+                handleClickedSubmitBtn();
+            }
+        }
+
+        // TNP 이고 신규 가입, pending, 삼성 이메일 일 경우
+        function clickAdAlertModalSubmitBtn() {
+            ModalAlertClose('#adAlertModal');
+            handleClickedSubmitBtn();
+        }
+
+        function handleClickedSubmitBtn() {
+            saveFormData();
+
+            let modalType = 'alert';
+            let callbackFunc = '';
+            let modalText = '';
+            // Reject일 때 Reject Reason이 비어있다면 submit 불가
+            if (statusUpdateElement.value == 'rejected' && (!rejectReasonElement.value)) {
+                modalText = "Please enter reject reason";
+            } else {
+                callbackFunc = submitCallbackFunc;
+                modalText = "Are you sure you want to approve?";
+            }
+            openModal(modalType, callbackFunc, modalText);
+        }
+
+        function changeUserRole(selectedRole) {
+            if (selectedRole == 'Channel biz Admin') {
+                ModalOpen('#selectedRoleModal');
+            }
+        }
+
+        // Channel Biz Admin에게 부여할 권한 설정
+        // Location, Subsidiary, Division
+        function setGrantRole(selectedValues) {
+            if(!selectedValues) {
+                channelBizAdminLocationRole.value = selectedValues;
+                channelBizAdminSubsidiaryRole.value = selectedValues;
+                channelBizAdminDivisionRole.value = selectedValues;
+            } else {
+                channelBizAdminLocationRole.value = selectedValues.country;
+                channelBizAdminSubsidiaryRole.value = selectedValues.subsidiary;
+                channelBizAdminDivisionRole.value = selectedValues.division;
+            }
+        }
+
+        function onSearchCompany() {
+            // reference file : ~/scripts/searchCompany.js
+            executeSearchCompany();
+        }
+
+        function clickedResetBtn() {
+            // 회사 정보 필드를 모두 초기화 (빈 값으로 설정)
+            document.getElementById('name').value = '';
+            document.getElementById('country').value = '';
+            document.getElementById('state').value = '';
+            document.getElementById('region').value = '';
+            document.getElementById('city').value = '';
+            document.getElementById('street_address').value = '';
+            document.getElementById('zip_code').value = '';
+            document.getElementById('phoneNumber1').value = '';
+            document.getElementById('fax').value = '';
+            document.getElementById('website').value = '';
+            document.getElementById('bizregno1').value = '';
+            document.getElementById('representative').value = '';
+            document.getElementById('vendorcode').value = '';
+        }
+
+        function setCompanyInformation(oCompanyInfo){
+            console.debug("oCompanyInfo :: ", oCompanyInfo);
+
+            // different name
+            $('#fax').val(oCompanyInfo.faxno || '');
+            $('#street_address').val(oCompanyInfo.streetAddress || oCompanyInfo.streetGl || '');
+            // $('#zip_code').val(oCompanyInfo.zipCode || '');
+
+            companyName.readOnly = true;
+            companyValidationFields["companySearch"] = true;
+            for (let key in oCompanyInfo) {
+                const currentValue = oCompanyInfo[key];
+                const matachedComponent = document.getElementById(key);
+                if (!!matachedComponent && !notIncludeCompanySelectFields.includes(key)) {
+                    matachedComponent.dispatchEvent(new Event('input', { bubbles: true }));
+                    matachedComponent.value = currentValue || '';
+                }
+            }
+            if (oCompanyInfo.dnbListYn) {
+                const vendorCodeElement = document.getElementById("vendorcode");
+                companyValidationFields['vendorcode'] = true;
+                if (vendorCodeElement) {
+                    // 필수 속성 해제
+                    vendorCodeElement.required = false;
+
+                    // 부모 요소 내의 'p' 태그에서 'requ' 클래스를 제거
+                    const pElement = vendorCodeElement.parentNode.querySelector('p');
+                    if (pElement) {
+                        pElement.classList.remove('requ');
+                    }
+                }
+            } else {
+                const vendorCodeElement = document.getElementById("vendorcode");
+                companyValidationFields['vendorcode'] = false
+                if (vendorCodeElement) {
+                    // 필수 속성 해제
+                    vendorCodeElement.required = true;
+
+                    // 부모 요소 내의 'p' 태그에서 'requ' 클래스를 제거
+                    const pElement = vendorCodeElement.parentNode.querySelector('p');
+                    if (pElement) {
+                        pElement.classList.add('requ');
+                    }
+                }
+            }
+        }
+
+        $(document).ready(() => {
+            initiailizeFields();
+            // console.log('channel:', [[${channel}]] || '');
+            // console.log('role:', [[${role}]] || '');
+
+            // console.log('type:', [[${type}]] || '');
+            // console.log('channels:', [[${channels}]] || '');
+            // console.log('accountObject:', [[${accountObject}]] || '');
+            // console.log('companyObject:', [[${companyObject}]] || '');
+            // console.log('fieldMap:', [[${fieldMap}]] || '');
+            // console.log(payloadData);
+            // console.log(selectedRowData);
+        });
+    </script>
+</th:block>
+</html>

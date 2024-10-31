@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration In Progress</title>
+</head>
+<body>
+<div id="pending-title"
+     th:fragment="registrationInProgress">
+    <div class="member_content">
+        <div class="inner_white">
+            <div class="mem_ing">
+                <strong th:utext="'Processing'"></strong>  <!-- 'Processing'으로 변경 -->
+                <p th:utext="'Please wait a moment while the AD registration page is loading'"></p>  <!-- 'Loading registration page'으로 변경 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    // API key를 동적으로 포함하는 스크립트 추가
+    const g = document.createElement("script");
+    var apiKey = /*[[${apiKey}]]*/ 'defaultApiKey';  // apiKey 변수는 서버에서 전달된 값을 사용
+    g.type = "text/javascript";
+    g.src = `https://cdns.gigya.com/JS/gigya.js?apiKey=${apiKey}`;
+    document.head.appendChild(g);
+
+    // gigya.js가 로드된 후 로그인 호출
+    g.onload = function () {
+      // 로그인 시작
+      gigya.accounts.socialLogin({
+        provider: 'saml-samsung-ad'
+      });
+    };
+</script>
+</body>
+</html>

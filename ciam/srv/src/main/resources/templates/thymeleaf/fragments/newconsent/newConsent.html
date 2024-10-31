@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- <head>
+    <link href="/theme/assets/css/consent.css" rel="stylesheet">
+    <title th:text="#{selfregisteration.title}">Registration</title>
+</head>
+<body> -->
+<div th:fragment="consent">
+    <script th:inline="javascript">
+        const marketingTermsYn = [[${marketingTermsYn}]];
+        // console.log(marketingTermsYn);
+    </script>
+    <form id="validate-form" method="POST" th:action="@{/new-consent/consentSubmit}" class="member_content">
+        <input type="hidden" name="channel" th:value="${channel}">
+
+        <div class="inner_white pad">
+
+            <div class="mem_all_check">
+                <div class="check">
+                    <input type="checkbox" id="allCheck"
+                           th:checked= "${marketingTermsYn == 'Y' || marketingTermsYn == 'N'}">
+                    <label for="allCheck"><span th:text="#{selfregisteration.AllAgreement}"></span></label>
+                </div>
+            </div>
+
+            <dl class="accodion">
+                <dt role="button">
+                    <div class="check">
+                        <input type="checkbox" name="termsCommon" id="termsCommon" th:value="${termsCommon}" required
+                               th:checked= "${marketingTermsYn == 'Y' || marketingTermsYn == 'N'}">
+                        <label for="termsCommon"><span th:text="#{selfregisteration.termsCommon}"></span></label>
+                    </div>
+                </dt>
+                <dd th:utext="${termsCommonText}" class="temrs_wrap ck ck-content ck-editor__editable ck-rounded-corners ck-editor__editable_inline ck-blurred">
+                    <!-- 약관 영역 -->
+                </dd>
+                <dt role="button">
+                        <span class="check">
+                            <input type="checkbox" name="termsChannel" id="termsChannel" th:value="${termsChannel}" required
+                                   th:checked= "${marketingTermsYn == 'Y' || marketingTermsYn == 'N'}">
+                            <label for="termsChannel"><span th:text="#{selfregisteration.termsChannel(${channelDisplayName})}"></span></label>
+                        </span>
+                </dt>
+                <dd th:utext="${termsChannelText}" class="temrs_wrap ck ck-content ck-editor__editable ck-rounded-corners ck-editor__editable_inline ck-blurred">
+                    약관 영역
+                </dd>
+                <dt role="button">
+                        <span class="check">
+                            <input type="checkbox" name="privacyCommon" id="privacyCommon" th:value="${privacyCommon}" required
+                                   th:checked= "${marketingTermsYn == 'Y' || marketingTermsYn == 'N'}">
+                            <label for="privacyCommon"><span th:text="#{selfregisteration.privacyCommon}"></span></label>
+                        </span>
+                </dt>
+                <dd th:utext="${privacyCommonText}" class="temrs_wrap ck ck-content ck-editor__editable ck-rounded-corners ck-editor__editable_inline ck-blurred">
+                    약관 영역
+                </dd>
+                <dt role="button">
+                        <span class="check">
+                            <input type="checkbox" name="privacyChannel" id="privacyChannel" th:value="${privacyChannel}" required
+                                   th:checked= "${marketingTermsYn == 'Y' || marketingTermsYn == 'N'}">
+                            <label for="privacyChannel"><span th:text="#{selfregisteration.privacyChannel(${channelDisplayName})}"></span></label>
+                        </span>
+                </dt>
+                <dd th:utext="${privacyChannelText}" class="temrs_wrap ck ck-content ck-editor__editable ck-rounded-corners ck-editor__editable_inline ck-blurred">
+                    약관 영역
+                </dd>
+                <th:block th:if="${secCountry == 'CN' && channel == 'partnerhub'}">
+                    <dt role="button">
+                        <span class="check">
+                            <input type="checkbox" name="etcCommon" id="etcCommon" th:value="${etcCommon}" required
+                                   th:checked= "${marketingTermsYn == 'Y' || marketingTermsYn == 'N'}">
+                            <label for="etcCommon"><span th:text="#{selfregisteration.etcCommon}"></span></label>
+                        </span>
+                    </dt>
+                    <dd th:utext="${etcCommonText}" class="temrs_wrap ck ck-content ck-editor__editable ck-rounded-corners ck-editor__editable_inline ck-blurred">
+                        약관 영역
+                    </dd>
+                </th:block>
+                <dt role="button" th:if="${newConsentMktYn == 'Y'}">
+                    <div class="form_wrap">
+                        <span th:text="#{selfregisteration.marketingConsent}">Marketing Consent (Optional)</span>
+                        <span class="radio">
+                            <input type="radio" name="marketingCommon" th:value="'1:' + ${marketingCommon}" id="marketing1"
+                                   th:checked= "${marketingTermsYn == 'Y'}">
+                            <label for="marketing1"><span th:text="#{selfregisteration.agree}">I agree</span></label>
+                        </span>
+                        <span class="radio">
+                            <input type="radio" name="marketingCommon" th:value="'0:' + ${marketingCommon}" id="marketing0" required
+                                   th:checked= "${marketingTermsYn != 'Y'}">
+                            <label for="marketing0"><span th:text="#{selfregisteration.doNotAgree}">Do not agree</span></label>
+                        </span>
+                    </div>
+                </dt>
+                <dd th:if="${newConsentMktYn == 'Y'}" th:utext="${marketingCommonText}" class="temrs_wrap ck ck-content ck-editor__editable ck-rounded-corners ck-editor__editable_inline ck-blurred">
+                    약관 영역
+                </dd>
+            </dl>
+
+            <div class="bt_wrap4">
+                <button type="button" id="backBtn" class="btn_l back" th:text="#{selfregisteration.back}" onclick="clickedBackBtn()">Back</button>
+                <button type="submit" class="btn_l next" th:text="#{selfregisteration.next}">Next</button>
+            </div>
+        </div>
+
+        <!-- Hidden fields to pass data to backend -->
+        <input type="hidden" name="marketingConsentid" th:value="${marketingConsentid}" />
+        <input type="hidden" name="marketingcontentid" th:value="${marketingcontentid}" />
+        <input type="hidden" name="commonPrivacyConsentId" th:value="${commonPrivacyConsentId}" />
+        <input type="hidden" name="commonPrivacyContentId" th:value="${commonPrivacyContentId}" />
+        <input type="hidden" name="channelPrivacyConsentId" th:value="${channelPrivacyConsentId}" />
+        <input type="hidden" name="channelPrivacyContentId" th:value="${channelPrivacyContentId}" />
+        <input type="hidden" name="commonTermConsentId" th:value="${commonTermConsentId}" />
+        <input type="hidden" name="commonTermContentId" th:value="${commonTermContentId}" />
+        <input type="hidden" name="channelTermsConsentId" th:value="${channelTermsConsentId}" />
+        <input type="hidden" name="channelTermsContentId" th:value="${channelTermsContentId}" />
+
+        <!-- Conditional hidden fields for partnerhub -->
+        <div th:if="${secCountry == 'CN' && channel == 'partnerhub'}">
+            <input type="hidden" name="etcCommonConsentId" th:value="${etcCommonConsentId}" />
+            <input type="hidden" name="etcCommonContentId" th:value="${etcCommonContentId}" />
+            <input type="hidden" name="channelPrivacy1ConsentId" th:value="${channelPrivacy1ConsentId}" />
+            <input type="hidden" name="channelPrivacy1ContentId" th:value="${channelPrivacy1ContentId}" />
+            <input type="hidden" name="channelPrivacy2ConsentId" th:value="${channelPrivacy2ConsentId}" />
+            <input type="hidden" name="channelPrivacy2ContentId" th:value="${channelPrivacy2ContentId}" />
+        </div>
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+    <script th:inline="javascript">
+        const channel = [[${channel}]] || '';
+        // var marketingContentId = /*[[${marketingcontentid}]]*/ 'defaultMarketingContentId';
+        // var termsChannel = /*[[${termsChannel}]]*/ 'defaultTermsChannel';
+        // var privacyCommon = /*[[${privacyCommon}]]*/ 'defaultPrivacyCommon';
+        // var privacyChannel = /*[[${privacyChannel}]]*/ 'defaultPrivacyChannel';
+        // var termsCommonText = /*[[${termsCommonText}]]*/ 'defaultTermsCommonText';
+        // var privacyCommonText = /*[[${privacyCommonText}]]*/ 'defaultPrivacyCommonText';
+
+        // JavaScript로 전달된 값 확인
+        // console.log("Marketing Content ID:", marketingContentId);
+        // console.log("Terms Channel:", termsChannel);
+        // console.log("Privacy Common:", privacyCommon);
+        // console.log("Privacy Channel:", privacyChannel);
+        // console.log("Terms Common Text:", termsCommonText);
+        // console.log("Privacy Common Text:", privacyCommonText);
+        const backUrl = `/new-channel/account/${channel}`;
+
+        const consentCheckboxes = {
+            "allCheck": document.getElementById("allCheck"),
+            "termsCommon": document.getElementById("termsCommon"),
+            "termsChannel": document.getElementById("termsChannel"),
+            "privacyCommon": document.getElementById("privacyCommon"),
+            "privacyChannel": document.getElementById("privacyChannel"),
+            "etcCommon": document.getElementById("etcCommon"),
+        };
+
+        const consentRadio = {
+            "marketing1": document.getElementById("marketing1"),
+            "marketing0": document.getElementById("marketing0"),
+        };
+
+        const addClickEventCheckboxes = [
+            "#allCheck",
+            "#termsCommon",
+            "#termsChannel",
+            "#privacyCommon",
+            "#privacyChannel",
+            "#etcCommon",
+            "#marketing1",
+            "#marketing0",
+        ];
+
+        function checkAllCheckbox(value) {
+            if (!!consentCheckboxes) {
+                // console.log("all:", consentCheckboxes);
+                const radioNum = !value ? 0 : 1;
+                for (const key in consentCheckboxes) {
+                    if (!!consentCheckboxes[key]) {
+                        consentCheckboxes[key].checked = value;
+                    }
+                }
+                // consentRadio[`marketing${radioNum}`].checked = true;
+            }
+        }
+
+        function isCheckedAll() {
+            for (const key in consentCheckboxes) {
+                if (key === 'allCheck') {
+                    continue;
+                }
+                if (!!consentCheckboxes[key]) {
+                    if (!consentCheckboxes[key].checked) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        const addClickEventCheckboxesString = addClickEventCheckboxes.toString();
+
+        $(document).on('change', addClickEventCheckboxesString, async (event) => {
+            const target = event.target;
+            const id = target.id;
+            const value = target.checked;
+
+            if (id === "allCheck") {
+                checkAllCheckbox(value);
+            } else {
+                if (value) {
+                    if (isCheckedAll()) {
+                        checkAllCheckbox(value);
+                    } else {
+                        consentCheckboxes["allCheck"].checked = false;
+                    }
+                } else {
+                    consentCheckboxes["allCheck"].checked = false;
+                }
+            }
+        });
+
+        function validationCheck() {
+            for (let key in consentCheckboxes) {
+                if (key === "allCheck") {
+                    continue;
+                }
+                if (!consentCheckboxes[key].checked) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Back Button
+        function clickedBackBtn() {
+            window.location.href = backUrl;
+        }
+
+        // submit 이벤트 리스너
+        $(document).on('submit', "form", async (event) => {
+            const good = validationCheck();
+            if (!good) {
+                event.preventDefault(); // Block submit
+            } else {
+                loading("open"); // loading bar Start
+            }
+        });
+    </script>
+</div>
+
+
+
+</html>

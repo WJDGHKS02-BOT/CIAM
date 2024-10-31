@@ -1,0 +1,239 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<div class="modal_wrap"
+     id="selectedRoleModal">
+    <div class="modal modal_dimmed">
+        <div class="modal_header">
+            <h4>Grant Biz Admin Role</h4>
+            <button class="modal_close_btn"
+                    onclick="handleCloseSelectedRoleModal()"
+                    type="button"><span class="blind">Close</span></button>
+        </div>
+        <div class="modal_content">
+            <div class="margin_div1">
+                <dl class="form_list6">
+                    <dt>
+                        <h3>Location</h3>
+                    </dt>
+                </dl>
+                <dl class="list_ty2">
+                    <dd class="checkbox_list">
+                        <ul class="custom-checkbox-wrapper checkbox-country">
+                            <div class="check">
+                                <input id="country-all"
+                                       type="checkbox"
+                                       value="ALL">
+                                <label for="country-all"><span class="bold">ALL</span></label>
+                            </div>
+                            <th:block th:each="countryInfo: ${companyObject.countries}">
+                                <th:block th:replace="~{fragments/customCheckbox :: customCheckbox(|country-${countryInfo.nameEn}|, ${countryInfo.countryCode}, ${countryInfo.nameEn}, '')}"></th:block>
+                            </th:block>
+                        </ul>
+                    </dd>
+                </dl>
+            </div>
+            <div class="margin_div1">
+                <dl class="form_list6">
+                    <dt>
+                        <h3>Subsidiary</h3>
+                    </dt>
+                </dl>
+                <dl class="list_ty2">
+                    <dd class="checkbox_list">
+                        <ul class="custom-checkbox-wrapper checkbox-subsidiary">
+                            <div class="check">
+                                <input id="subsidiary-all"
+                                       type="checkbox"
+                                       value="ALL">
+                                <label for="subsidiary-all"><span class="bold">ALL</span></label>
+                            </div>
+                            <th:block th:each="subsidiaryInfo: ${companyObject.subsidiarys}">
+                                <th:block th:replace="~{fragments/checkbox :: checkbox(|subsidiary-${subsidiaryInfo.companyAbbreviation}|, ${subsidiaryInfo.companyAbbreviation}, ${subsidiaryInfo.companyAbbreviation})}"></th:block>
+                            </th:block>
+                        </ul>
+                    </dd>
+                </dl>
+            </div>
+            <div class="margin_div1">
+                <dl class="form_list6">
+                    <dt>
+                        <h3>Division</h3>
+                    </dt>
+                </dl>
+                <dl class="list_ty2">
+                    <dd class="checkbox_list">
+                        <ul class="custom-checkbox-wrapper checkbox-division">
+                            <div class="check">
+                                <input id="division-all"
+                                       type="checkbox"
+                                       value="ALL">
+                                <label for="division-all"><span class="bold">ALL</span></label>
+                            </div>
+                            <th:block th:each="divisionInfo: ${companyObject.approvalDivisions}">
+                                <th:block th:replace="~{fragments/checkbox :: checkbox(|division-${divisionInfo.name}|, ${divisionInfo.value}, ${divisionInfo.name})}"></th:block>
+                            </th:block>
+                        </ul>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        <div class="modal_footer">
+            <div class="wrap_btn2">
+                <button class="btn_m btn_white"
+                        onclick="handleCloseSelectedRoleModal()"
+                        type="button">Cancel</button>
+                <button class="btn_m"
+                        onclick="handleClickSaveButton()"
+                        type="button">Save</button>
+            </div>
+        </div>
+    </div>
+    <div aria-hidden="true"
+         class="dimmer"></div>
+</div>
+<script th:inline="javascript">
+    const selectedValues = {
+        country: null,
+        subsidiary: null,
+        division: null
+    };
+
+    const currentPayloadRole = /*[[${payload['role']}]]*/ '';
+
+    // 선택된 Role 값 리셋
+    function resetRoleSelectbox() {
+        $('select[name=change_role]').val('General User').prop("selected", true);
+    }
+
+    // 공통 함수: 특정 섹션의 모든 체크박스 초기화 (해제)
+    function resetCheckboxes(sectionClass) {
+        const checkboxes = document.querySelectorAll(`.${sectionClass} input[type="checkbox"]`);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+            checkbox.disabled = false;
+        });
+    }
+
+    // 공통 함수: ALL 체크박스 상태에 따라 다른 체크박스 비활성화/활성화
+    function toggleCheckboxes(sectionClass, allCheckbox, shouldDisable) {
+        const checkboxes = document.querySelectorAll(`.${sectionClass} input[type="checkbox"]:not(#${allCheckbox.id})`);
+        checkboxes.forEach(checkbox => {
+            checkbox.disabled = shouldDisable;
+            if (shouldDisable) checkbox.checked = false; // ALL이 체크되면 다른 체크박스를 해제
+        });
+    }
+
+    // 공통 함수: 섹션 내 다른 체크박스들이 2개 이상 체크되면 ALL을 자동으로 체크
+    function checkAllIfMultipleChecked(sectionClass, allCheckbox) {
+        const checkboxes = document.querySelectorAll(`.${sectionClass} input[type="checkbox"]:not(#${allCheckbox.id})`);
+        const checkedCount = Array.from(checkboxes).filter(checkbox => checkbox.checked).length;
+
+        if (checkedCount >= 2) {
+            allCheckbox.checked = true;
+            toggleCheckboxes(sectionClass, allCheckbox, true); // 다른 체크박스 비활성화
+        }
+    }
+
+
+    // 특정 섹션의 이벤트 리스너 설정
+    function setupSection(sectionClass, allCheckboxId) {
+        const allCheckbox = document.getElementById(allCheckboxId);
+
+        allCheckbox.addEventListener('change', () => {
+            const checkboxes = document.querySelectorAll(`.${sectionClass} input[type="checkbox"]:not(#${allCheckboxId})`);
+            checkboxes.forEach(checkbox => checkbox.disabled = allCheckbox.checked);
+            if (allCheckbox.checked) checkboxes.forEach(checkbox => checkbox.checked = false);
+        });
+    }
+
+    function setupDivisionSection() {
+        const allCheckbox = document.getElementById('division-all');
+
+        // ALL 체크박스 클릭 시 다른 체크박스 비활성화
+        allCheckbox.addEventListener('change', () => {
+            const checkboxes = document.querySelectorAll('.checkbox-division input[type="checkbox"]:not(#division-all)');
+            checkboxes.forEach(checkbox => checkbox.disabled = allCheckbox.checked);
+            if (allCheckbox.checked) checkboxes.forEach(checkbox => checkbox.checked = false);
+        });
+
+        // 다른 체크박스 클릭 시 두 개 이상 선택되면 ALL 체크 및 다른 체크박스 비활성화
+        document.querySelectorAll('.checkbox-division input[type="checkbox"]:not(#division-all)').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const checkedCount = document.querySelectorAll('.checkbox-division input[type="checkbox"]:checked:not(#division-all)').length;
+                if (checkedCount >= 2) {
+                    allCheckbox.checked = true;
+                    document.querySelectorAll('.checkbox-division input[type="checkbox"]:not(#division-all)').forEach(c => {
+                        c.checked = false;
+                        c.disabled = true; // 다른 체크박스 비활성화
+                    });
+                } else {
+                    allCheckbox.checked = false;
+                    document.querySelectorAll('.checkbox-division input[type="checkbox"]').forEach(c => c.disabled = false); // 활성화
+                }
+            });
+        });
+    }
+
+    // 모든 섹션에 대해 이벤트 리스너 설정
+    document.addEventListener('DOMContentLoaded', () => {
+        setupSection('checkbox-country', 'country-all');
+        setupSection('checkbox-subsidiary', 'subsidiary-all');
+        setupDivisionSection(); // Division 섹션 설정
+    });
+
+    // Save 버튼 클릭 시 체크된 값 수집
+    function handleClickSaveButton() {
+        function collectCheckedValues(sectionClass) {
+            const checkedValues = Array.from(document.querySelectorAll(`.${sectionClass} input[type="checkbox"]:checked:not(#${sectionClass}-all)`))
+                .map(checkbox => checkbox.value);
+            return checkedValues.length > 0 ? checkedValues.join(',') : null;
+        }
+
+        selectedValues.country = collectCheckedValues('checkbox-country');
+        selectedValues.subsidiary = collectCheckedValues('checkbox-subsidiary');
+        selectedValues.division = collectCheckedValues('checkbox-division');
+
+        let grantArray = Object.values(selectedValues);
+
+        let grantArrayLength = grantArray.length;
+
+        const saveGrantPromise = new Promise((resolve, reject) => {
+            let i = 0;
+            for (let value of grantArray) {
+                if (!value) {
+                    reject();
+                }
+                i++;
+            }
+
+            if (i == grantArrayLength) {
+                resolve();
+            }
+        });
+
+        Promise.all([saveGrantPromise]).then(() => {
+            setGrantRole(selectedValues);       // refer to approvalInformation.html
+            ModalOpenClose('#selectedRoleModal');
+        }).catch((e) => {
+            openModal('alert', '', "Please select role");
+        });
+    }
+
+    // Close 버튼 클릭 시 모든 체크박스를 해제하고 모달 닫기
+    function handleCloseSelectedRoleModal() {
+        resetCheckboxes('checkbox-country');
+        resetCheckboxes('checkbox-subsidiary');
+        resetCheckboxes('checkbox-division');
+
+        // 선택된 grant 값 리셋
+        for (let key in selectedValues) selectedValues[key] = null;
+
+        // 선택된 Role 값 리셋
+        resetRoleSelectbox();
+
+        // refer to approvalInformation.html
+        setGrantRole(selectedValues);
+
+        ModalOpenClose('#selectedRoleModal');
+    }
+</script>
+</html>

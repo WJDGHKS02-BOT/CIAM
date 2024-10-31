@@ -1,0 +1,27 @@
+---
+_schema-version: '3.1'
+ID: ciam
+version: 1.0.0-SNAPSHOT
+description: "CIAM project."
+parameters:
+  enable-parallel-deployments: true
+modules:
+  - name: ciam
+    type: java
+    path: srv
+    parameters:
+      memory: 3G
+      buildpack: sap_java_buildpack_jakarta
+      readiness-health-check-type: http
+      readiness-health-check-http-endpoint: /
+      host: ciam # 개발배포시는 주석처리한다.
+    properties:
+      SPRING_PROFILES_ACTIVE: prod
+      JBP_CONFIG_COMPONENTS: "jres: ['com.sap.xs.java.buildpack.jre.SAPMachineJRE']"
+      JBP_CONFIG_SAP_MACHINE_JRE: '{ version: 17.+ }'
+      JAVA_OPTS: "-Xms2g -Xmx2.5g"  # 힙 메모리 증가
+    build-parameters:
+      builder: custom
+      commands:
+        - mvn clean package -DskipTests=true
+      build-result: target/*-exec.jar

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>New Channel Entry Point</title>
+</head>
+<body>
+<div class="container">
+    <h2>New Channel Entry Point</h2>
+    <form id="validate-form" method="POST" th:action="@{/new-channel/register/{key}(key=${channel})}">
+        <div>
+            <label for="regToken">Registration Token</label>
+            <input type="text" id="regToken" name="regToken" required>
+        </div>
+        <br>
+        <div>
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+</div>
+
+<script th:inline="javascript">
+    debugger;
+    const p = new URLSearchParams(location.search);
+    const rt = p.get('regToken');
+    document.querySelector('input[name="regToken"]').value = rt;
+</script>
+</body>
+</html>

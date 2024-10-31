@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <script>
+        const onGigyaServiceReady = () => {
+          gigya._.WindowProvider.top = () => window;
+          gigya.accounts.socialLogin({provider: 'saml-samsung-ad'});
+        };
+
+        // URL에 gig_events가 있는지 확인
+        if (new URLSearchParams(location.search).get('gig_events')) {
+          window.top.location.href = `${window.top.location.href.split('?')[0]}${location.search}`;
+        } else {
+          // 외부 스크립트 동적으로 로드
+          const g = document.createElement("script");
+          g.type = "text/javascript";
+          g.src = `https://cdns.au1.gigya.com/JS/gigya.js?apiKey=[[${gigyaApiKey}]]`;
+          document.head.appendChild(g);
+        }
+        ;
+    </script>
+</head>
+<body>
+</body>
+</html>

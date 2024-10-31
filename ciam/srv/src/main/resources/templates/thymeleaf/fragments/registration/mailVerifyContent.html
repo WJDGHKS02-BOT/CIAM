@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <div th:fragment="mailVerifyContent">
+        <form id="mailVerifyForm" method="POST" th:action="@{/registration/signupVerified}" class="form-horizontal">
+            <input type="hidden" id= "channel" name="channel" th:value="${channel}">
+            <div class="member_content">
+                <!-- <div th:replace="~{fragments/registration/title-step :: registration-title-step(0)}"></div> -->
+                <div th:replace="fragments/registration/title :: registration-title"></div>
+                <div th:replace="fragments/registration/step :: registration-step(0)"></div>
+                
+                <div class="inner_white">
+    
+                    <h3 th:utext="#{selfregisteration.emailVerification}">Email Verification</h3>
+    
+                    <div class="txt_mem_wrap1">
+                        <th:block th:utext="#{selfregisteration.verificationNote1}"></th:block>
+                        <strong th:text="${email}"></strong>
+                        <div class="txt_ty4" th:utext="#{selfregisteration.verificationText}">
+                        </div>
+                    </div>
+    
+                    <dl class="mem_form_list1">
+                        <dt class="requ" th:text="#{selfregisteration.verificationCode}">Verification Code</dt>
+                        <dd>
+                            <input type="text" name="verCode" id="verCode" value="" placeholder="Enter the Verification Code" class="input" required>
+                        </dd>
+                    </dl>
+    
+                    <div class="txt_mem_wrap2">
+                        <div class="list_wrap1">
+                            <th:block th:utext="#{selfregisteration.verificationNote4}"></th:block>
+                            <div>
+                                <p id="resendText" style="display: none;"></p>
+                                <button type="button" id="resendLink" onclick="setResendLink(this)" class="link_blue" style="border: none;"
+                                    th:text="#{selfregisteration.verificationResendLink}">Resend</button>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="bt_wrap4">
+                        <button type="button" style="visibility: hidden;" id="backBtn" class="btn_l back" th:text="#{selfregisteration.back}" onclick="clickedBackBtn()">Back</button>
+                        <button type="button" class="btn_l next" th:text="#{selfregisteration.next}" onclick="clickedNextBtn()">Next</button>
+                    </div>
+                    <!-- <div class="bt_wrap1 ">
+                        <button type="submit" class="btn_l next">Next</button>
+                    </div> -->
+                    <button type="submit" id="submitBtn"></button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Modal Alert Resend -->
+        <div class="modal_wrap" id="ModalAlert2">
+            <div class="modal modal_alert">
+                <div class="modal_header">
+                    <button type="button" class="modal_close_btn" onclick="ModalAlertClose('#ModalAlert2')"><span class="blind">Close</span></button>
+                </div>
+                <div class="modal_content">
+                    <p class="alert_resend">Success</p>
+                    <ul class="list_ty1">
+                        <li th:text="#{selfregisteration.verificationReSentNote}">The verification code has been sent. Please check your mailbox.</li>
+                    </ul>
+                </div>
+                <div class="modal_footer wrap_btn1">
+                    <button type="button" class="btn_m btn_white" onclick="ModalAlertClose('#ModalAlert2')">Close</button>
+                </div>
+            </div>
+            <div class="dimmer" aria-hidden="true"></div>
+        </div>
+        <!-- // Modal Alert Resend -->
+
+        <script th:inline="javascript">
+            const verCode = document.getElementById('verCode');
+            const resendBtn = document.getElementById("resendLink");
+            const resendText = document.getElementById("resendText");
+            const submitBtn = document.getElementById('submitBtn');
+
+            const channel = [[${channel}]] || '';
+            const backUrl = `/registration/${channel}`;
+            const userEmail = [[${email}]] || '';
+
+
+            // Resend 버튼과 텍스트 display 토글
+            function resendFieldsVisibleToggle() {
+                const resendBtnDisplay = resendBtn.style.display;
+                if (!resendBtnDisplay) {
+                    resendBtn.style.display = 'none';
+                    resendText.style.display = '';
+                } else {
+                    resendBtn.style.display = '';
+                    resendText.style.display = 'none';
+                }
+            }
+
+            // 10초에 한 번씩 Resend 버튼 활성화
+            function setResendTime() {
+                let time = 9;
+                resendText.innerText = `Resend in ${time} sec`;
+                resendFieldsVisibleToggle();
+                let resendTimer = setInterval(() => {
+                    time -= 1;
+                    resendText.innerText = `Resend in ${time} sec`;
+                }, 1000);
+                setTimeout(() => {
+                    clearInterval(resendTimer);
+                    resendFieldsVisibleToggle();
+                }, 10000);
+            }
+
+            function setResendLink(target) {
+                // target.disabled = true;
+                var xhttp = new XMLHttpRequest();
+                var url = '/registration/resendEmailCode';
+                xhttp.open("POST", url, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        var responses = this.responseText;
+                        var ajaxResult = JSON.parse(responses);
+
+                        if (ajaxResult.result === 'ok') {
+                            ModalAlertOpen('#ModalAlert2');
+                        }
+                    }
+                }
+                var data = {
+                    //_token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    loginUserId: /*[[${email}]]*/'${loginUserId}',
+                };
+                xhttp.send(JSON.stringify(data));
+
+                setResendTime();
+            }
+
+            // Back Button
+            function clickedBackBtn() {
+                location.href = backUrl;
+            }
+
+            function validationCheck() {
+                if (!verCode.value) {
+                    return false;
+                }
+                return true;
+            }
+
+            function clickedNextBtn() {
+                const good = validationCheck();
+                if (!good) {
+                    openModal('error', '', [[#{registration.mailVerifyingCodeEmptyText}]] || ''); // Block submit
+                }else{
+                    submitBtn.click();
+                    loading("open"); // loading bar Start
+                }
+            }
+
+            $(document).ready(() => {
+                // 에러 메세지가 없을 경우에 resend 시간초 바로 표기
+                if (!nonSeesionShowErrorMsg && !sessionShowErrorMsg) {
+                    setResendTime();
+                }
+            });
+        </script>
+    </div>
+</html>

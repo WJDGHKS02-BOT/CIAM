@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consent Update</title>
+    <link rel="stylesheet" th:href="@{/theme/assets/vendor/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/theme/assets/fontawesome/css/all.css}">
+    <style>
+        .company-flow {
+            padding-top: 20px;
+            text-align: center;
+        }
+        .company-profile-registration {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .company-btn-margin {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="row">
+    <div class="company-flow">
+        <div class="company-profile-registration">Consent Update</div>
+        <br><br>
+    </div>
+    <div class="col-sm-12 col-lg-12">
+        <h2>Consent update received</h2>
+        <hr>
+        <div class="row">
+            <div class="col-sm-12 col-lg-12">
+                <p>Thank you</p>
+                <br><br><br>
+            </div>
+        </div>
+    </div>
+    <div class='company-btn-margin'></div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.onload = function() {
+        window.setTimeout(function() {
+            window.location.href = /*[[${loginPage}]]*/ "/";
+        }, 10000);
+    };
+    /*]]>*/
+</script>
+
+<script th:src="@{/theme/assets/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/theme/assets/fontawesome/js/all.js}"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>SAML Proxy Page</title>
+    <script th:inline="javascript">
+        console.log('>>> start proxy js');
+
+        const url = [[${url}]];
+        const channel = [[${channel}]];
+        const loginURL = [[${loginURL}]];
+        const logoutURL = [[${logoutURL}]];
+
+        console.log('url: ', url);
+        console.log('channel: ', channel);
+        console.log('loginURL: ', loginURL);
+        console.log('logoutURL: ', logoutURL);
+    </script>
+    <script th:inline="javascript" th:src="|https://cdns.gigya.com/js/gigya.saml.js?apiKey=${apiKey}|">
+        {
+            loginURL: `${loginURL}`,
+            logoutURL: `${logoutURL}`
+        }
+    </script>
+</head>
+
+<body>
+    <div style="display: flex;">
+        <span style="justify-content: center;">Wait a Seconds....</span>
+    </div>
+</body>
+
+</html>

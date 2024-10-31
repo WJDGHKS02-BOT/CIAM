@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMSUNG DAP PORTAL</title>
+
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+
+    <!-- Favicons -->
+    <link th:href="@{/theme/assets/img/favicon.png}" rel="icon">
+
+    <!-- Vendor CSS Files -->
+    <link th:href="@{/theme/assets/vendor/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/theme/assets/fontawesome/css/all.css}" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link th:href="@{/theme/assets/css/style.css}" rel="stylesheet">
+    <link href="https://cdn.datatables.net/v/bs5/dt-1.13.6/r-2.5.0/datatables.min.css" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/v/bs5/dt-1.13.6/r-2.5.0/datatables.min.js"></script>
+
+    <meta name="csrf-token" th:content="${_csrf.token}">
+
+    <!-- Placeholder for additional meta tags -->
+    <th:block th:replace="${metaheader}"></th:block>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.LvConfig = {
+            googleTagManagerId: [[${config.google_tag_manager}]],
+            clarityTrackingId: [[${config.clarity}]]
+        };
+        /*]]>*/
+    </script>
+</head>
+
+<body class="register-body">
+<header id="header" class="header fixed-top d-flex align-items-center">
+    <a th:href="@{/}" class="logo d-flex align-items-center">
+        <img th:src="@{/images/Samsung_Business_Account.png}" class="ms-4" height="30" alt="samsung_b2b_account">
+    </a>
+</header>
+
+<main id="main" class="company-main">
+    <div class="container">
+        <div th:replace="layout/messages :: messages"></div>
+        <!-- Placeholder for page content -->
+        <th:block th:replace="${content}"></th:block>
+    </div>
+</main>
+
+<!-- Placeholder for popups -->
+<th:block th:replace="${popups}"></th:block>
+
+<div class="modal fade" id="errorDialogBox" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="company-modal-header">
+                <h5 class="modal-title fs-5" id="staticBackdropLabel">Error!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <div id="errorMsgContent"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="modal-footer">
+                        <button type="button" id="errorDialogBtn" class="btn btn-primary company-blue-btn" data-bs-dismiss="modal" style="display: none;">close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vendor JS Files -->
+<script th:src="@{/theme/assets/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/theme/assets/fontawesome/js/all.js}"></script>
+<script th:src="@{/theme/assets/js/main.js}"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        function preventDefaultIfReadonly(e) {
+            if (e.target.matches('select[readonly]')) {
+                e.preventDefault();
+            }
+        }
+
+        document.addEventListener('keydown', preventDefaultIfReadonly, true);
+        document.addEventListener('mousedown', preventDefaultIfReadonly, true);
+
+        document.getElementById('errorDialogBtn').addEventListener('click', function() {
+            closeErrorDialog();
+        });
+    });
+
+    const form = document.querySelector('form');
+    const submitButton = document.querySelector('button[type="submit"]');
+    var showErrorMsg = /*[[${session.showErrorMsg}]]*/ '';
+    var errorMsgContent = document.getElementById('errorMsgContent');
+
+    $(document).ready(function() {
+        if (showErrorMsg !== '') {
+            var tempElement = document.createElement('div');
+            tempElement.innerHTML = showErrorMsg;
+            var decodedJson = tempElement.textContent;
+            var stringArray;
+            var ul = document.createElement('ul');
+            try {
+                stringArray = JSON.parse(decodedJson);
+            } catch (e) {
+                console.error("Parsing error:", e);
+            }
+            if (Array.isArray(stringArray)) {
+                stringArray.forEach(function(item, index) {
+                    var li = document.createElement('li');
+                    li.textContent = item;
+                    ul.appendChild(li);
+                });
+
+                errorMsgContent.appendChild(ul);
+            } else {
+                errorMsgContent.innerHTML = showErrorMsg;
+                console.log("Parsed data is not an array:", stringArray);
+            }
+
+            $('#errorDialogBox').modal('show');
+        }
+    });
+
+    function closeErrorDialog() {
+        $('#errorDialogBox').modal('hide');
+    }
+    /*]]>*/
+</script>
+
+<th:block th:replace="${scripts}"></th:block>
+</body>
+
+<footer>
+    <div class="company-btn-margin2"></div>
+    <div class="container copyright text-left mt-20">
+        <div class="copyright company-footer">
+            <div>&copy; Samsung</div>
+            <div th:text="#{common.contactus}"></div>
+        </div>
+    </div>
+</footer>
+
+</html>

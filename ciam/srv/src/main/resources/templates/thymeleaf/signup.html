@@ -1,0 +1,511 @@
+@extends('layout.registration')
+<script type="text/javascript" lang="javascript"
+		src="https://cdns.gigya.com/js/gigya.js?apikey={{config('sysval.CDC_API')}}"></script>
+@section('metaheader')
+@endsection
+
+@section('content')
+    <form id="validate-form" method="POST" action="{{ route('selfRegistration.signupSubmit', $channel) }}"
+        class="form-horizontal">
+
+        <div class="page-header2">
+            <div class="company-name3" style="text-align: center;">
+                {{-- <p>Welcome to --}}
+                {{-- <br /> --}}
+                @lang('selfregisteration.firstTitle')
+                {{-- </p> --}}
+            </div>
+        </div>
+
+        <div class="company-main">
+            {{ csrf_field() }}
+            <BR>
+            <div class="row" style="align-items: center;">
+                <div class="col-4" style="text-align: right; text-wrap: nowrap;">
+                    <label class="control-label no-margin">
+                        <span class="company-name-2-span2">@lang('selfregisteration.country2')</span>
+                        <span class="company-name-2-span">*</span>
+                    </label>
+
+                </div>
+                <div class="col-8">
+                    <div class="form-group has-error">
+                        <select class="form-select" id="country" name="country" required
+                        @if(!empty($sfdcPresetCountry) && (session()->get('p_subsidiary') != 'SEACE')) readonly @endif>
+                            <option value="">@lang('selfregisteration.selectOption')</option>
+                            @foreach ($secCountries as $secCountry)
+                                <option value="{{ $secCountry->id }}" @if($sfdcPresetCountry == $secCountry->country_code) selected @endif>{{ $secCountry->country }}
+                                </option>
+                            @endforeach
+                            @if ($channel == 'toolmate')
+                                <option value="other">Other</option>
+                            @endif
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <BR>
+
+            <div class="row align-items-center mb-2">
+                <div class="col-4 text-end">
+                    <label class="control-label no-margin">
+                        @if ($channel == 'toolmate')
+                        <span class="company-name-2-span2">@lang('selfregisteration.email2')</span>
+                        @else
+                        <span class="company-name-2-span2">@lang('selfregisteration.email')</span>
+                        @endif
+                        <span class="company-name-2-span">*</span>
+                    </label>
+
+                </div>
+                <div class="col-8">
+                    <div class="form-group has-error position-relative">
+                        @if ($convertLoginId != '')
+                            <input type="email" class=" form-control" id="email" name="email" placeholder=""
+                                value="{{ $userEmail }}" required @if(!empty($userEmail)) readonly @endif>
+                            <div id="emailMsg" class="d-flex flex-column position-absolute w-100">
+                                @if ($channel == 'toolmate')
+                                    <div>
+                                        <small id="loginUserIdError text-danger"></small>
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <input type="email" class=" form-control" id="email" name="email" placeholder=""
+                                value="{{ old('email') ?? $userEmail }}" required @if(!empty($userEmail)) readonly @endif>
+                            <div id="emailMsg"  class="d-flex flex-column position-absolute w-100">
+                                @if ($channel == 'toolmate')
+                                    <div>
+                                        <small id="loginUserIdError text-danger"></small>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @if ($channel == 'toolmate')
+                <input type="hidden" id="loginId" name="loginId" value="{{ $userLoginId }}">
+            @else
+                <BR>
+                <div class="row">
+                    <div class="col-4" style="text-align: right;">
+                        <label class="control-label">
+                            <span class="company-name-2-span2">@lang('selfregisteration.loginId')</span>
+                            <span class="company-name-2-span">*</span>
+                        </label>
+
+                    </div>
+                    <div class="col-8">
+                        <input type="email" class=" form-control test" id="loginId" name="loginId" placeholder=""
+                            value="{{ old('loginId') ?? $convertLoginId }}" required @if(!empty($convertLoginId)) readonly @endif>
+                        <div>
+                            <small id="loginUserIdError" style="color: red;"></small>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row @if(!empty($convertLoginId)) d-none @endif">
+                    <div class="col-4">
+                        <div class="company-name">
+                            &nbsp;
+                        </div>
+                    </div>
+                    <div class="col-8">
+                        <input type="checkbox" style="zoom:1.5;" class="agree_append" id="sameLoginId" name="sameLoginId" >
+                        &nbsp;&nbsp;@lang('selfregisteration.sameEmail')
+                    </div>
+                </div>
+                <BR><BR>
+            @endif
+
+            <input type="hidden" id="tempLoginId" name="tempLoginId" value="{{ $userLoginId }}">
+
+            <BR>
+            <div class="row">
+                <div class="col-4">
+                    <div class="company-name">
+                        <label class="control-label">
+                            &nbsp;
+                        </label>
+                    </div>
+                </div>
+                <div class="col-8 mt-3">
+                    <label class="control-label no-margin">
+                        <input type="checkbox" style="zoom:1.6;" class="agree_append" id="agreeTerms" name="agreeTerms"
+                            value="1" required>&nbsp;&nbsp;
+                        <span>@lang('selfregisteration.providemail')</span>
+                        <span class="company-name-2-span">*</span>
+                    </label>
+                    <BR>
+                    <div id="errorMsg1" class="error-message-display no-margin"></div>
+                    <!-- <input type="checkbox" id="agreeTerms" name="agreeTerms" value="1" required> -->
+
+
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="col-12 text-center">
+                    <BR><BR>
+                    <div class="footer-btn-form">
+                        <button type="submit" class="btn btn-primary company-next-btn">
+                            @lang('selfregisteration.next')
+                        </button>
+                    </div>
+                    <BR><BR>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- <div class='company-btn-margin'></div> -->
+    </form>
+    <div class="modal fade" id="samsungEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">Samsung Employee Login</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                You are a Samsung employee. Please use the Samsung Employee Login.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="closeModal">Cancel</button>
+                <button type="button" class="btn btn-primary">Login</button>
+            </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+
+
+@section('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Enhanced function to check if the action should be prevented
+            function preventDefaultIfReadonly(e) {
+                // Check if the target element is a select with a readonly attribute
+                if (e.target.matches('select[readonly]')) {
+                    e.preventDefault();
+                }
+            }
+
+            // Attach event listeners to the document
+            document.addEventListener('keydown', preventDefaultIfReadonly, true);
+            document.addEventListener('mousedown', preventDefaultIfReadonly, true);
+        });
+        @if($sfdcPresetCountry != '' && $subsidiary != 'SEACE')
+            $("#country").css("pointer-events", "none");
+        @endif
+
+        var canRegister = false;
+        var channel = '{{ $channel }}';
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            var emailInput = document.getElementById('email');
+            var loginIdInput = document.getElementById('loginId');
+
+            if (channel === 'toolmate') {
+                emailInput.addEventListener('keyup', function() {
+                    autoUpdateLoginId();
+                });
+            }
+
+            if (channel === 'partnerhub' || channel === 'sba' || channel === 'mmp' || channel === 'e2e' ||
+             channel === 'ets' || channel === 'edo' ) {
+                loginIdInput.addEventListener('keyup', function() {
+                    checkUserId();
+                    autoUpdateLoginId();
+                });
+                document.getElementById('sameLoginId').addEventListener('change', function() {
+                    useSameLoginId();
+                    checkUserId();
+                    autoUpdateLoginId();
+                });
+            }
+
+        });
+
+        var errorMsg1 = document.getElementById('errorMsg1');
+        var errorMsg2 = document.getElementById('emailMsg');
+        var canRegister = false;
+
+        function useSameLoginId() {
+            var email = document.getElementById('email');
+            var loginId = document.getElementById('loginId');
+            var sameLoginId = document.getElementById('sameLoginId');
+
+            if (sameLoginId.checked == true) {
+                loginId.value = email.value;
+            }
+        }
+
+        function generateTempLoginId(param) {
+            var email = document.getElementById(param);
+
+            var emailSpliter = document.getElementById('email').value.split('@');
+            var tempEmail = emailSpliter[0] + "-{{ strtotime('now') }}" + "@" + emailSpliter[1];
+            document.getElementById('tempLoginId').value = tempEmail;
+        }
+
+        function autoUpdateLoginId() {
+            @if ($channel == 'toolmate')
+                generateTempLoginId('email');
+                document.getElementById('loginId').value = email.value;
+
+                if (email.value != '') {
+                    checkUserId();
+                }
+            @else
+                generateTempLoginId('loginId');
+
+                if (email.value != '') {
+                    checkUserId();
+                }
+            @endif
+
+        }
+
+        $(document).ready(function() {
+            $("form").submit(function(event) {
+                event.preventDefault();
+
+                var emailErrorVisible = $("#email-error").is(":visible");
+                var loginIdErrorVisible = $("#loginId-error").is(":visible");
+
+                if (emailErrorVisible && loginIdErrorVisible) {
+                    $("#loginId-error").css("margin-top", "15px");
+                } else {
+                    $("#loginId-error").css("margin-top", "0");
+                }
+                checkUserId();
+            });
+
+            $("#email, #loginId").on("input change", function() {
+                var emailErrorVisible = $("#email-error").is(":visible");
+                var loginIdErrorVisible = $("#loginId-error").is(":visible");
+
+                if (emailErrorVisible && loginIdErrorVisible) {
+                    $("#loginId-error").css("margin-top", "15px");
+                } else {
+                    $("#loginId-error").css("margin-top", "0");
+                }
+            });
+        });
+
+
+        function checkUserId() {
+            return new Promise((resolve, reject) => {
+                var xhttp = new XMLHttpRequest();
+                var url = "{{ url('self-registration/check-user-id') }}";
+                xhttp.open("POST", url, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        var responses = JSON.parse(this.responseText);
+                        var loginUserIdErrorElement = document.getElementById('loginUserIdError');
+                        if (responses[0] === 0 && responses[1] === "available") {
+                            // ID is available
+                            if (loginUserIdErrorElement) { // Check if the element exists
+                                loginUserIdErrorElement.innerHTML = ''; // Clear any error message
+                            }
+                            canRegister = true;
+                            resolve(true); // Resolve the promise with true
+                        } else {
+                            // ID is not available or other error
+                            if (loginUserIdErrorElement) { // Check if the element exists
+                                loginUserIdErrorElement.innerHTML = responses[1] || 'Error checking ID'; // Update with actual error
+                            }
+                            canRegister = false;
+                            resolve(false); // Resolve the promise with false
+                        }
+                    }
+                };
+                if (channel === 'toolmate') {
+                    checkedLoginId = document.getElementById("email").value;
+                } else {
+                    checkedLoginId = document.getElementById("loginId").value;
+                }
+
+                var data = {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    loginUserId: checkedLoginId,
+                };
+                xhttp.send(JSON.stringify(data));
+            });
+        }
+
+        //outo set email as loginID is field not shown
+        @if ($channel == 'toolmate')
+            window.onload = function() {
+                autoUpdateLoginId();
+            };
+
+            $("form").validate({
+                // Specify validation rules
+                rules: {
+                    country: {
+                        required: true
+                    },
+                    email: {
+                        required: true,
+                        email: true
+                    },
+                    agreeTerms: {
+                        required: true
+                    }
+                },
+                // Specify validation error messages
+                messages: {
+                    // email: "Please enter a valid email address",
+                    email: "@lang('selfregisteration.loginIdIsNotEmailMessage')",
+                    country: "@lang('selfregisteration.signupCountryFailed')",
+                    agreeTerms: "@lang('selfregisteration.signupAgreeFailed')",
+                },
+                errorPlacement: function(error, element) {
+                    if (element[0].type == "checkbox") {
+                        error.appendTo(errorMsg1);
+                    } else if (element[0].type == "email") {
+                        error.appendTo(errorMsg2);
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                submitHandler: function(form) {
+                    if (canRegister == true) {
+                        showLoader("");
+                        form.submit();
+                    } else {
+                        alert('This username is not available, Please enter a different username');
+                    }
+                }
+            });
+        @else
+
+            $("form").validate({
+                // Specify validation rules
+                rules: {
+                    email: {
+                        required: true,
+                        email: true
+                    },
+                    loginId: {
+                        required: true,
+                        email: true
+                    },
+                    agreeTerms: {
+                        required: true
+                    }
+                },
+                // Specify validation error messages
+                messages: {
+                    email: "Login ID must be using email format",
+                    loginId: "Please enter a valid login ID",
+                    agreeTerms: "Please agree to the terms",
+                },
+                errorPlacement: function(error, element) {
+                    if (element[0].type == "checkbox") {
+                        error.appendTo(errorMsg1);
+                    } else if (element[0].type == "email") {
+                        error.appendTo(errorMsg2);
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                submitHandler: function(form) {
+                    console.log('Form submission attempted.');
+                    // Use the checkUserId promise
+                    checkUserId().then(function(canRegister) {
+                        if (canRegister) {
+                            showLoader("");
+                            form.submit(); // Manually submit the form
+                        } else {
+                            alert('Invalid login ID');
+                            // Optionally, focus the loginId input for user correction
+                            $("#loginId").focus();
+                        }
+                    }).catch(function(error) {
+                        console.error('Validation error:', error);
+                        // Handle any unexpected validation error here
+                    });
+                    return false; // Prevent the default form submission until the async check is done
+                }
+            });
+        @endif
+
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (session('isSamsungEmployee'))
+                showModalSamsungEmployee();
+            @endif
+        });
+
+        function showModalSamsungEmployee() {
+            $('#samsungEmployeeModal').modal('show');
+            var loginButton = document.querySelector('#samsungEmployeeModal .btn-primary');
+            if (loginButton) {
+                loginButton.addEventListener('click', function() {
+                    gigya.accounts.socialLogin({
+                        provider: 'saml-samsung-ad',
+                    });
+                    return false;
+                });
+            }
+        }
+
+        document.getElementById('closeModal').addEventListener('click', function() {
+            $('#samsungEmployeeModal').modal('hide');
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var emailInput = document.getElementById('email');
+            var loginIdInput = document.getElementById('loginId');
+            var sameLoginIdCheckbox = document.getElementById('sameLoginId');
+
+            function updateLoginId() {
+                if (loginIdInput && sameLoginIdCheckbox && sameLoginIdCheckbox.checked) {
+                    loginIdInput.value = emailInput.value;
+                    // Clear any previous error messages
+                    var loginUserIdError = document.getElementById('loginUserIdError');
+                    if (loginUserIdError) {
+                        loginUserIdError.innerHTML = '';
+                    }
+                }
+            }
+
+            // Only add event listener if emailInput exists
+            if (emailInput) {
+                emailInput.addEventListener('keyup', function() {
+                    updateLoginId();
+                });
+            }
+
+            // Only add event listener if sameLoginIdCheckbox exists
+            if (sameLoginIdCheckbox) {
+                sameLoginIdCheckbox.addEventListener('change', function() {
+                    if(this.checked && loginIdInput) {
+                        loginIdInput.setAttribute('readonly', true);
+                    } else if (loginIdInput) {
+                        loginIdInput.removeAttribute('readonly');
+                    }
+                    updateLoginId();
+                });
+            }
+            // Update login ID on load if applicable
+            updateLoginId();
+
+            @if ($channel == 'toolmate')
+                generateTempLoginId('email');
+            @else
+                generateTempLoginId('loginId');
+            @endif
+        });
+    </script>
+@endsection

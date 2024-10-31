@@ -1,0 +1,35 @@
+.header {
+  display: flex;
+  align-items: center;
+  height: 80px;
+  padding: 0 80px;
+  box-shadow: 0 2px 20px rgba(1, 41, 112, 0.1);
+  
+  .header__title {
+    display: flex;
+    align-items: center;
+    column-gap: 2px;
+    font: var(--samsung-800-24);
+    color: var(--color-black);
+    
+    > img {
+      width: 160px;
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .header {
+    padding: 0 24px;
+    
+    .header__title > span {
+      font: var(--samsung-800-18);
+    }
+  }
+}
+
+@media screen and (max-width: 359px) {
+  .header__title > span {
+    display: none;
+  }
+}

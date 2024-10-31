@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div class="lnb"
+     th:fragment="localNavigationBar(menu)">
+    <form method="GET">
+        <dl>
+            <dt>User Profile</dt>
+            <dd>
+               <a
+                  href="javascript: void(0)"
+                  th:each="curMenu: ${accessibleMenus}"
+                  th:if="${(curMenu != null) && (curMenu.mainMenuName == 'User Profile')}"
+                  th:id="${curMenu.menuId}"
+                  th:text="#{|myPage.localNavBar.${curMenu.menuId}|}"
+                  onclick="clickedNavBar(this)"
+                  th:classappend="${menu == curMenu.menuId ? 'on' : ''}"></a>
+            </dd>
+            <dt>Service</dt>
+            <dd>
+               <a
+                  href="javascript: void(0)"
+                  th:each="curMenu: ${accessibleMenus}"
+                  th:if="${(curMenu != null) && (curMenu.mainMenuName == 'Service')}"
+                  th:id="${curMenu.menuId}"
+                  th:text="#{|myPage.localNavBar.${curMenu.menuId}|}"
+                  onclick="clickedNavBar(this)"
+                  th:classappend="${menu == curMenu.menuId ? 'on' : ''}"></a>
+            </dd>
+            <th:block th:unless="${channelHeader['myRole'] == 'General User'}">
+                <dt>System</dt>
+                <dd>
+                   <a
+                      href="javascript: void(0)"
+                      th:each="curMenu: ${accessibleMenus}"
+                      th:if="${(curMenu != null) && (curMenu.mainMenuName == 'System')}"
+                      th:id="${curMenu.menuId}"
+                      th:text="#{|myPage.localNavBar.${curMenu.menuId}|}"
+                      onclick="clickedNavBar(this)"
+                      th:classappend="${menu == curMenu.menuId ? 'on' : ''}"></a>
+                </dd>
+            </th:block>
+        </dl>
+
+        <!-- Hidden Btn Start -->
+        <button id="menuSubmit"
+                type="submit"></button>
+        <!-- Hidden Btn End -->
+    </form>
+
+    <script th:inline="javascript">
+        const onClassText = "on";
+        const menuSubmitBtn = document.getElementById("menuSubmit");
+        const form = document.querySelector('form');
+
+        /**
+         * add "on" class to newTarget
+         * And
+         * remove "on" class from oldTarget
+         */
+        function changeOnClass(newTarget, oldTarget) {
+            newTarget.classList.toggle(onClassText);
+            if (!!oldTarget) {
+                oldTarget.classList.toggle(onClassText);
+            }
+
+        }
+
+        function clickedNavBar(target) {
+
+            clearFormData();
+
+            const currentOnMenu = document.querySelector(`.${onClassText}`);
+            const clickedMenuId = target.id;
+
+            // 24-09-03 - 홍정인
+            // 현재 메뉴 눌렀을 때 동작 안 되는 로직 주석처리
+            //  if (currentOnMenu == target) {
+            //    return;
+            //  }
+
+            changeOnClass(target, currentOnMenu);
+
+            if (!clickedMenuId) {
+                console.log('개발중');
+                return;
+            } else {
+                // TODO: 무슨 로직인지?
+                window.location.href = '/myPage/' + clickedMenuId;
+            }
+        }
+
+    </script>
+</div>
+</html>

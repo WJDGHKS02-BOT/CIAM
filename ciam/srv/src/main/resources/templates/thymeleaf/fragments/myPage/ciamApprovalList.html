@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="ciamApprovalList">
+    <div th:unless="${channelHeader['myRole'] == 'General User'}">
+        <link href="/theme/assets/css/custom/ag_grid.css"
+              rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+              rel="stylesheet">
+        <h2>CIAM Approval List</h2>
+        <div class="content_ty4">
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Channel</dt>
+                        <dd>
+                            <select class="select wid_ty4"
+                                    id="channel"
+                                    name="channel"
+                                    th:aria-readonly="${role != null && role != 'CIAM Admin'}">
+                                <option value="all"
+                                        th:if="${role != 'Channel Admin'}">ALL</option>
+                                <option th:each="curChannel: ${channels}"
+                                        th:if="${curChannel != null}"
+                                        th:selected="${curChannel.channelName == session_channel}"
+                                        th:utext="${curChannel.channelDisplayName}"
+                                        th:value="${curChannel.channelName}">
+                                </option>
+                            </select>
+                        </dd>
+                        <dt>Role</dt>
+                        <dd>
+                            <input class="input wid_ty4"
+                                   id="role"
+                                   name="role"
+                                   readonly
+                                   th:value="${role != null ? role : ''}"
+                                   type="text">
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Request Type</dt>
+                        <dd>
+                            <select class="select wid_ty4"
+                                    id="requestType"
+                                    name="requestType">
+                                <option value="all">ALL</option>
+                                <option th:each="curRequestType: ${requestType}"
+                                        th:if="${curRequestType != null}"
+                                        th:utext="${curRequestType.name}"
+                                        th:value="${curRequestType.code}">
+                            </select>
+                        </dd>
+                        <dt>Status</dt>
+                        <dd>
+                            <select class="select wid_ty4"
+                                    id="type"
+                                    name="type">
+                                <option value="all">ALL</option>
+                                <option value="pending">Pending</option>
+                                <option value="inprogress">Inprogress</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Start Date</dt>
+                        <dd>
+                            <input class="input wid_ty4"
+                                   id="startDate"
+                                   name="startDate"
+                                   placeholder="MM/DD/YYYY"
+                                   type="text">
+                        </dd>
+                        <dt>End Date</dt>
+                        <dd>
+                            <input class="input wid_ty4"
+                                   id="endDate"
+                                   name="endDate"
+                                   placeholder="MM/DD/YYYY"
+                                   type="text">
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Email</dt>
+                        <dd>
+                            <input class="input wid_ty4"
+                                   id="email"
+                                   name="email"
+                                   placeholder="Enter email address"
+                                   type="email">
+                        </dd>
+                        <dt class="form_list6">
+                            <button class="btn_s search wid_ty5"
+                                    onclick="searchCiamApprovalList()"
+                                    type="button">Search</button>
+                        </dt>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="mar_ty1">
+                <!--그리드 영역-->
+                <div class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center"
+                     id="ciamApprovalListResult"
+                     style="height: auto;">
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script th:inline="javascript">
+        const ciamApprovalListResultElement = document.querySelector('#ciamApprovalListResult');
+
+        let oCiamApprovalListResultGrid = null;
+        let aHeader, aResultsData, mobileDisplaySize = 4;
+        let startIdx = 0, endIdx = mobileDisplaySize;
+        let columnDefs = [];
+
+        document.addEventListener('DOMContentLoaded', function () {
+          initializeGrid();
+
+          flatpickr("#startDate", {
+            dateFormat: "Y-m-d",  // 날짜 형식을 YYYY-MM-DD로 설정
+            allowInput: true,     // 사용자가 직접 입력 가능
+            placeholder: "Select Start Date"
+          });
+
+          flatpickr("#endDate", {
+            dateFormat: "Y-m-d",  // 날짜 형식을 YYYY-MM-DD로 설정
+            allowInput: true,     // 사용자가 직접 입력 가능
+            placeholder: "Select End Date"
+          });
+        });
+
+        const initailGridOptions = {
+          loading: true,
+          columnDefs: [],
+          rowData: [],
+          rowSelection: 'single',
+          pagination: true,
+          paginationPageSize: 10, // 한 페이지에 표시할 행 수
+          suppressHorizontalScroll: false, // 수평 스크롤을 억제
+          domLayout: 'autoHeight', // 자동 높이 조정
+          localeText: {
+            noRowsToShow: ""  // 'No Rows To Show' 메시지를 'No Match Found'로 변경
+          },
+          overlayLoadingTemplate: `<img style="width: 100px;" src="/theme/assets/image/common/loading.svg" alt="loading">`
+        }
+
+        // clear grid data
+        function initializeGrid() {
+          startIdx = 0;
+          endIdx = mobileDisplaySize;
+
+          // for PC
+          if (!!oCiamApprovalListResultGrid) {
+            oCiamApprovalListResultGrid.destroy();
+          }
+
+          oCiamApprovalListResultGrid = agGrid.createGrid(ciamApprovalListResultElement, initailGridOptions);
+          ``
+          searchCiamApprovalList();
+        }
+
+        function searchCiamApprovalList() {
+          let params = {
+            channels: document.getElementById('channel').value,
+            requestType: document.getElementById('requestType').value,
+            status: document.getElementById('type').value,
+            startDate: document.getElementById('startDate').value || null,
+            endDate: document.getElementById('endDate').value || null,
+            email: document.getElementById('email').value
+          };
+
+          $.ajax({
+            url: "/myPage/ciamApprovalListSearch",
+            type: "POST",
+            data: JSON.stringify(params),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (oResult) {
+              console.log(oResult);
+              renderResultTable(oResult);
+            },
+            error: function (e) {
+              console.log(e);
+              const message = "데이터 통신중 에러발생";
+            }
+          });
+        }
+
+        function createHiddenInput(name, value) {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = name;
+          input.value = value;
+          return input;
+        }
+
+        function onViewClick(data) {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/myPage/ciamApprovalDetail';
+
+          // 데이터를 form의 hidden 필드로 추가
+          form.appendChild(createHiddenInput('wfId', data.wfId));
+          form.appendChild(createHiddenInput('requestType', data.requestType));
+          form.appendChild(createHiddenInput('role', data.requestorRole));
+          // auditLogSave(data.channel, "User_Management","View",  "");
+
+          document.body.appendChild(form);
+          form.submit();  // 폼 제출로 서버에 POST 요청
+        }
+
+        function renderResultTable(oResult) {
+          aResultsData = oResult ? oResult.result : [];
+
+          const columnDefs = [
+            {
+              headerName: 'Channel',
+              field: 'channel',  // wfMaster[0]에 해당
+              width: 150,
+              cellStyle: {textAlign: 'center'},
+              headerClass: 'ag-header-cell-center',
+              unSortIcon: true,
+            },
+            {
+              headerName: 'Request Type',
+              field: 'requestType',  // wfMaster[1]에 해당
+              width: 200,
+              cellStyle: {textAlign: 'center'},
+              headerClass: 'ag-header-cell-center',
+              unSortIcon: true,
+            },
+            {
+              headerName: 'Requestor ID',
+              field: 'requestorId',  // wfMaster[2]에 해당
+              width: 150,
+              cellStyle: {textAlign: 'center'},
+              headerClass: 'ag-header-cell-center',
+              unSortIcon: true,
+            },
+            {
+              headerName: 'Company Name',
+              field: 'Company',  // wfMaster[3]에 해당
+              width: 200,
+              cellStyle: {textAlign: 'center'},
+              headerClass: 'ag-header-cell-center',
+              unSortIcon: true,
+            },
+            {
+              headerName: 'Company Code',
+              field: 'CompanyCode',  // wfMaster[4]에 해당
+              width: 150,
+              cellStyle: {textAlign: 'center'},
+              headerClass: 'ag-header-cell-center',
+              unSortIcon: true,
+            },
+            {
+              headerName: 'status',
+              field: 'status',  // wfMaster[4]에 해당
+              width: 150,
+              cellStyle: {textAlign: 'center'},
+              headerClass: 'ag-header-cell-center',
+              unSortIcon: true,
+            },
+            {
+              headerName: 'Requested Date',
+              field: 'requestedDate',  // wfMaster[5]에 해당
+              width: 150,
+              cellStyle: {textAlign: 'center'},
+              headerClass: 'ag-header-cell-center',
+              unSortIcon: true
+            }, {
+              headerName: 'WF ID',
+              field: 'wfId',  // 숨김 필드로 wf_id 추가
+              hide: true  // 필드를 숨김
+            }, {
+              headerName: 'Requestor Role',
+              field: 'requestorRole',  // 숨김 필드로 wf_id 추가
+              hide: true  // 필드를 숨김
+            }, {
+              headerName: 'Detail',
+              field: 'detail',
+              width: 130,
+              cellRenderer: function (params) {
+                const button = document.createElement('button');
+                button.className = 'btn_table_s blue';
+                button.textContent = 'View';  // 기본 텍스트를 View로 설정
+
+                // 버튼 클릭 시 특정 작업 실행
+                button.addEventListener('click', function () {
+                  onViewClick(params.data);  // onViewClick 함수 실행
+                });
+
+                return button;
+              },
+              cellStyle: {textAlign: 'center'},
+              headerClass: 'ag-header-cell-center',
+            }
+          ];
+
+          oCiamApprovalListResultGrid.setGridOption("columnDefs", columnDefs);
+          oCiamApprovalListResultGrid.setGridOption("rowData", aResultsData);
+          oCiamApprovalListResultGrid.sizeColumnsToFit();
+          oCiamApprovalListResultGrid.setGridOption("loading", false);
+        }
+    </script>
+</th:block>
+</html>

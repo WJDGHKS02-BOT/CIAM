@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th=http://www.thymeleaf.org>
+<head>
+    <meta charset="UTF-8">
+    <title>template.html</title>
+    <script>
+        function updateAction(obj){
+            let tdList = obj.parentElement.parentElement.getElementsByTagName("td");
+            for(let idx=0; idx<tdList.length; idx++){
+                if(tdList[idx].id!=""){
+                    document.getElementById("update_" + tdList[idx].id).value = tdList[idx].innerText;
+                    if(tdList[idx].id=="id"){
+                        document.getElementById("update_" + tdList[idx].id + "_txt").innerText = tdList[idx].innerText;
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+<h1 th:text="'타임리프 페이지 - tempate.html'"></h1>
+<p><a th:href="@{http://www.naver.com}" th:text="'네이버로 이동..'"></a></p>
+<!--id,queue,payload,attempts,reserved_at,available_at,created_at-->
+Result by JPA :<br/>
+<table border="1">
+    <tr>
+        <th th:text="${header.id}"></th>
+        <th th:text="${header.queue}"></th>
+        <th th:text="${header.payload}"></th>
+        <th th:text="${header.attempts}"></th>
+        <th th:text="${header.reserved_at}"></th>
+        <th th:text="${header.available_at}"></th>
+        <th th:text="${header.created_at}"></th>
+        <th>Action</th>
+    </tr>
+    <tr th:each="body : ${tableBodyJpaJobs}">
+        <td id="id" th:text="${body.id}"></td>
+        <td id="queue" th:text="${body.queue}"></td>
+        <td id="payload" th:text="${body.payload}"></td>
+        <td id="attempts" th:text="${body.attempts}"></td>
+        <td id="reserved_at" th:text="${body.reservedAt}"></td>
+        <td id="available_at" th:text="${body.availableAt}"></td>
+        <td id="created_at" th:text="${body.createdAt}"></td>
+        <td>
+            <a href="javascript:void(0)" onclick="updateAction(this)">Edit</a>
+            <a th:href="@{'/template/delete/'+${body.id}}" th:text="Delete"></a>
+        </td>
+    </tr>
+</table>
+<br/><br/>
+Insert Action ::<br/>
+<form method='post' action="/template/insert">
+    <table border="1">
+        <tr>
+            <th th:text="${header.id}"></th>
+            <th th:text="${header.queue}"></th>
+            <th th:text="${header.payload}"></th>
+            <th th:text="${header.attempts}"></th>
+            <th th:text="${header.reserved_at}"></th>
+            <th th:text="${header.available_at}"></th>
+            <th th:text="${header.created_at}"></th>
+        </tr>
+        <tr>
+            <td><input name="id" type="text"></td>
+            <td><input name="queue" type="text"></td>
+            <td><input name="payload" type="text"></td>
+            <td><input name="attempts" type="text"></td>
+            <td><input name="reserved_at" type="text"></td>
+            <td><input name="available_at" type="text"></td>
+            <td><input name="created_at" type="text"></td>
+        </tr>
+    </table>
+    <input type="submit">
+</form>
+<br/><br/>
+Update Action ::<br/>
+<form method='post' action="/template/update">
+    <table border="1">
+        <tr>
+            <th th:text="${header.id}"></th>
+            <th th:text="${header.queue}"></th>
+            <th th:text="${header.payload}"></th>
+            <th th:text="${header.attempts}"></th>
+            <th th:text="${header.reserved_at}"></th>
+            <th th:text="${header.available_at}"></th>
+            <th th:text="${header.created_at}"></th>
+        </tr>
+        <tr>
+            <td><span id="update_id_txt"></span><input id="update_id" name="id" type="hidden"></td>
+            <td><input id="update_queue" name="queue" type="text"></td>
+            <td><input id="update_payload" name="payload" type="text"></td>
+            <td><input id="update_attempts" name="attempts" type="text"></td>
+            <td><input id="update_reserved_at" name="reserved_at" type="text"></td>
+            <td><input id="update_available_at" name="available_at" type="text"></td>
+            <td><input id="update_created_at" name="created_at" type="text"></td>
+        </tr>
+    </table>
+    <input type="submit">
+</form>
+
+</body>
+</html>

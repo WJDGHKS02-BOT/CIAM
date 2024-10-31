@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="approvalConfiguration">
+    <div th:unless="${channelHeader['myRole'] == 'General User' || channelHeader['myRole'] == 'Partner Admin'}">
+        <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+    
+        <script th:inline="javascript" src="/scripts/approvalConfigurationModal.js"></script>
+        <script th:inline="javascript" src="/scripts/approverListModal.js"></script>
+    
+        <h2>Approval Configuration</h2>
+        <form method="POST" class="content_ty4" id="approvalConfigurationForm">
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Channel</dt>
+                        <dd>
+                            <select name="channel" id="channel" class="select wid_ty4" th:aria-readonly="${role != null && role != 'CIAM Admin'}">
+                                <option th:each="curChannel: ${channel}"
+                                        th:if="${curChannel != null}"
+                                        th:value="${curChannel.channelName}"
+                                        th:utext="${curChannel.channelDisplayName}"
+                                        th:selected="${curChannel.channelName == session_channel}">
+                                </option>
+                            </select>
+                        </dd>
+                        <dt>Location</dt>
+                        <dd>
+                            <select name="location" id="location" class="select wid_ty4">
+                                <option value="ALL">ALL</option>
+                                <option th:each="curLocation: ${location}"
+                                        th:if="${curLocation != null}"
+                                        th:value="${curLocation.countryCode}"
+                                        th:utext="${curLocation.nameEn}">
+                                </option>
+                            </select>
+                        </dd>
+                        <dt>Subsidiary</dt>
+                        <dd> <!-- 9/8 new_subsidiary 테이블의 단일컬럼 조회 요청에 따른 로직 수정 (컬럼명 : company_abbreviation) -->
+                            <select name="subsidiary" id="subsidiary" class="select wid_ty4">
+                                <option value="ALL">ALL</option>
+                                <option th:each="curSubsidiary: ${subsidiary}"
+                                        th:if="${curSubsidiary != null}"
+                                        th:value="${curSubsidiary}"
+                                        th:utext="${curSubsidiary}">
+                                </option>
+                            </select>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+    
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Request Type</dt>
+                        <dd>
+                            <select name="requestType" id="requestType" class="select wid_ty4">
+                                <option th:each="curRequestType: ${requestType}"
+                                        th:if="${curRequestType != null}"
+                                        th:value="${curRequestType.code}"
+                                        th:utext="${curRequestType.name}">
+                            </select>
+                        </dd>
+                        <dt>Division</dt>
+                        <dd>
+                            <select name="division" id="division" class="select wid_ty4">
+                                <option value="ALL">ALL</option>
+                                <option th:each="division: ${divisions}"
+                                    th:if="${division != null}"
+                                    th:value="${division.value}"
+                                    th:utext="${division.name}">
+                                </option>
+                            </select>
+                        </dd>
+                        <dt>
+                            <button type="button" class="btn_s search wid_ty5" onclick="clickedApprovalConfigurationSearchBtn()">Search</button>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="list_wrap1">
+                <div>
+                    
+                </div>
+                <div>
+                    <dl class="form_list6">
+                        <dd>
+                            <!-- <button type="button" class="btn_s search wid_ty5" onclick="clickedApprovalConfigurationSearchBtn()">Search</button> -->
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Stage</dt>
+                        <dd>
+                            <select name="stage" id="stage" class="select wid_ty4">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </dd>
+                        <dt>Approve Format</dt>
+                        <dd>
+                            <select name="approveFormat" id="approveFormat" class="select wid_ty4">
+                                <option value="self">직접승인</option>
+                                <option value="auto">자동승인</option>
+                            </select>
+                        </dd>
+                        <dt>
+                            <button id="stageBtn" type="button" class="btn_l wid_ty2">Stage/Format Save</button>
+                        </dt>
+                    </dl>
+                </div>
+                <div th:if="${role == 'CIAM Admin'}">
+                    <dl class="form_list6">
+                        <dd>
+                            <button id="stageBtn" type="button" class="btn_l wid_ty5" onclick="clickedCRUDBtn('add')">Add Rule</button>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+    
+            <div th:if="${role == 'CIAM Admin'}">
+                <th:block th:replace="~{fragments/myPage/customPaginationGrid :: customPaginationGrid(0, 0)}"></th:block>
+            </div>
+            <div th:unless="${role == 'CIAM Admin'}">
+                <th:block th:replace="~{fragments/myPage/customPaginationGrid :: customPaginationGrid(0, 0)}"></th:block>
+            </div>
+            
+            <th:block th:replace="~{fragments/myPage/approvalConfigurationModal :: approvalConfigurationModal('modify')}"></th:block>
+            <th:block th:replace="~{fragments/myPage/approvalConfigurationModal :: approvalConfigurationModal('add')}"></th:block>
+            <th:block th:replace="~{fragments/myPage/approverListModal :: approverListModal('view')}"></th:block>
+            <th:block th:replace="~{fragments/myPage/addNewApproverModal}"></th:block>
+    
+            <button type="submit" id="submit"></button>
+        </form>
+    </div>
+    <script th:inline="javascript">
+        console.log('hihi');
+        const formElement = document.querySelector('#approvalConfigurationForm');
+        const submitBtn = document.getElementById('submit');
+
+        const channelElement = document.getElementById('channel');
+        const requestTypeElement = document.getElementById('requestType');
+        const locationElement = document.getElementById('location');
+        const subsidiaryElement = document.getElementById('subsidiary');
+        const divisionElement = document.getElementById('division');
+        const approveFormatElement = document.getElementById('approveFormat');
+
+        const gridModifyBtnElement = document.getElementById('gridModifyBtn');
+        const gridDeleteBtnElement = document.getElementById('gridDeleteBtn');
+        const stageBtnElement = document.getElementById('stageBtn');
+
+        const currentUserRole = [[${role}]] || '';
+        const myRole = [[${channelHeader['myRole']}]] || '';
+
+        const blackListRole = [
+            "General User",
+            "Partner Admin",
+            "Channel biz Admin"
+        ];
+
+        let currentSelectedRowData = '';
+        let currentConditions = '';
+
+        // 서버에서 받아 온 데이터 console에서 확인하기 위해 사용 - 지워도 무방
+        console.log('channel:', [[${channel}]] || '');
+        console.log('session_channel:', [[${session_channel}]] || '');
+        console.log('session_display_channel:', [[${session_display_channel}]] || '');
+        console.log('role:', [[${role}]] || '');
+        console.log('approvalConfiguration:', [[${approvalConfiguration}]] || '');
+        console.log('subsidiary:', [[${subsidiary}]] || '');
+        console.log('location:', [[${location}]] || '');
+        console.log('executionCondition:', [[${executionCondition}]] || '');
+        // console.log('approver:', [[${approver}]] || '');
+        console.log('approverFormat:', [[${approverFormat}]] || '');
+        console.log('approvalCondition:', [[${approvalCondition}]] || '');
+        console.log('requestType:', [[${requestType}]] || '');
+        console.log('divisions:', [[${divisions}]] || '');
+        console.log('stage', [[${stage}]] || '');
+        console.log('approveFormat', [[${approveFormat}]] || '');
+        ////////////////////////////////////////////////////////////////////
+
+        const payloadChannel = [[${channel}]] || '';
+        const payloadSession_channel = [[${session_channel}]] || '';
+        const payloadSession_display_channel = [[${session_display_channel}]] || '';
+        const payloadRole = [[${role}]] || '';
+        const payloadApprovalConfiguration = [[${approvalConfiguration}]] || '';
+        const stage = [[${stage}]] || '';
+        const approveFormat = [[${approveFormat}]] || '';
+
+        // Grid 버튼 랜더링
+        function getButton(btnType, paramsData) {
+            const currentRuleLevel = paramsData.ruleLevel;
+
+            // Master Rule은 수정 및 삭제 불가
+            if (btnType != 'view' && currentRuleLevel == 'Master') {
+                return;
+            }
+            let newButton = document.createElement('button');
+            let buttonText = '';
+            let buttonOnclick = '';
+            let buttonStyleList = [];
+            let buttonType = 'button';
+
+            // 삭제 버튼 onclick callback 함수
+            let deleteBtnFunc = () => {
+                clickedCRUDBtn(btnType, paramsData);
+            }
+
+            // 버튼 타입에 따라 버튼 세팅
+            switch(btnType) {
+                case 'view':
+                    buttonText = 'View';
+                    buttonStyleList.push("btn_table_s", "blue");
+                    buttonOnclick = () => {
+                        clickedCRUDBtn(btnType, paramsData);
+                    }
+                    break;
+                case 'modify':
+                    buttonText = 'Modify';
+                    buttonStyleList.push("btn_table_s");
+                    buttonOnclick = () => {
+                        clickedCRUDBtn(btnType, paramsData);
+                    }
+                    break;
+                case 'delete':
+                    buttonText = 'Delete';
+                    buttonStyleList.push("btn_table_s", "red");
+                    buttonOnclick = () => {
+                        openModal('alert', deleteBtnFunc, "Really delete this rule? After delete, can't restore this rule");
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            newButton.type = buttonType;
+            newButton.innerText = buttonText;
+
+            for (let btnStyle of buttonStyleList) {
+                newButton.classList.add(btnStyle);
+            }
+
+            if (!!buttonOnclick) {
+                newButton.onclick = buttonOnclick;
+            }
+
+            return newButton;
+        }
+
+        // Grid Cell 랜더링
+        function getColumn(columnName, columnFieldName, btnType, unSortIcon, textAlign, customFieldName) {
+            let currentResultColumn = {
+                headerName: columnName,
+                unSortIcon: unSortIcon || 'true',
+                cellStyle: {
+                    textAlign: textAlign || "center",
+                },
+                tooltipValueGetter: (params) => {
+                    return params.value;
+                },
+            };    
+
+            // 9/5 특정 열 숨김 처리
+            if (columnFieldName == 'channel' || columnFieldName == 'country' || columnFieldName == 'subsidiary' || columnFieldName == 'division' || columnFieldName == 'ruleMasterId') {
+                currentResultColumn.hide = true;
+            }
+
+            if (!!columnFieldName) {
+                currentResultColumn.field = columnFieldName;
+            }
+
+            if (!!btnType) {
+                let cell = (params) => {
+                    const paramsData = params.data;
+
+                    return getButton(btnType, paramsData);
+                }
+                currentResultColumn.cellRenderer = cell;
+            }
+
+            if (!!customFieldName) {
+                let cell = () => {
+                    return customFieldName;
+                }
+                currentResultColumn.cellRenderer = cell;
+            }
+
+            return currentResultColumn;
+        }
+
+        // Add New Approval Rule 팝업의 Rule Level 셀렉트박스 데이터 세팅
+        function setRuleLevelSelectbox(ruleLevels) {
+            // if (ruleLevels.length < 1) {
+            //     return;
+            // }
+            // const modifyRuleLevelElement = document.getElementById('modalRuleLevel_modify');
+            const addRuleLevelElement = document.getElementById('modalRuleLevel_add');
+
+            // modifyRuleLevelElement.innerHTML = '';
+            addRuleLevelElement.innerHTML = '';
+
+            for (let value of ruleLevels) {
+                const ruleOption = document.createElement('option');
+                ruleOption.value = value;
+                ruleOption.innerText = value;
+
+                // modifyRuleLevelElement.appendChild(ruleOption);
+                addRuleLevelElement.appendChild(ruleOption);
+            }
+        }
+
+        // Grid 테이블 컬럼 세팅
+        function setTableColumns(requestType) {
+            let columnDefs = [];
+
+            const currentRequestTypeText = $("#requestType option:selected").text();
+
+            columnDefs.push(getColumn("Rule Level", "ruleLevel"));
+            columnDefs.push(getColumn("Request Type", "requestTypeNm"));
+            // columnDefs.push(getColumn("Execution Conditions", "executionConditionsNm")); 9/4 이후 제거
+            columnDefs.push(getColumn("Approver", "approverNm"));
+            columnDefs.push(getColumn("Approve Format", "approveFormatNm"));
+            columnDefs.push(getColumn("Approve Conditions", "approveConditionsNm"));
+            columnDefs.push(getColumn("lastModifiedDate", "lastModifiedDate"));
+            columnDefs.push(getColumn("channel", "channel"));
+            columnDefs.push(getColumn("country", "country"));
+            columnDefs.push(getColumn("subsidiary", "subsidiary"));
+            columnDefs.push(getColumn("division", "division"));
+            columnDefs.push(getColumn("ruleMasterId", "ruleMasterId"));
+            // columnDefs.push(getColumn("Status", "status")); // status 안보이도록 수정
+            columnDefs.push(getColumn("Approver List", '', 'view'));
+            
+            if (payloadRole == 'CIAM Admin') {
+                columnDefs.push(getColumn("Detail", '', 'modify'));
+                columnDefs.push(getColumn("Delete", '', 'delete'));
+            }
+
+            return columnDefs;
+        }
+
+        // 'Search' Button onclick
+        function clickedApprovalConfigurationSearchBtn() {
+            if (!!currentGrid) {
+                currentGrid.setGridOption("loading", true);    // loading - true
+            }
+
+            // 셀렉트 박스 선택값 가져오기
+            const params = {
+                selectedChannel: channelElement.value,
+                selectedType: requestTypeElement.value,
+                selectedLocation: locationElement.value,
+                selectedSubsidiary: subsidiaryElement.value,
+                selectedDivision: divisionElement.value,
+            };
+
+            currentConditions = params;
+
+            // 만약 컬럼이 조회 조건들에 따라 달라질 때 사용할 예정
+            let columnDefs = setTableColumns(requestTypeElement.value);
+            // let columnDefs = '';
+
+            const searchPromise = new Promise((resolve, reject) => {
+                // ajax call
+                $.ajax({
+                    url: "/approvalConfiguration/newApprovalConfigurationList",    // Please Set URL
+                    type: "POST",
+                    data: JSON.stringify(params),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (oResult) {
+                        setRuleLevelSelectbox(oResult.ruleLevel);
+                        $("#stage").val(oResult. stage);
+                        $("#approveFormat").val(oResult. approveFormat);
+                        resolve(oResult.result);
+                    },
+                    error: function (e) {
+                        console.error("Error .... : ", e);
+                        reject();
+                    },
+                });
+            });
+
+            Promise.all([searchPromise]).then((data)=> {
+                const result = data[0];
+                renderTableData(columnDefs, result);
+            });
+        }
+
+        // Grid 테이블 데이터 랜더링
+        function renderTableData(columnDefs, oResult) {
+            let oTableData = [];
+
+            if(!!oResult) {
+                oTableData = oResult;
+            }
+            
+            const gridData = {
+                'header': columnDefs,   // header
+                'results': oTableData,  // data
+            };
+
+            renderResultTable(gridData);
+        }
+
+        // CRUD 버튼 onclick 함수
+        function clickedCRUDBtn(type, paramsData) {
+            currentSelectedRowData = paramsData;
+
+            let currentModalName = '';
+            if (type == 'delete') { 
+                approvalConfigurationModalUpdate(type);
+                return;
+            }
+
+            if (type == 'modify') {
+                currentModalName = 'approvalConfigurationModal';
+                setSelectboxOptions(type, paramsData);
+            } else if (type == 'add') {
+                currentModalName = 'approvalConfigurationModal';
+                $("#modalRequestType_add").val($("#requestType").val()); // Request Type 일치하도록 셋팅
+            } else if (type == 'view') {
+                currentModalName = 'approverListModal';
+                setApproverListGrid(payloadRole, paramsData);
+            }
+            ModalOpen(`#${currentModalName}_${type}`);
+        }
+
+        $(document).ready(() => {
+            // 권한 별 접근 제어
+            if (blackListRole.includes([[${channelHeader['myRole']}]])) {
+                accessDenied();
+                return;
+            }
+
+            if (currentUserRole == 'CIAM Admin') {
+                stageBtnElement.onclick = () => {
+                    const stageVal = $("#stage").val();
+                    const selectApproveFormatElement = approveFormatElement.options[approveFormatElement.selectedIndex];
+                    if(stageVal == null || stageVal == '') {
+                        openModal('alert', '', "Please select Stage");
+                        // alert("stage를 선택해주세요.");
+                        return;
+                    } else if(selectApproveFormatElement.value == '') { // 조회 에러 발생시 예외처리
+                        openModal('alert', '', "Please select Approve Format");
+                        // alert("approveFormat을 선택해주세요.");
+                        return;
+                    }
+
+                    const selectedChannelElement = channelElement.options[channelElement.selectedIndex];
+                    const selectedRequestTypeElement = requestTypeElement.options[requestTypeElement.selectedIndex];
+                    const selectedLocationElement = locationElement.options[locationElement.selectedIndex];
+                    const selectedSubsidiaryElement = subsidiaryElement.options[subsidiaryElement.selectedIndex];
+                    const selectedDivisionElement = divisionElement.options[divisionElement.selectedIndex];
+
+                    const stageSaveYn = confirm(stageVal +' stage / '+selectApproveFormatElement.text+'으로 저장하시겠습니까?\n※ Channel : '+selectedChannelElement.text+', Request Type : '+selectedRequestTypeElement.text+', Location : '+selectedLocationElement.text+', Subsidiary : '+selectedSubsidiaryElement.text+', Division : '+selectedDivisionElement.text);
+                    if (stageSaveYn){
+                        // 셀렉트 박스 선택값 가져오기
+                        const params = {
+                            selectedChannel: channelElement.value,
+                            selectedType: requestTypeElement.value,
+                            selectedLocation: locationElement.value,
+                            selectedSubsidiary: subsidiaryElement.value,
+                            selectedDivision: divisionElement.value,
+                            selectedStage: stageVal,
+                            selectedApproveFormat: selectApproveFormatElement.value
+                        };
+
+                        const searchPromise = new Promise((resolve, reject) => {
+                            // ajax call
+                            $.ajax({
+                                url: "/approvalConfiguration/saveApprovalRuleMasterStage",    // Please Set URL
+                                type: "POST",
+                                data: JSON.stringify(params),
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                success: function (oResult) {
+                                    clickedApprovalConfigurationSearchBtn();
+                                    alert("저장되었습니다.");
+                                },
+                                error: function (e) {
+                                    console.error("Error .... : ", e);
+                                    reject();
+                                },
+                            });
+                        });
+                    }
+                }
+                $("#stage").val([[${stage}]] || '1');
+            }
+            // document 준비 되면 서치 함수 실행
+            clickedApprovalConfigurationSearchBtn();
+        });
+    </script>
+</th:block>
+</html>

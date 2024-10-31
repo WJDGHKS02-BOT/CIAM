@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="consent">
+    
+    <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+    <h2>Consent View</h2>
+    <form method="POST" class="content_ty4" th:action="@{/myPage/marketingUpdate}">
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Channel</dt>
+                    <dd>
+                        <select name="channel" id="channel" class="select wid_ty4" onChange="setConsentTypeList()">
+                            <option value="common">COMMON</option>
+                        </select>
+                    </dd>
+                    <dt>Type</dt>
+                    <dd>
+                        <select name="consentType" id="consentType" class="select wid_ty4" onChange="setCountryList()">
+                            <option value=""></option>
+                        </select>
+                    </dd>
+                    <dt>Country</dt>
+                    <dd>
+                        <select name="country" id="country" class="select wid_ty4" onChange="countryChange()">
+                            <option value=""></option>
+                        </select>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Language</dt>
+                    <dd>
+                        <select name="language" id="language" class="select wid_ty4" onChange="languageChange()">
+                        </select>
+                    </dd>
+                    <dt>Version</dt>
+                    <dd>
+                        <select name="version" id="version" class="select wid_ty4">
+                        </select>
+                    </dd>
+                    <dt>
+                        <button type="button" class="btn_s search wid_ty5" onclick="search()">Search</button>
+                    </dt>
+                </dl>
+            </div>
+        </div>
+        <div id="consentContent">
+        </div>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script th:inline="javascript">
+        const consentTypeSelectbox = document.getElementById('consentType');
+        const channel = [[${session_channel}]] || ''; 
+        const channelDisplayName = [[${session_display_channel}]] || '';
+        const contentCnt = [[${contentCnt}]] || 0;
+
+        const channelElement = document.getElementById('channel');
+        const consentTypeElement = document.getElementById('consentType');
+        function setConsentTypeList() {
+            const param = { 
+                coverage : channelElement.value
+            }
+            
+            consentTypeElement.innerHTML = '<option value=""></option>';
+            $.ajax({
+                url: "/consent/getConsentTypeList",
+                type: "POST",
+                data: JSON.stringify(param),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: (oResult) => {
+                    console.log(oResult);
+                    for (let consentTypeInfo of oResult) {
+                        let consentTypeOptionElement = document.createElement('option');
+
+                        consentTypeOptionElement.value = consentTypeInfo.typeCode;
+                        consentTypeOptionElement.innerText = consentTypeInfo.typeName;
+
+                        consentTypeElement.appendChild(consentTypeOptionElement);
+                    }
+                },
+                error: (e) => {
+                }
+            });
+        }
+        const countryElement = document.getElementById('country');
+        function setCountryList() {
+            const param = { 
+                coverage : channelElement.value,
+                typeId : consentTypeElement.value
+            }
+            
+            countryElement.innerHTML = '<option value=""></option>';
+            $.ajax({
+                url: "/consent/getCountryList",
+                type: "POST",
+                data: JSON.stringify(param),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: (oResult) => {
+                    console.log(oResult);
+                    for (let countryInfo of oResult) {
+                        let countryOptionElement = document.createElement('option');
+
+                        countryOptionElement.value = countryInfo.countryCode;
+                        countryOptionElement.innerText = countryInfo.countryName;
+
+                        countryElement.appendChild(countryOptionElement);
+                    }
+                },
+                error: (e) => {
+                }
+            });
+        }
+
+        const languageElement = document.getElementById('language');
+        function countryChange() {
+            const param = {
+                coverage : channelElement.value,
+                typeId : consentTypeElement.value,
+                countries : countryElement.value
+            }
+            
+            languageElement.innerHTML = '<option value=""></option>';
+            $.ajax({
+                url: "/consent/getLanguageList",
+                type: "POST",
+                data: JSON.stringify(param),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: (oResult) => {
+                    console.log(oResult);
+                    for (let languageInfo of oResult) {
+                        let languageOptionElement = document.createElement('option');
+
+                        languageOptionElement.value = languageInfo;
+                        languageOptionElement.innerText = languageInfo;
+
+                        languageElement.appendChild(languageOptionElement);
+                    }
+                },
+                error: (e) => {
+                }
+            });
+        }
+
+        const versionElement = document.getElementById('version');
+        function languageChange() {
+		    // alert("language 변경");
+
+            const param = {
+                coverage : channelElement.value,
+                typeId : consentTypeElement.value,
+                countries : countryElement.value, 
+                language : languageElement.value
+            }
+            
+            versionElement.innerHTML = '<option value=""></option>';
+            $.ajax({
+                url: "/consent/getVersionList",
+                type: "POST",
+                data: JSON.stringify(param),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: (oResult) => {
+                    console.log(oResult);
+                    for (let versionInfo of oResult) {
+                        let versionOptionElement = document.createElement('option');
+
+                        versionOptionElement.value = versionInfo.id;
+                        versionOptionElement.innerText = versionInfo.version;
+
+                        versionElement.appendChild(versionOptionElement);
+                    }
+                },
+                error: (e) => {
+                }
+            });
+        }
+
+        function search() { 
+            const param = {
+                id : versionElement.value
+            }
+            $.ajax({
+                url: "/consent/getConsentContent",
+                type: "POST",
+                data: JSON.stringify(param),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: (oResult) => {
+                    console.log(oResult.content);
+                    $("#consentContent").html(oResult.content);
+                },
+                error: (e) => {
+                }
+            });
+        }
+            
+        window.onload = function(){
+            if(contentCnt > 0) {
+                channelElement.innerHTML = `<option value="${channel}" selected>${channelDisplayName}</option>
+                                            <option value="common">COMMON</option>`;
+            } else {
+                alert(channel + " channel has no consent.");
+            }
+            setConsentTypeList();
+        }
+    </script>
+</th:block>
+</html>

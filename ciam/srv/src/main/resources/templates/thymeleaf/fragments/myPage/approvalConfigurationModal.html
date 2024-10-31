@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="approvalConfigurationModal(modalType)">
+    <!-- Modal Dimmed -->
+    <div class="modal_wrap" th:id="|approvalConfigurationModal_${modalType}|">
+        <div class="modal modal_dimmed">
+            <div class="modal_header">
+                <h4 th:text="${modalType == 'modify' ? 'Modify Approval Rule' : 'Add New Approval Rule'}"></h4>
+                <button type="button" class="modal_close_btn" th:onclick="clickedApprovalConfigurationModalBtn('close', [[${modalType}]])"><span class="blind">Close</span></button>
+            </div>
+            <div class="modal_content">
+                <div class="list_wrap2" th:id="|modalFields_${modalType}|">
+                    <!-- form_list1 -->
+                    <ul class="form_list1">
+                        <li>
+                            <div class="col_wrap1">
+                                <div>
+                                    <p class="tit">Rule Level</p>
+                                    <select class="select" th:id="|modalRuleLevel_${modalType}|" name="ruleLevel">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <p class="tit">Request Type</p>
+                                    <select class="select" th:id="|modalRequestType_${modalType}|" name="requestType" aria-readonly="true">
+                                        <option th:each="curRequestType: ${requestType}"
+                                                th:if="${curRequestType != null}"
+                                                th:value="${curRequestType.code}"
+                                                th:utext="${curRequestType.name}">
+                                    </select>
+                                </div>
+                            </div>
+                        </li>
+                        <li>						
+                            <div class="col_wrap1">
+                                <div>
+                                    <p class="tit">Approver</p>
+                                    <select class="select" th:id="|modalApprover_${modalType}|">
+                                        <option th:each="curApprover: ${approver}"
+                                                th:if="${curApprover != null && curApprover.name != 'General User'}"
+                                                th:value="${curApprover.attribute3}"
+                                                th:utext="${curApprover.name}">
+                                        </option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <p class="tit">Approval Condition</p>
+                                    <select class="select" th:id="|modalApprovalCondition_${modalType}|" name="approvalCondition" aria-readonly="true">
+                                        <option th:each="curApprovalCondition: ${approvalCondition}"
+                                                th:if="${curApprovalCondition != null}"
+                                                th:value="${curApprovalCondition.value}"
+                                                th:utext="${curApprovalCondition.name}"
+                                                th:selected="${curApprovalCondition.value == 'oneApproved'}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </li>
+                        <li>						
+                            <div class="col_wrap1">
+                                <!--
+                                <div>
+                                    <p class="tit">Approve Format</p>
+                                    <select class="select" th:id="|modalApprovalFormat_${modalType}|" name="approvalFormat">
+                                        <option th:each="curApproverFormat: ${approverFormat}"
+                                                th:if="${curApproverFormat != null}"
+                                                th:value="${curApproverFormat.value}"
+                                                th:utext="${curApproverFormat.name}">
+                                        </option>
+                                    </select>
+                                </div>
+                                -->
+                                <div>
+                                    <p class="tit">Status</p>
+                                    <select class="select" th:id="|modalStatus_${modalType}|" name="status" aria-readonly="true">
+                                        <option value="active" selected>Active</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <!-- //form_list1 -->
+                </div>
+
+                <div th:id="|previewGrid_${modalType}|">
+                    <h5>Approval Rule Preview</h5>
+                    <th:block th:replace="~{fragments/myPage/customPaginationGrid3 :: customPaginationGrid3(0, 0, ${modalType})}"></th:block>
+                    <!-- <div id="approvalConfigModifyModalAgGrid" class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center custom-pagination-grid" style="height: auto;">
+                    </div> -->
+                </div>
+            </div>
+            <div class="modal_footer">
+                <div class="wrap_btn2" th:id="|previewBtnWrap_${modalType}|">
+                    <button
+                        type="button" class="btn_m" th:onclick="clickedApprovalConfigurationModalBtn('preview', [[${modalType}]])" >Preview</button>
+                    <!-- <button
+                        type="button" class="btn_m" th:onclick="clickedApprovalConfigurationModalPreviewBtn('' + [[${modalType}]])">Preview</button> -->
+                </div>
+                <div class="wrap_btn2" th:id="|modifyBtnWrap_${modalType}|" style="display: none">
+                    <button
+                        type="button" class="btn_m btn_white" th:onclick="clickedApprovalConfigurationModalBtn('cancel', [[${modalType}]])">Cancel</button>
+                    <button
+                        type="button" class="btn_m" th:onclick="approvalConfigurationModalUpdate([[${modalType}]])">Save</button>
+                </div>
+                <div class="wrap_btn2" th:id="|addBtnWrap_${modalType}|" style="display: none">
+                    <button
+                        type="button" class="btn_m btn_white" th:onclick="clickedApprovalConfigurationModalBtn('cancel', [[${modalType}]])">Cancel</button>
+                    <button
+                        type="button" class="btn_m" th:onclick="approvalConfigurationModalUpdate([[${modalType}]])">Save</button>
+                </div>
+            </div>
+        </div>
+        <div class="dimmer" aria-hidden="true"></div>
+    </div>
+    <!-- // Modal Dimmed -->
+
+    <!-- 1회용 Javascript -->
+    <script th:inline="javascript">
+        $(document).ready(() => {
+            // 필드 초기화
+            clickedApprovalConfigurationModalBtn('cancel', [[${modalType}]]);
+        });
+    </script>
+</th:block>
+</html>

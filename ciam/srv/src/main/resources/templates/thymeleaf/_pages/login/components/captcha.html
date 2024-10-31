@@ -1,0 +1,37 @@
+<html xmlns:th="http://www.thymeleaf.org">
+  <th:block th:fragment="captcha">
+    <style>
+      .g-recaptcha {
+        display: none;
+        width: fit-content;
+        margin: 0 auto 16px auto;
+      }
+    </style>
+    <script async
+            defer
+            src="https://www.google.com/recaptcha/api.js"></script>
+    <script>
+
+      let captchaToken = null;
+
+      function showCaptcha() {
+        const captchaElement = document.querySelector('.g-recaptcha');
+        captchaElement.style.display = 'block';
+      }
+
+      function resetCaptcha() {
+        grecaptcha.reset();
+      }
+
+      window.captchaCallback = function (response) {
+        captchaToken = response;
+      }
+    </script>
+
+    <!--    <strong class="captcha-error-message"></strong>-->
+    <div class="g-recaptcha"
+         data-callback="captchaCallback"
+         data-sitekey="6LeaBcYoAAAAAJMYErqr68NjSmNAnaajTAUl3WSi">
+    </div>
+  </th:block>
+</html>

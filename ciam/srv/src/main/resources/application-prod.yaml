@@ -1,0 +1,239 @@
+spring:
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+      tracking-modes: cookie
+  main:
+    allow-bean-definition-overriding: true
+  web:
+    resources:
+      static-locations: classpath:/static/
+  locale:
+    default: en
+    resolver: session
+  datasource:
+    embedded-database-connection: none
+    driver-class-name: org.postgresql.Driver
+    #   운영 DB
+    url: jdbc:postgresql://localhost:1657/FaWTVxrjOqTl
+    username: 3d74227dd6f2
+    password: 859967389188d29b36f50fcc448ac3
+  #   Java Test DB
+  #    url: jdbc:postgresql://postgres-5e4a2791-0ac8-4552-8bda-11d73d1cacfe.cu2h3ll9ayju.ap-northeast-2.rds.amazonaws.com:1775/kGArOcNEXAOs
+  #    username: d0c5f77e181f
+  #    password: 330f299c3cd5ea06522367a05ca4afb3
+  jpa:
+    database: postgresql
+    open-in-view: false
+    hibernate:
+      ddl-auto: none # or update, create-drop, validate
+      naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+  thymeleaf:
+    cache: false
+    check-template-location: true
+    prefix: classpath:templates/thymeleaf/
+    suffix: .html
+    enabled: true
+  messages:
+    basename: messages/messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+    always-use-message-format: false
+
+gigya:
+  channels:
+    default:
+      apiKey: "4_MzbWNP4j_l80rfmwyEqh4A"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    btp:
+      apiKey: "4_MzbWNP4j_l80rfmwyEqh4A"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    gmapda:
+      apiKey: "4_JE-aD7DJEQ11x-48JzMXpw"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    gmapvd:
+      apiKey: "4_itqSOG889Cn6u8yDzCE5jw"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    toolmate:
+      apiKey: "4_ox7LQ6jwGcNdz4ILg-hu4g"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    sba:
+      apiKey: "4__KZiYptoezDg8jkHhbAQnA"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    partnerhub:
+      apiKey: "4_dr4wsjFVmeyyioZGZONQVg"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    e2e:
+      apiKey: "4_rs8eX994RAoaLGhCYnBm6A"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    mmp:
+      apiKey: "4_YgecsrrPedUDYddkNaZ8yQ"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    ets:
+      apiKey: "4_Lsvb0HdsDNTQFMVELpSIcA"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    edo:
+      apiKey: "4_qcCzYKZZ3D-IyyaCwsU2UA"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    tnp:
+      apiKey: "4_zRJVuC_aHNJqd58o0pOZYQ"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+    gmapmx:
+      apiKey: "4_G3ULdOXkB_qif3aUw1i7ig"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
+
+loginPage:
+  channels:
+    toolmate:
+      landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
+    gmapvd:
+      landing-page: https://www.vd-gmap.com/jsp/common/b2b/GMAPGate.jsp
+    gmapda:
+      landing-page: https://www.da-gmap.com/jsp/common/b2b/GMAPGate.jsp
+    sba:
+      landing-page: https://samsung.csod.com/client/Samsung/default.aspx
+    partnerhub:
+      landing-page: https://sec-b2b--fs.sandbox.my.site.com/globalpartnertest/s/home
+    edo:
+      landing-page: https://sec-b2b--fs.sandbox.my.site.com/eu/it/
+    mmp:
+      landing-page: https://sec-b2b--fs.sandbox.my.site.com/MMP/s/login/
+    e2e:
+      landing-page: https://sec-b2b--fs.sandbox.my.site.com/enterprisecustomer/s/login/
+    ets:
+      landing-page: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/s/login/
+    tnp:
+      landing-page: http://tnp.secbuy.com/supplier/jsp/taps/comm/supplier_main.jsp
+    gmapmx:
+      landing-page: https://gmapp.samsungmobile.com
+
+acsUrl:
+  channels:
+    toolmate:
+      url: https://toolmateqa.sec.samsung.net/smartpro/adsso/ciammain.jsp
+    gmapvd:
+      url: https://www.vd-gmap.com/jsp/common/ciam/dologin.jsp
+    gmapda:
+      url: https://www.da-gmap.com/jsp/common/ciam/dologin.jsp
+    sba:
+      url: https://samsung.csod.com/samldefault.aspx?ouid=18
+    partnerhub:
+      url: https://sec-b2b--fs.sandbox.my.site.com/globalpartnertest/s/home
+    edo:
+      url: https://sec-b2b--fs.sandbox.my.site.com/eu/it/
+    mmp:
+      url: https://sec-b2b--fs.sandbox.my.site.com/MMP/s/login/
+    e2e:
+      url: https://sec-b2b--fs.sandbox.my.site.com/enterprisecustomer/s/login/
+    ets:
+      url: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/s/login/
+    tnp:
+      url: https://tnp.secbuy.com/supplier/jsp/taps/supp/supp_login/index_adsso.jsp
+    gmapmx:
+      url: https://gmapp.samsungmobile.com
+
+cpi:
+  url: https://production-4p6c2pzu.it-cpi015-rt.cfapps.ap12.hana.ondemand.com
+  accountSerachUrl: /http/restapi/extension/sec/account/search
+  findSimilarUrl: /http/restapi/extension/sec/account/findsimilar
+  createContactUrl: /http/restapi/extension/sec/contact/simpleuse
+  createAccountUrl: /http/restapi/extension/sec/account/create
+  provisioningUrl: /http/restapi/extension/sec/channel/v2/userprovisioning
+  updateContactUrl: /http/restapi/extension/sec/contact/simpleuse
+
+encrypt:
+  appKey: kOpHl0VGrA1LZtcIgx02dtZtynl7RPO7dKZ17G/90cg=
+
+cds:
+  data-source.auto-config.enabled: false
+
+email:
+  service:
+    url: https://emailsrv-zany-reedbuck-ik.cfapps.ap12.hana.ondemand.com
+    login: admin
+    password: Welcome01
+
+marketing:
+  kr:
+    id: 18
+  other:
+    id: 15
+
+cdc:
+  temp-reg-pwd: KId8eh&%3mK
+
+app:
+  base:
+    url: https://bizaccounts.samsung.com
+
+logging:
+  level:
+    org.hibernate.SQL: info  # SQL 쿼리 로그를 적게 남김
+    org.hibernate.orm.jdbc.bind: warn  # 바인딩 로그를 경고 수준으로만 기록
+
+onelogin:
+  saml:
+    config-file: config/onelogin.saml-prod.properties
+
+server: prod
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # 모든 엔드포인트를 노출
+  endpoint:
+    health:
+      show-details: always  # Health 엔드포인트에서 상세 정보 표시
+
+hostURL:
+  php: https://bizaccount.samsung.com
+  java: https://bizaccounts.samsung.com
+
+redirectChannelLoginPageURL:
+  toolmate: https://toolmateqa.sec.samsung.net/smartpro/adsso/ciammain.jsp
+  #  toolmate: https://www.sec-toolmate.com/smartpro/adsso/ciammain.jsp
+  gmapvd: https://www.vd-gmap.com/jsp/common/ciam/dologin.jsp
+  #  gmapvd: https://www.vd-gmap.com/jsp/common/ciam/acs.jsp
+  gmapda: https://www.da-gmap.com/jsp/common/ciam/dologin.jsp
+  #  gmapda: https://www.da-gmap.com/jsp/common/ciam/acs.jsp
+  gmapmx: https://gmapp.samsungmobile.com
+  #  gmapmx: https://gmapp.samsungmobile.com/jsp/common/ciam/acs.jsp
+  sba: https://samsung.csod.com/samldefault.aspx?ouid=18
+  #  sba: https://samsung.csod.com/samldefault.aspx?ouid=18
+  partnerhub: https://sec-b2b--fs.sandbox.my.site.com/globalpartnertest/s/home
+  #  partnerhub: https://partnerhub.samsung.com/login?so=00D28000001Kd0d
+  edo: https://sec-b2b--fs.sandbox.my.site.com/eu/it/
+  #  edo: https://partnerportal.samsung.com/euvforcesite/login?so=00D28000001Kd0d
+  mmp: https://sec-b2b--fs.sandbox.my.site.com/MMP/s/login/
+  #  mmp: https://magicinfo.support.samsung.com/login?so=00D28000001Kd0d
+  e2e: https://sec-b2b--fs.sandbox.my.site.com/enterprisecustomer/s/login/
+  #  e2e: https://prosvc.support.samsung.com/login?so=00D28000001Kd0d
+  ets: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/s/login/
+  #  ets: https://ets.support.samsung.com/login?so=00D28000001Kd0d
+  tnp: https://tnp.secbuy.com/supplier/jsp/taps/supp/supp_login/index_adsso.jsp
+  #  tnp: https://tnp.secbuy.com/supplier/adSSOFw.jsp
+  btp: https://bizaccounts.samsung.com
+
+samsungInstanceURL: "https://ciam.apimanagement.ap12.hana.ondemand.com"
+gigyaInstanceURL: "https://bizaccount-ciam.samsung.com"

@@ -1,0 +1,157 @@
+<!-- Modal Dimmed -->
+<div class="modal_wrap" id="samsungVerifyingAccountModal">
+    <div class="modal modal_dimmed M">
+        <div class="modal_header">
+            <h4>Verifying Your Account</h4>
+            <button type="button" class="modal_close_btn" onclick="ModalOpenClose('#samsungVerifyingAccountModal')"><span class="blind">Close</span></button>
+        </div>
+        <div class="modal_content">
+            <div class="txt_ty2">2-Factor Authentication</div>
+
+            <div id="samsungVerifyingEmail" class="txt_ty3" th:text="${channelHeader != null ? channelHeader['loginUserId'] : ''}">
+            </div>
+
+            <div class="txt_ty4" th:utext="#{selfregisteration.verificationText}">
+            </div>
+
+            <dl class="form_list2">
+                <dt class="requ" th:text="#{selfregisteration.verificationCode}">Verification Code</dt>
+                <dd>
+                    <input type="text" name="" id="samsungVerifyCode" value="" th:placeholder="#{myPage.verifyingAccount.placeholder.verifyCode}" class="input">
+                </dd>
+            </dl>
+            <dl class="margin_div1">
+                <dd class="list_wrap1">
+                    <th:block th:utext="#{selfregisteration.verificationNote5}"></th:block>
+                    <div>
+                        <p id="samsungResendText" style="display: none;"></p>
+                        <button type="button" id="samsungResendLink" onclick="samsungSetResendLink()" class="link_blue" style="border: none;"
+                                th:text="#{selfregisteration.verificationResendLink}">Resend</button>
+                    </div>
+                </dd>
+            </dl>
+        </div>
+        <div class="modal_footer">
+            <div class="bt_wrap2">
+                <button type="button" class="btn_xl" style="width: 100%;" onclick="samsungClickedContinueBtn()">Continue</button>
+            </div>
+        </div>
+    </div>
+    <div class="dimmer" aria-hidden="true"></div>
+</div>
+<!-- // Modal Dimmed -->
+
+<script th:inline="javascript">
+    const samsungResendBtn = document.getElementById("samsungResendLink");
+    const samsungResendText = document.getElementById("samsungResendText");
+    const samsungVerifyCodeInput = document.getElementById("samsungVerifyCode");
+
+    const samsungEmptyVerifyCodeText = [[#{myPage.verifyingAccount.emptyVerifyCode}]] || '';
+    const samsungInvalidVerifyCodeText = [[#{myPage.verifyingAccount.invalidVerifyCode}]] || '';
+
+    const samsungVerifyLoginUserId = [[${channelHeader.loginUserId}]] || '';
+
+    // Resend 버튼과 텍스트 display 토글
+    function samsungResendFieldsVisibleToggle() {
+        const samsungResendBtnDisplay = samsungResendBtn.style.display;
+        if (!samsungResendBtnDisplay) {
+            samsungResendBtn.style.display = 'none';
+            samsungResendText.style.display = '';
+        } else {
+            samsungResendBtn.style.display = '';
+            samsungResendText.style.display = 'none';
+        }
+    }
+
+    // Resend 버튼 클릭
+    function samsungSetResendLink() {
+        const resendParams = {
+            "loginUserId": samsungVerifyLoginUserId
+        };
+        const samsungResendParamsString = JSON.stringify(resendParams);
+
+        $.ajax({
+            url: "/myPage/sendEmailCode",
+            type: "POST",
+            data: samsungResendParamsString,
+            contentType: "application/json; charset=utf-8",
+            dataType: "text",
+            success: function(data){
+            },
+            error: function(error){
+            }
+        });
+
+        // set resend text
+        samsungSetResendTime();
+    }
+
+    // 10초에 한 번씩 Resend 버튼 활성화
+    function samsungSetResendTime() {
+        let time = 9;
+        samsungResendText.innerText = `Resend in ${time} sec`;
+        samsungResendFieldsVisibleToggle();
+        let resendTimer = setInterval(() => {
+            time -= 1;
+            samsungResendText.innerText = `Resend in ${time} sec`;
+        }, 1000);
+        setTimeout(() => {
+            clearInterval(resendTimer);
+            samsungResendFieldsVisibleToggle();
+        }, 10000);
+    }
+
+    function samsungClickedContinueBtn() {
+        // 메일 인증 API 호출 후 성공 여부
+        const samsungVerifyCode = samsungVerifyCodeInput.value;
+
+        if (!samsungVerifyCode) {
+            openModal('error', '', samsungEmptyVerifyCodeText);
+            return;
+        }
+
+        const samsungVerifyCodePromise = new Promise((resolve, reject) => {
+            const samsungVerifyCodeParams = {
+                "verCode": samsungVerifyCode
+            };
+
+            const samsungVerifyCodeParamsString = JSON.stringify(samsungVerifyCodeParams);
+
+            $.ajax({
+                url: "/myPage/emailVerified",
+                type: "POST",
+                data: samsungVerifyCodeParamsString,
+                contentType: "application/json; charset=utf-8",
+                dataType: "text",
+                success: function(data){
+                    console.log('data: ', data);
+                    resolve(data);
+                },
+                error: function(error){
+                    console.error('error: ', error);
+                    reject();
+                }
+            });
+        });
+
+        Promise.all([samsungVerifyCodePromise]).then((data) => {
+            if (!!data) {
+                const samsungResult = data[0];
+
+                if (samsungResult == 'Y') {
+                    closeMyPagePopup('#samsungVerifyingAccountModal');
+                    changeSuccessFunction();
+                } else if (samsungResult == 'N') {
+                    openModal('error', '', samsungInvalidVerifyCodeText);
+                } else if (samsungResult == 'D') {
+                    openModal('error', '', "만료 됐습니다...");
+                } else {
+                    openModal('error', '', serverErrorText);
+                }
+            }
+        }).catch((e) => {
+            openModal('error', '', serverErrorText);
+        });
+    }
+
+</script>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Approval Under Review</title>
+    <meta content="width=device-width, initial-scale=1.0"
+          name="viewport">
+
+    <link href="/_styles/_index.css"
+          rel="stylesheet" />
+    <link href="/_pages/login/login-page.css"
+          rel="stylesheet" />
+
+    <script>
+      const APPROVAL_STATUS = new URLSearchParams(location.search).get('approvalStatus');
+
+      window.onload = () => {
+        const pendingImage = document.querySelector('.pending-image');
+        const disabledImage = document.querySelector('.disabled-image');
+
+        const title = document.querySelector('#title--pending');
+        const subTitle = document.querySelector('#sub-title--pending');
+
+        const titleEmp = document.querySelector('#title--emp-pending');
+        const subTitleEmp = document.querySelector('#sub-title--emp-pending');
+
+        const titleDisabled = document.querySelector('#title--disabled');
+        const subTitleDisabled = document.querySelector('#sub-title--disabled');
+
+        const titleBtp = document.querySelector('#title--btp');
+        const subTitleBtp = document.querySelector('#sub-title--btp');
+
+        switch (APPROVAL_STATUS) {
+          case 'pending':
+            document.title = 'Approval Under Review';
+            pendingImage.style.display = 'block';
+            title.style.display = 'block';
+            subTitle.style.display = 'block';
+            break;
+          case 'emp-pending':
+            document.title = 'Employment Verification Under Review';
+            pendingImage.style.display = 'block';
+            titleEmp.style.display = 'block';
+            subTitleEmp.style.display = 'block';
+            break;
+          case 'disabled':
+            document.title = 'Account Disabled';
+            disabledImage.style.display = 'block';
+            titleDisabled.style.display = 'block';
+            subTitleDisabled.style.display = 'block';
+            break;
+          case 'btp':
+            disabledImage.style.display = 'block';
+            pendingImage.style.display = 'block';
+            titleBtp.style.display = 'block';
+            subTitleBtp.style.display = 'block';
+            break;
+        }
+      }
+    </script>
+
+    <style>
+      .main {
+        padding-top: 30vh;
+        row-gap: 30px;
+        align-items: center;
+
+        > img {
+          width: 150px;
+          height: 150px;
+        }
+      }
+
+      .title {
+        font: var(--samsung-700-32);
+        color: var(--color-black);
+      }
+
+      .sub-title {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        row-gap: 8px;
+        font: var(--samsung-400-16);
+        color: var(--color-gray-03);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <th:block th:replace="_components/layout/header :: header"></th:block>
+    <th:block th:replace="_components/layout/main :: main(~{::content})">
+      <th:block th:fragment="content">
+        <img alt="pending"
+             class="pending-image"
+             src="/theme/assets/image/common/ico_mem_ing.png"
+             style="display: none">
+        <img alt="disabled"
+             class="disabled-image"
+             src="/theme/assets/image/common/ico_nodata.png"
+             style="display: none">
+
+        <h2 class="title"
+            id="title--pending"
+            style="display: none"
+            th:utext="#{approval-status-error-pending-page.title}">Your registration request is under review</h2>
+        <div class="sub-title"
+             id="sub-title--pending"
+             style="display: none"
+             th:utext="#{approval-status-error-pending-page.subTitle}">
+          Your registration request is assigned to the deisgnated admin member for approval.<br>You will be able to sign-in as soon as you are approved.<br>Thank you for you patience
+        </div>
+
+        <h2 class="title"
+            id="title--emp-pending"
+            style="display: none"
+            th:utext="#{approval-status-error-emp-pending-page.title}">Your employment verification is under review</h2>
+        <div class="sub-title"
+             id="sub-title--emp-pending"
+             style="display: none"
+             th:utext="#{approval-status-error-emp-pending-page.subTitle}">
+          Your employment verification is assigned to the designated admin member for approval.<br>You will be able to sign-in as soon as your verification is approved.
+        </div>
+
+        <h2 class="title"
+            id="title--disabled"
+            style="display: none"
+            th:utext="#{approval-status-error-disabled-page.title}">Your employment verification is under review</h2>
+        <div class="sub-title"
+             id="sub-title--disabled"
+             style="display: none"
+             th:utext="#{approval-status-error-disabled-page.subTitle}">
+          Your employment verification is assigned to the designated admin member for approval.<br>You will be able to sign-in as soon as your verification is approved.
+        </div>
+
+        <h2 class="title"
+            id="title--btp"
+            style="display: none"
+            th:utext="#{approval-status-error-btp-page.title}">Your employment verification is under review</h2>
+        <div class="sub-title"
+             id="sub-title--btp"
+             style="display: none"
+             th:utext="#{approval-status-error-btp-page.subTitle}">
+          Your employment verification is assigned to the designated admin member for approval.<br>You will be able to sign-in as soon as your verification is approved.
+        </div>
+      </th:block>
+    </th:block>
+    <th:block th:replace="_components/layout/footer :: footer"></th:block>
+  </body>
+</html>

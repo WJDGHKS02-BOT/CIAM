@@ -1,0 +1,17 @@
+---
+applications:
+  - name: ciam
+    memory: 3G
+    disk_quota: 3G
+    instances: 1
+    path: srv/target/ciam-exec.jar
+    buildpack: sap_java_buildpack_jakarta
+    env:
+      SPRING_PROFILES_ACTIVE: prod
+      JBP_CONFIG_COMPONENTS: "jres: ['com.sap.xs.java.buildpack.jre.SAPMachineJRE']"
+      JBP_CONFIG_SAP_MACHINE_JRE: '{ version: 17.+ }'
+      JAVA_OPTS: "-Xms2g -Xmx2.5g"  # 힙 메모리 증가
+    routes:
+#      - route: sec-dev-ciam.cfapps.ap12.hana.ondemand.com
+      - route: bizaccounts.samsung.com
+    health-check-type: none

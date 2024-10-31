@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <th:block th:fragment="registrationContent">
+        <form id="registrationForm" method="POST" th:action="@{/registration/signupSubmit}" class="form-horizontal">
+
+<!-- ***************************************************************************************************************************** -->
+            <!-- Temp input for hidden variable-->
+            <input type="hidden" name="channel" th:value="${channel}">
+            <input type="hidden" id="tempLoginId" name="tempLoginId" th:value="${userLoginId}">
+            <div class="member_content">
+                <!-- <div th:replace="~{fragments/registration/title-step :: registration-title-step(0)}"></div> -->
+                <div th:replace="fragments/registration/title :: registration-title"></div>
+                <div th:replace="fragments/registration/step :: registration-step(0)"></div>
+
+
+                <div class="inner_white">
+                    <dl class="mem_form_list1">
+                        <dt class="requ" th:utext="#{selfregisteration.businessLocation}"></dt>
+                        <dd>
+                            <select name="country" id="country" class="select" required th:disabled="${!#strings.isEmpty(sfdcPresetCountry)} or ${ssoAccessYn == 'Y'} or ${convertYn == 'Y'}">
+                                <option value="" th:text="#{selfregisteration.selectOption}"></option>
+                                <option th:each="location: ${secCountries}" th:if="${#bools.isTrue(location)}"
+                                    th:value="${location.id}" th:utext="${location.country}"
+                                    th:selected="${#strings.toString(location.id) == country}">
+                                    <!-- th:selected="${(location.country == sfdcPresetCountry and location.subsidiary == subsidiary)} or '"> -->
+                                </option>
+                            </select>
+                            <input id="countryHidden" name="country" type="hidden">
+                        </dd>
+                        <!-- 1차 invisible 처리 -->
+                        <dt class="requ" th:utext="#{selfregisteration.email}" style="display:none;"></dt>
+                        <dd style="display:none;">
+                            <div class="input_clear">
+                                <!-- if userEmail is null-->
+                                <input id="email" name="email" type="text" title="Work email" placeholder="Work email" class="input"
+                                    th:value="${userEmail}"
+                                    th:readonly="!${#strings.isEmpty(userEmail)}" th:if="!${#strings.isEmpty(convertLoginId)}">
+                                <!-- else-->
+                                <input id="email" name="email" type="text" title="Work email" placeholder="Work email" class="input"
+                                    th:value="${email} ?: ${userEmail}"
+                                    th:readonly="!${#strings.isEmpty(userEmail)}" th:unless="!${#strings.isEmpty(convertLoginId)}">
+                                <button id="clearEmailField" type="button" class="pos clear_btn"><span class="blind">삭제</span></button>
+                                <!-- add class txt_inp_error -->
+                                <p id="emailError"></p>
+                            </div>
+                        </dd>
+                        <dt class="requ" th:utext="#{selfregisteration.email}"></dt>
+                        <dd>
+                            <div class="input_clear">
+                                <input type="text" name="loginUserId" id="loginUserId"  th:value="${loginUserId ?: ''}"
+                                    th:placeholder="#{selfregisteration.businessEmailPlaceHolder}" class="input"
+                                    th:readonly="!${#strings.isEmpty(convertLoginId)} or ${ssoAccessYn == 'Y'} or ${convertYn == 'Y'}" disalbed required>
+                                <!-- <button id="clearLoginUserField" type="button" class="pos clear_btn"><span class="blind">삭제</span></button> -->
+                                <!-- add class txt_inp_error -->
+                                <p id="loginUserIdError"></p>
+                            </div>
+                        </dd>
+                        <dd>
+                            <!-- 1차 주석 처리
+                            <div class="check">
+                                <input type="checkbox" name="sameLoginId" id="sameLoginId" onclick="sameloginUserIdClicked(this)">
+                                <label for="sameLoginId">
+                                    <span th:utext="#{selfregisteration.sameEmail}"></span>
+                                </label>
+                            </div> -->
+                            <div class="check">
+                                <input type="checkbox" name="agreeTerms" id="agreeTerms" required
+                                    th:checked= "${loginUserId != null}">
+                                <label for="agreeTerms">
+                                    <span class="requ" th:utext="#{selfregisteration.providemail}"></span>
+                                </label>
+                            </div>
+                        </dd>
+                    </dl>
+
+                    <div class="bt_wrap1 ">
+                        <button id="nextBtn" type="button" class="btn_l next" th:utext="#{selfregisteration.next}" onclick="clickedNextBtn()"></button>
+                    </div>
+                </div>
+            </div>
+            <!-- Hidden Fields Start -->
+            <button id="submit" type="submit"></button>
+            <!-- Hidden Fields End -->
+        </form>
+<!--        <th:block th:replace="~{${adCheckModal}}"></th:block>-->
+        <!-- ***************************************************************************************************************************** -->
+
+        <script th:inline="javascript">
+            // const email = document.getElementById("email");
+            const loginUserId = document.getElementById("loginUserId");
+            const country = document.getElementById("country");
+            const clearLoginUserField = document.getElementById("clearLoginUserField");
+            const agreeCheckbox = document.getElementById("agreeTerms");
+            const varLoginUserId = [[${loginUserId}]] || '';
+            const submitBtn = document.getElementById("submit");
+            const ssoAccessYn = /*[[${ssoAccessYn}]]*/ 'N';
+            const convertYn = /*[[${convertYn}]]*/ 'N';
+            const rejecteDomains = /*[[${rejecteDomains != null ? rejecteDomains : '[]'}]]*/ [];
+            // TNP 채널 일 때 Y로 설정
+            const channelAdCheckYn = /*[[${channelAdCheckYn}]]*/ 'N';
+            const channel = [[${channel}]];
+            console.log(channel);
+
+            let count = 0;
+
+            document.addEventListener("DOMContentLoaded", function() {
+                const countrySelect = country;
+                const countryHidden = document.getElementById("countryHidden");
+
+                // Update hidden field on select change
+                countrySelect.addEventListener("change", function() {
+                    countryHidden.value = countrySelect.value;
+                });
+
+                // Initialize hidden field on page load
+                countryHidden.value = countrySelect.value;
+            });
+
+            // document.addEventListener("DOMContentLoaded", function() {
+            //     if (ssoAccessYn === 'Y') {
+            //         document.getElementById("loginUserId").readOnly = true;
+            //         document.getElementById("country").disabled = true;
+            //     }
+            // });
+
+            const samsungEmails = [
+                "@samsung.com",
+                '@partner.samsung.com',
+            ];
+
+            const varCountry = [[${country}]] || '';
+
+            const varSecCountries = [[${secCountries}]] || '';
+
+            const classList = [
+                "txt_inp_error"
+            ];
+
+            let businessLocationIsOK = false;
+            let businessEmailIsOK = false;
+            let loginEmailIsOK = false;
+            let agreeTermsIsChecked = false;
+
+            // 필수 필드들의 Validatied 상태값
+            const isValidated = {
+                "country": false,
+                // "email": false,
+                "loginUserId": false,
+                "agreeTerms": false,
+                "duplication": false,
+            };
+
+            const inValidMessages = {
+                "emailFormat": [[#{registration.invalidEmailFormat}]] || '',
+                "duplIdErrorText": [[#{registration.duplicateIdErrorText}]] || '',
+                "duplIdAlertText": [[#{registration.duplicateIdAlertText}]] || '',
+                "agreeTerms": "Please agree to the terms",
+                "samsungEmail": [[#{registration.isSamsungEmployee}]] || '',
+            };
+
+            function addClassList(component, classList) {
+                for (let value of classList) {
+                    component.classList.add(`${value}`);
+                }
+            }
+
+            function removeClassList(component, classList) {
+                for (let value of classList) {
+                    component.classList.remove(`${value}`);
+                }
+            }
+
+            function goToLogin() {
+                window.location.href = "/myPage/ssoAccess";
+            }
+
+            // Checkbox Validation
+            function checkboxValidation(target) {
+                const id = target.id;
+                let value = '';
+                if (!!target.checked) {
+                    value = 'on';
+                }
+                return value;
+            }
+
+            // Email 형식 체크(정규식)
+            function emailValidation(email){
+                const email_regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i;
+                if(!email_regex.test(email)){
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+
+            // Same as Email 체크 박스 onclick
+            function sameloginUserIdClicked(target) {
+                if (loginUserId && target && target.checked) {
+                    loginUserId.value = email.value;
+                    loginUserId.readOnly = true;
+                    loginUserId.dispatchEvent(new Event('input', { bubbles: true }));
+                } else {
+                    loginUserId.readOnly = false;
+                }
+            }
+
+            // Eamil 중복 체크 - Call Backend API
+            async function checkUserId(paramsString, validText) {
+                if(ssoAccessYn=="Y" || convertYn=="Y") {
+                    return true;
+                }
+
+                const result = await $.ajax({
+                    url: "/registration/checkUserId",
+                    type: "POST",
+                    data: paramsString,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(data){
+                    },
+                    error: function(error){
+                    }
+                });
+
+                if (result && result.errorCode == '0' && result.status == 'available') {
+                    return true;
+                } else if (result && result.errorCode == '1') {
+                    if (result.status == 'unavailable') {
+                        isValidated["duplication"] = true;
+                        validText.innerText = inValidMessages['duplIdErrorText'];
+                        return false;
+                    } else {
+                        validText.innerText = inValidMessages['emailFormat'];
+                        return false;
+                    }
+                } else {
+                    validText.innerText = inValidMessages['emailFormat'];
+                    return false;
+                }
+            }
+
+            // Email 중복 체크
+            async function emailDuplicateCheck(targetId, validText, value, curCount) {
+                let params = {};
+                params[targetId] = value;
+                let paramsString = JSON.stringify(params);
+
+                if (curCount == count) {
+                    isValidated["duplication"] = false;
+                    const checkUserIdResult = await checkUserId(paramsString, validText);
+    
+                    if (!checkUserIdResult) {
+                        isValidated[targetId] = false;
+                        addClassList(validText, classList);
+                    } else {
+                        await isSamsungEmail(loginUserId);
+                    }
+                }
+            }
+
+            async function isSamsungEmail(target) {
+                const id = target.id;
+                const value = target.value;
+                const errorTextId = id + "Error";
+                const errorText = document.getElementById(errorTextId);
+
+                const [_, domain] = value.split("@");
+
+                function checkSamsungEmail () {
+                    if(ssoAccessYn=="Y" || convertYn=="Y") {
+                        return false;
+                    }
+
+                    if (rejecteDomains.includes(`@${domain}`)) {
+                        return true;
+                    }
+
+                    // @*.samsung.com 패턴 확인
+                    if (rejecteDomains.includes("@*.samsung.com")) {
+                        const regex = /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9-]+\.)?samsung\.com$/;
+                        return regex.test(value);
+                    }
+
+                    return false;
+                }
+
+                if (checkSamsungEmail()) {
+                    errorText.innerText = inValidMessages['samsungEmail'];
+                    addClassList(errorText, classList);
+                    isValidated[id] = false;
+                    count = 0;
+                } else {
+                    errorText.innerText = '';
+                    removeClassList(errorText, classList);
+                    isValidated[id] = true;
+                }
+            };
+
+            async function setDispatchEvent(event, target) {
+                await target.dispatchEvent(new Event(event, { bubbles: true }));;
+            }
+
+            let emailComponent = [
+                // '#email',
+                '#loginUserId'
+            ];
+
+            let changeEventComponent = [
+                '#country',
+                '#agreeTerms'
+            ];
+
+            let duplicateCheckComponent = [
+                'loginUserId'
+            ];
+
+            emailComponentString = emailComponent.toString();
+            changeEventComponentString = changeEventComponent.toString();
+
+            // validation 상태값 체크
+            async function checkFieldsValidated() {
+                let result = false;
+                let i = 0;
+                const fieldsValidation = Object.entries(isValidated);
+                const length = fieldsValidation.length;
+                let hello = fieldsValidation.map((key, component) => {
+                    if (key != 'duplication' && isValidated[key]) {
+                        result = false;
+                        return result;
+                    } else {
+                        i++;
+                    }
+                });
+
+                if (i == length) {
+                    result = true;
+                    return result;
+                }
+            }
+
+            // Required 필드 전체 Validation Check
+            async function validationCheck() {
+                if (!country.value) {
+                    openModal('error', '', [[#{registration.selectBusinessLocationText}]] || '');
+                    return false;
+                }
+                if (!agreeCheckbox.checked) {
+                    openModal('error', '', [[#{registration.checkAgreementEmailProvisionText}]] || '');
+                    return false;
+                }
+                count += 1;
+                const loginId = loginUserId.id;
+                const errorTextId = loginId + 'Error';
+                const errorText = document.getElementById(errorTextId);
+                await emailDuplicateCheck(loginUserId.id, errorText, loginUserId.value, count);
+
+                if (!!loginUserId.value) {
+                    if (isValidated["duplication"]) {
+                        openModal('alert', goToLogin, inValidMessages["duplIdAlertText"], '', '', '', "Go", "Cancel");
+                        return false;
+                    } else if (isValidated[loginId]) {
+                        await changeEventComponent.map(async (id) => {
+                            let component = document.querySelector(id);
+                            await setDispatchEvent("change", component);
+                        });
+        
+                        let flag = await checkFieldsValidated();
+                        if (!flag) {
+                            return false;
+                        } else {
+                            console.log('success validation!');
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            async function clickedNextBtn() {
+                const falg = await validationCheck();
+                if (!(falg)) {
+                    // Block submit
+                    return false;
+                } else{
+                    const domain = "samsung.com"; // 도메인 값을 추출하는 방식은 여기에 적용됩니다.
+                    // `@samsung.com`이 포함되거나 `@*.samsung.com`과 일치하면서 `channelAdCheckYn`이 "Y"인 경우
+                    const isSamsungDomain = $("#loginUserId").val().includes("@samsung.com") || /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9-]+\.)?samsung\.com$/.test($("#loginUserId").val());
+
+                    if (channelAdCheckYn === "Y" && isSamsungDomain) {
+                        return ModalAlertOpen('#adSSOModal');
+                    }
+                    submitBtn.click();
+                }
+            }
+
+            // [Business Email, Login ID] input event
+            $(document).on('input', emailComponentString, async (event) => {
+                const target = event.target;
+                const value = target.value;
+                const id = target.id;
+
+                const validationTextId = id + "Error";
+                const validText = document.getElementById(validationTextId);
+
+                if (!value) {
+                    validText.innerText = '';
+                    removeClassList(validText, classList);
+                    isValidated[id] = false;
+
+                    return;
+                }
+
+                // 메일 형식 체크
+                if (!emailValidation(value)) {
+                    validText.innerText = inValidMessages['emailFormat'];
+                    addClassList(validText, classList);
+                    isValidated[id] = false;
+                } else {
+                    if (duplicateCheckComponent.includes(id)) {
+                        count += 1;
+                        isValidated[id] = false;
+                        await emailDuplicateCheck(id, validText, value, count);
+                        return;
+                    }
+
+                    // validText.innerText = '';
+                    // removeClassList(validText, classList);
+                    // isValidated[id] = true;
+                }
+            });
+
+            // [Business Location 셀렉트, 정보 제공 동의 checkbox] 이벤트 리스너
+            $(document).on('change', changeEventComponentString, (event) => {
+                const target = event.target;
+                let value = target.value;
+                const id = target.id;
+
+                if (id === 'agreeTerms') {
+                    value = checkboxValidation(target);
+                }
+
+                if (!value) {
+                    isValidated[id] = false;
+                } else {
+                    isValidated[id] = true;
+                }
+            });
+
+            // submit 이벤트 리스너
+            $(document).on('submit', "form", async (event) => {
+                // 로딩 바 요소 생성
+                loading("open");
+            });
+        </script>
+    </th:block>
+</html>

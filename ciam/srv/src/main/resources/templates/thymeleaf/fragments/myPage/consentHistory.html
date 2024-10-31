@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="consentHistory">
+    <script src="/theme/assets/js/ui/ui.common.js"></script>
+
+    <script type="importmap">
+		{
+			"imports": {
+				"ckeditor5": "/ckeditor5/ckeditor5.js",
+				"ckeditor5/": "/ckeditor5/"
+			}
+		}
+	</script>
+    <script src="/scripts/vendor/daterangepicker/js/moment.min.js"></script>
+    <script src="/scripts/vendor/daterangepicker/js/daterangepicker.js"></script>
+
+    <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+	<link rel="stylesheet" href="/ckeditor5/ckeditor5.css">
+	<link rel="stylesheet" href="/theme/assets/css/custom/ck_editor.css" />
+    <link rel="stylesheet" type="text/css" href="/scripts/vendor/daterangepicker/css/daterangepicker.css" />
+
+    <div class="content_ty4">
+        <h3>Terms & Privacy History</h3>
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Consent Group</dt>
+                    <dd>
+                        <input type="text" name="" id="" th:value="${payload != null ? payload['selectedGroupId'] : '-'}" placeholder="" class="input wid_ty4" readonly>
+                    </dd>
+                    <dt>Channel</dt>
+                    <dd>
+                        <input type="text" name="" id="" th:value="${payload != null ? payload['selectedChannelNm'] : ''}" placeholder="" class="input wid_ty4" readonly>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        <div class="list_wrap1">
+            <div>
+                <dl class="form_list6">
+                    <dt>Consent Type</dt>
+                    <dd>
+                        <input type="text" name="" id="" th:value="${payload != null ? payload['selectedConsentTypeNm'] : ''}" placeholder="" class="input wid_ty4" readonly>
+                    </dd>
+                    <dt>Current Version</dt>
+                    <dd>
+                        <input type="text" name="" id="currentVersion" value="" placeholder="" class="input wid_ty4" readonly>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div>
+            <!-- Grid Table -->
+            <th:block th:replace="~{fragments/myPage/customPaginationGrid :: customPaginationGrid(1, 0)}"></th:block>
+            <!-- // Grid Table -->
+
+            <div class="wrap_btn2">
+                <button id="" type="button" class="btn_l btn_white" onclick="clickedCancelBtn()">Cancel</button>
+            </div>
+        </div>
+
+        <input type="hidden" id="detailContent" th:value="${detailContent}">
+
+        <div id="dimPlace">
+            <th:block th:replace="~{fragments/myPage/consentDimmed :: consentDimmed('preview')}"></th:block>
+            <th:block th:replace="~{fragments/myPage/consentDimmed :: consentDimmed('publishing')}"></th:block>
+        </div>
+
+        <button type="submit" id="submit"></button>
+    </div>
+    <script th:inline="javascript">
+        const contentElemment = document.getElementById('detailContent');
+        const dimPlaceElement = document.getElementById('dimPlace');
+        const currentVersionElement = document.getElementById('currentVersion');
+
+        let detailConsents = [[${consents}]] || '';
+        let detailPayload = [[${payload}]] || '';
+        let detailAllConsents = [[${allConsents}]] || '';
+        const publishingAlertText = [[#{myPage.consentManager.publishingAlertText}]] || '';
+
+        console.log('detailConsents:', detailConsents);
+        console.log('detailPayload:', detailPayload);
+        console.log('detailAllConsents:', detailAllConsents);
+
+        function clickedCancelBtn() {
+            window.location.href = "/myPage/consentManager";
+        }
+
+        function setSubmitData(data) {
+			let params = {};
+			params.subsidiary = data.subsidiary || '';
+			params.countries = data.location || '';
+			params.consentId = data.consentId || '';
+			params.consentGroup = data.consentGroup || '';
+			params.language = data.language || '';
+			params.type = data.consentType || '';
+			params.channel = data.channel || '';
+            params.id = data.id || '';
+            params.version = data.version || '';
+
+			return params;
+		}
+
+        // Popup에서 Save, Publishing 클릭 시 동작(Submit Fucntion)
+        // submit하기 전, 데이터 세팅
+        function consentHistorySubmit(data) {
+            console.log('consentHisotrySubmit', data);
+            let params = setSubmitData(data);
+
+            let statusId = '';
+            let purpose = '';
+            let content = '';
+
+            statusId = 'draft';
+            content = data.content;
+            purpose = `${params.channel} ${params.type} ${params.countries} ${params.subsidiary}`.toUpperCase();
+
+            params.statusId = statusId;
+            params.content = content;
+            params.purpose = purpose;
+
+            consentSubmit('history', params);
+        }
+
+        function popupBtnCallback(data) {
+            let currentFunction = '';
+            let currentAlertText = publishingAlertText;
+            
+            currentFunction = () => { consentHistorySubmit(data) };
+
+            openModal('alert', currentFunction, currentAlertText);
+        }
+
+        function clickedPopupBtn(type, data) {
+            const saveText = 'save';
+            const publishingText = 'publishing';
+            const cancelText = 'cancel';
+
+            let consentContent = data.content;
+            let curDimTitle = '';
+            let saveBtnFunc = '';
+            let publishingBtnFunc = '';
+            let cancelBtnFunc = '';
+
+            switch(type) {
+                case 'preview':
+                    curDimTitle = 'Consent Preview';
+                    break;
+                case 'publishing':
+                    curDimTitle = 'Consent Publishing';
+                    publishingBtnFunc = (type) => { clickedPublishingBtn(type, popupBtnCallback, data, 'history'); };
+                    break;
+            }
+
+            openConsentDim(curDimTitle, consentContent, type, saveBtnFunc, publishingBtnFunc, cancelBtnFunc);
+        }
+
+        function renderGridBtn(type, data) {
+            let button = document.createElement('button');
+
+            if (type == 'preview') {
+                button.innerHTML = 'View';
+                button.classList.add("btn_table_s", "blue");
+                button.onclick = function () {
+                    console.log('current content:', data.content);
+                    if (!!detailPayload.selectedGroupId) {
+                        const selectedConsentVersion = data.version;
+                        const allConsentLength = detailAllConsents.length;
+                        let modifyGridConsent = [];
+                        let groupConsentRenderPromise = new Promise((resolve, reject) => {
+                            let i = 0;
+                            for (let curConsentDetail of detailAllConsents) {
+                                if (curConsentDetail.version == selectedConsentVersion) {
+                                    modifyGridConsent.push(curConsentDetail);
+                                }
+                                i++;
+
+                                if (i == allConsentLength) {
+                                    resolve();
+                                }
+                            }
+                        });
+
+                        Promise.all([groupConsentRenderPromise]).then(() => {
+                            renderConsentDimGridData(type, modifyGridConsent, 'history');
+                            clickedPopupBtn(type, data);
+                        });
+                    } else {
+                        renderConsentDimGridData(type, [data], 'history');
+                        clickedPopupBtn(type, data);
+                    }
+                }
+            } else {
+                button.innerHTML = 'Publishing';
+                button.classList.add("btn_table_s", "red");
+                button.onclick = function () {
+                    console.log('current content:', data.content);
+                    renderConsentDimGridData(type, [data], 'history');
+                    clickedPublishingBtn(type, popupBtnCallback, data, 'history');
+                }
+            }
+
+            return button;
+        }
+
+        function renderTableData(consent){
+            if (!!currentGrid) {
+                currentGrid.setGridOption("loading", true);    // loading - true
+            }
+            let oTableData = '';
+
+            // Current Version Setting
+            currentVersionElement.value = getCurrentVersion(consent);
+
+            // search 클릭 후 render 시에 동작
+            if (!!consent) {
+                oTableData = consent;
+            }
+
+            const columnDefs = [
+                {
+                    headerName: 'Consent Group',
+                    field: 'consentGroup', // consentGroup,
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                    hide: true,
+                },
+                {
+                    headerName: 'Consent ID',
+                    field: 'consentId',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                    hide: true,
+                },
+                {
+                    headerName: 'Channel',
+                    field: 'channelNm', // channel,
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                    hide: true,
+                },
+                {
+                    headerName: 'Consent Type',
+                    field: 'consentTypeNm', // consentType
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                    hide: true,
+                },
+                {
+                    headerName: 'Location',
+                    field: 'locationNm', // location
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Subsidiary',
+                    field: 'subsidiaryNm',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Language',
+                    field: 'languageNm',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Version',
+                    field: 'version',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Create Date',
+                    field: 'createDate',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Status',
+                    field: 'status',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Release Date',
+                    field: 'releaseDate',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    cellRenderer: function(params) {
+                        return params.data.releaseDate || params.data.updateDate || '-';
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Contents',
+                    cellRenderer: function(params) {
+                        const currentHistoryStatus = params.data.status;
+                        if (currentHistoryStatus == 'draft') {
+                            return renderGridBtn('publishing', params.data);
+                        } else {
+                            return renderGridBtn('preview', params.data);
+                        }
+                    }
+                },
+            ];
+
+            // Table Header and Data Setting
+            const gridData = {
+                'header': columnDefs,   // header
+                'results': oTableData,  // data
+            };
+
+            renderResultTable(gridData);
+        }
+
+        $(document).ready(() => {
+            renderTableData(detailConsents);
+            initializeConsentDimGrid('preview', detailConsents, 'history');
+            initializeConsentDimGrid('publishing', detailConsents, 'history');
+        });
+    </script>
+</th:block>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form id="channelForm" method="POST" th:action="@{'/convert/' + ${channel}}">
+    <h2>필드정보</h2>
+
+    <p th:text="'firstName: ' + ${firstName}"></p>
+    <input type="hidden" name="firstName" th:value="${firstName}"/>
+
+    <p th:text="'lastName: ' + ${lastName}"></p>
+    <input type="hidden" name="lastName" th:value="${lastName}"/>
+
+    <p th:text="'loginID: ' + ${loginID}"></p>
+    <input type="hidden" name="loginID" th:value="${loginID}"/>
+
+    <p th:text="'cmdmAccountID: ' + ${cmdmAccountID}"></p>
+    <input type="hidden" name="cmdmAccountID" th:value="${cmdmAccountID}"/>
+
+    <p th:text="'department: ' + ${department}"></p>
+    <input type="hidden" name="department" th:value="${department}"/>
+
+    <p th:text="'userPhone: ' + ${userPhone}"></p>
+    <input type="hidden" name="userPhone" th:value="${userPhone}"/>
+
+    <p th:text="'languages: ' + ${languages}"></p>
+    <input type="hidden" name="languages" th:value="${languages}"/>
+
+    <p th:text="'countryCode: ' + ${countryCode}"></p>
+    <input type="hidden" name="countryCode" th:value="${countryCode}"/>
+
+    <p th:text="'channelType: ' + ${channelType}"></p>
+    <input type="hidden" name="channelType" th:value="${channelType}"/>
+
+    <p th:text="'industryType: ' + ${industryType}"></p>
+    <input type="hidden" name="industryType" th:value="${industryType}"/>
+
+    <p th:text="'gbm1: ' + ${gbm1}"></p>
+    <input type="hidden" name="gbm1" th:value="${gbm1}"/>
+
+    <p th:text="'gbm2: ' + ${gbm2}"></p>
+    <input type="hidden" name="gbm2" th:value="${gbm2}"/>
+
+    <p th:text="'gbm3: ' + ${gbm3}"></p>
+    <input type="hidden" name="gbm3" th:value="${gbm3}"/>
+
+    <p th:text="'gbm4: ' + ${gbm4}"></p>
+    <input type="hidden" name="gbm4" th:value="${gbm4}"/>
+
+    <p th:text="'channelUID: ' + ${channelUID}"></p>
+    <input type="hidden" name="channelUID" th:value="${channelUID}"/>
+
+    <p th:text="'subsidiaryName: ' + ${subsidiaryName}"></p>
+    <input type="hidden" name="subsidiaryName" th:value="${subsidiaryName}"/>
+
+    <p th:text="'userType: ' + ${userType}"></p>
+    <input type="hidden" name="userType" th:value="${userType}"/>
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>

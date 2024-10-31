@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <!--
+        params: step(Integer)
+
+        [ Display Name ]
+        step == 0:
+            "fragments/registrationContent"
+            "fragments/mailVerifyContent"
+        step == 1:
+            "fragments/registrationInoformation"
+        step == 2:
+            "fragments/consent"
+        step == 3:
+            "fragments/multiFactorAuthentication"
+        step == 4:
+            "fragments/registrationComplete"
+    -->
+        <th:block th:fragment="registration-step(step)" th:if="${step != 0}">
+            <ul class="step_wrap">
+                <li class="step1" th:classappend="${(step == 1 ? 'on' : '') + (step gt 1 ? 'finish' : '')}">
+                    <span class="blind">step 1</span>
+                    <th:block th:text="#{selfregisteration.processInfo}">Your Information</th:block>
+                </li>
+                <li class="step2" th:classappend="${(step == 2 ? 'on' : '') + (step gt 2 ? 'finish' : '')}">
+                    <span class="blind">step 2</span>
+                    <th:block th:text="#{selfregisteration.processAgreement}">Terms & Privacy</th:block>
+                </li>
+                <li class="step3" th:classappend="${(step == 3 ? 'on' : '') + (step gt 3 ? 'finish' : '')}">
+                    <span class="blind">step 3</span>
+                    <th:block th:text="#{selfregisteration.processComplete}">Registration complete</th:block>
+                </li>
+            </ul>
+        </th:block>
+</html>

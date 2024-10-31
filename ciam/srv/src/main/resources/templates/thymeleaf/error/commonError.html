@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Error</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9fafb;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .error-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .error-title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #d9534f;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        .error-actions {
+            margin-top: 30px;
+        }
+
+        .back-button, .home-button {
+            background-color: #1a73e8;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover, .home-button:hover {
+            background-color: #135bb4;
+        }
+
+        .back-button {
+            background-color: #6c757d;
+        }
+
+        .back-button:hover {
+            background-color: #565e64;
+        }
+
+        .home-button {
+            background-color: #1a73e8;
+        }
+
+        a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+<div class="error-box">
+    <div class="error-no" th:text="${errorNo != null ? 'Error No: ' + errorNo : ''}"></div>
+    <div class="error-title">Oops! Something went wrong.</div>
+    <div class="error-message" th:text="${message != null ? message : '에러가 발생했습니다.'}">
+        에러가 발생했습니다.
+    </div>
+    <div class="error-actions">
+        <button class="back-button" onclick="history.back()">back</button>
+<!--        <button class="home-button" onclick="window.location.href='/'">홈으로 가기</button>-->
+    </div>
+</div>
+</body>
+</html>

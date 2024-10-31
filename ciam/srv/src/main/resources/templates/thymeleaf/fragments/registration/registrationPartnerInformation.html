@@ -1,0 +1,914 @@
+<!-- 파트너 타입 채널 가입 페이지-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<script>
+    function addPhoneNumberChangeEvent () {
+        const phoneNumberInput = document.querySelector('#phonenumber1');
+        const phoneNumberAllowedPattern = /^[0-9+\- ]*$/;
+
+        phoneNumberInput.addEventListener('input', function(e) {
+            let value = e.target.value;
+            // 허용되지 않는 문자 제거
+            if (!phoneNumberAllowedPattern.test(value)) {
+                // 허용된 문자만 남기고 나머지 제거
+                value = value.replace(/[^0-9+\- ]/g, '');
+                e.target.value = value;
+            }
+        });
+    }
+
+    window.onload = () => {
+        addPhoneNumberChangeEvent();
+    };
+</script>
+<div th:fragment="registrationPartnerInformation">
+    <form id="memberContentForm" method="POST" th:action="@{/registration/customerCompanySubmit}" class="member_content">
+        <input type="hidden" name="channel" th:value="${channel}">
+        <div th:replace="fragments/registration/title :: registration-title"></div>
+        <div th:replace="fragments/registration/step :: registration-step(1)"></div>
+
+        <div class="inner_white" th:if="${companyObject != null && companyObject.registerCompany != null &&accountObject != null}">
+            <!-- Tab -->
+            <div class="tab_nav">
+                <ul role="tablist" class="tab_list">
+                    <li id="companyInfoTab" role="tab" class="is_active" onclick="setActive(this)">
+                        <button type="button" class="btn"><span th:text="#{selfregisteration.companyInformation}">Company Information</span></button>
+                    </li>
+                    <li id="userInfoTab" role="tab" onclick="clickedNextBtn(this)">
+                        <button type="button" class="btn"><span th:text="#{selfregisteration.userInformation}">User Information</span></button>
+                    </li>
+                </ul>
+            </div>
+            <!-- //Tab -->
+
+            <!-- Company Information Start -->
+            <div id="companyInfo">
+                <input type="hidden" name="bpid" id="bpid"
+                       th:value="${companyObject.registerCompany['bpid'] != null ? companyObject.registerCompany['bpid'] : ''}">
+                <input type="hidden" name="source" id="source"
+                       th:value="${companyObject.registerCompany['source'] != null ? companyObject.registerCompany['source'] : ''}">
+                <input type="hidden" name="type" id="type"
+                       th:value="${companyObject.registerCompany['type'] != null ? companyObject.registerCompany['type'] : ''}">
+                <input type="hidden" name="validStatus" id="validStatus"
+                       th:value="${companyObject.registerCompany['validStatus'] != null ? companyObject.registerCompany['validStatus'] : ''}">
+                <input type="hidden" name="isNewCompany" id="isNewCompany" value="false" >
+                <input type="hidden" name="dunsno" id="dunsno"
+                       th:value="${companyObject.registerCompany['dunsNo'] != null ? companyObject.registerCompany['dunsNo'] : ''}">
+
+
+                <!-- General Information Fields : START -->
+                <th:block th:replace="fragments/registration/fields/company-general-information-fields :: company-general-information-fields(${companyObject}, 'partner')"></th:block>
+                <!-- General Information Fields : END -->
+
+                <!-- Additional Information Fields : START -->
+                <th:block th:replace="fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelCompanyAdditionalShortFieldList}, ${fieldMap.channelCompanyAdditionalLongFieldList}, 'additional')"></th:block>
+                <!-- Additional Information Fields : END -->
+
+                <!-- Specific Information Fields : START -->
+                <th:block th:replace="fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelCompanySpecShortFieldList}, ${fieldMap.channelCompanySpecLongFieldList}, 'specific')"></th:block>
+                <!-- Specific Information Fields : END -->
+
+                <div class="bt_wrap1 ">
+                    <button id="companyInfoNextBtn" type="button" class="btn_l next" onclick="clickedNextBtn(this)" th:text=#{selfregisteration.next}>Next</button>
+                </div>
+            </div>
+            <!-- Company Information End -->
+
+            <!-- User Information Start -->
+            <div id="userInfo" style="display: none;">
+                <h3>General Information</h3>
+                <ul class="mem_form_list2">
+                    <li>
+                        <p class="tit requ" th:text="#{selfregisteration.loginId}">Login ID</p>
+                        <input type="text" name="loginUserId" id="loginUserId"  placeholder="" class="input"
+                               th:value="${accountObject.loginId}"
+                               maxlength="100"
+                               readonly required>
+                    </li>
+                    <li>
+                        <p class="tit requ" th:text=#{selfregisteration.preferredLanguage}>Preferred Language</p>
+                        <select name="language" id="language" class="select" required>
+                            <option value="">-- select --</option>
+                            <option th:each="language: ${accountObject?.languages}"
+                                    th:if="${language != null}"
+                                    th:value="${language.value}"
+                                    th:utext="${language.name}"
+                                    th:selected="${language.value == accountObject['language']}">
+                            </option>
+                        </select>
+                        <input type="hidden" name="language" id="languageHidden">
+                    </li>
+                    <li>
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit requ" th:text="#{selfregisteration.firstName}">First Name</p>
+                                <input type="text" name="firstName" id="firstName" th:readonly="${ssoAccessYn == 'Y'}"
+                                       th:value="${accountObject['firstName'] != null ? accountObject['firstName'] : ''}"
+                                       maxlength="100"
+                                       placeholder="" class="input" required>
+                                <p id="firstNameError"></p>
+                            </div>
+                            <div>
+                                <p class="tit requ" th:text=#{selfregisteration.lastName}>Last Name</p>
+                                <input type="text" name="lastName" id="lastName" th:readonly="${ssoAccessYn == 'Y'}"
+                                       th:value="${accountObject['lastName'] != null ? accountObject['lastName'] : ''}"
+                                       maxlength="40"
+                                       placeholder="" class="input" required>
+                                <p id="lastNameError"></p>
+                            </div>
+                        </div>
+                    </li>
+                    <li id="passwordField">
+                        <p class="tit requ" th:text="#{selfregisteration.password}">Password</p>
+                        <div class="input_clear pass_word">
+                            <input type="password" name="password" id="password" th:readonly="${ssoAccessYn == 'Y'}"
+                                   th:value="${accountObject['password'] != null ? accountObject['password'] : ''}"
+                                   maxlength="100"
+                                   title="password" placeholder="password" class="input passwordValidation" required>
+                            <button type="button" class="clear_btn"><span class="blind">Clear</span></button>
+                            <i class="eye_hide"></i>
+                            <p id="passwordError"></p>
+                        </div>
+                    </li>
+                    <li id="password_confirmationField">
+                        <p class="tit requ" th:text=#{selfregisteration.retypePassword}>Retype Password</p>
+                        <div class="input_clear pass_word">
+                            <input type="password" name="password_confirmation" id="password_confirmation" th:readonly="${ssoAccessYn == 'Y'}"
+                                   th:value="${accountObject['password_confirmation'] != null ? accountObject['password_confirmation'] : ''}"
+                                   maxlength="100"
+                                   title="password" placeholder="retype password" class="input passwordValidation" required>
+                            <button type="button" class="clear_btn"><span class="blind">Clear</span></button>
+                            <i class="eye_hide"></i>
+                            <p id="password_confirmationError"></p>
+                        </div>
+                    </li>
+                    <li>
+                        <p class="tit" th:text="#{selfregisteration.phone}">Phone</p>
+                        <div class="col_wrap4" style="gap: 10px;">
+                            <select name="country_code_work" id="country_code_work" class="select" th:disabled="${ssoAccessYn == 'Y'}">
+                                <option value="">-</option>
+                                <option th:each="code: ${accountObject?.codes}"
+                                        th:if="${code != null}"
+                                        th:value="${code.code}"
+                                        th:utext="|(+${code.code}) ${code.name}|"
+                                        th:selected="${code.code == accountObject['country_code_work']}">
+                                </option>
+                            </select>
+                            <input type="hidden" name="country_code_work" id="country_code_work_Hidden">
+
+                            <input type="text" name="work_phone" id="work_phone" th:readonly="${ssoAccessYn == 'Y'}"
+                                   th:value="${accountObject['work_phone'] != null ? accountObject['work_phone'] : ''}"
+                                   maxlength="40"
+                                   placeholder="" class="input phoneNumberValidation">
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col_wrap1" id="isSbaChannelElement">
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.department}">Department</p>
+                                <select name="secDept" id="secDept" class="select">
+                                    <option value="">-- select --</option>
+                                    <option th:each="division: ${accountObject?.divisions}"
+                                            th:if="${division != null}"
+                                            th:value="${division.value}"
+                                            th:utext="${division.name}"
+                                            th:selected="${division.value == accountObject['secDept']}"></option>
+                                </select>
+                                <input type="hidden" name="secDept" id="secDeptHidden">
+                            </div>
+                            <div>
+                                <p class="tit" th:text="#{selfregisteration.jobTitle}">Job Title</p>
+                                <input type="text" name="job_title" id="job_title" th:readonly="${ssoAccessYn == 'Y'}"
+                                       th:value="${accountObject['job_title'] != null ? accountObject['job_title'] : ''}"
+                                       placeholder="" class="input">
+                            </div>
+                        </div>
+                    </li>
+
+                    <li th:if="${companyObject.registration_type != null and companyObject.registration_type == 'invitation'}">
+                        <div class="col_wrap1">
+                            <div>
+                                <p class="tit"
+                                   th:text="#{invitation.channel}">Caannel</p>
+                                <input class="input"
+                                       id="channelDisplayName"
+                                       name="channelDisplayName"
+                                       readonly
+                                       placeholder=""
+                                       th:value="${accountObject['channelDisplayName'] != null ? accountObject['channelDisplayName'] : ''}"
+                                       type="text">
+                            </div>
+                            <div>
+                                <p class="tit"
+                                   th:text="#{selfregisteration.role}">Role</p>
+                                <input class="input"
+                                       id="role"
+                                       name="role"
+                                       readonly
+                                       placeholder=""
+                                       th:value="${accountObject['role'] != null ? accountObject['role'] : ''}"
+                                       type="text">
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+
+                <!-- Additional Information Fields : START -->
+                <th:block th:replace="fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelUserAdditionalShortFieldList}, ${fieldMap.channelUserAdditionalLongFieldList}, 'additional')"></th:block>
+                <!-- Additional Information Fields : END -->
+
+                <!-- Specific Information Fields : START -->
+                <th:block th:replace="fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelUserSpecShortFieldList}, ${fieldMap.channelUserSpecLongFieldList}, 'specific')"></th:block>
+                <!-- Specific Information Fields : END -->
+
+                <!-- <div class="bt_wrap1 ">
+                    <button id="userInfoNextBtn" type="button" class="btn_l next" onclick="clickedNextBtn(this)">Next</button>
+                </div> -->
+                <div class="bt_wrap4">
+                    <button id="backCompanyInfoBtn" type="button" class="btn_l back" th:text="#{selfregisteration.back}" onclick="setActive(this)">Back</button>
+                    <button id="userInfoNextBtn" type="button" class="btn_l next" th:text="#{selfregisteration.next}" onclick="clickedNextBtn(this)">Next</button>
+                </div>
+
+            </div>
+            <!-- User Information End -->
+
+            <!-- Hidden Fields Start -->
+            <button id="submit" type="submit"></button>
+            <!-- Hidden Fields End -->
+        </div>
+    </form>
+    <!-- </div> -->
+
+    <script th:inline="javascript">
+        console.log("companyObject: ", [[${companyObject}]]);
+        console.log("accountObject: ", [[${accountObject}]]);
+        console.log('fieldMap: ', [[${fieldMap}]]);
+        const urlParams = new URLSearchParams(window.location.search);
+        const isSbaChannel = urlParams.get('param') === "sba";
+        const isSbaChannelElement = document.querySelector('#isSbaChannelElement');
+        if(isSbaChannel) {
+            isSbaChannelElement.removeChild(isSbaChannelElement.childNodes[3]);
+        }
+    </script>
+
+    <script type="text/javascript" th:inline="javascript">
+        const fieldMap = [[${fieldMap}]];
+        const registrationType = /*[[${companyObject.registration_type}]]*/ '';
+
+        const companyInfoComponent = document.getElementById('companyInfo');
+        const userInfoComponent = document.getElementById('userInfo');
+        const companyInfoTab = document.getElementById('companyInfoTab');
+        const userInfoTab = document.getElementById('userInfoTab');
+        const resetCompanyName = document.getElementById('resetBtn');
+        const companyName = document.getElementById('name');
+        const country = document.getElementById("country");
+        const countryHidden = document.getElementById("countryHidden");
+        const submitBtn = document.getElementById("submit");
+        const vendorCodeField = document.getElementById("vendorcode");
+
+        const errorInputClass = "inp_error";
+        const txtErrorClass = "txt_inp_error";
+
+
+        const phoneNumberRegex = /^[0-9+\-\s]+$/;
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]{2,3}$/i;
+        const characterRegex = /^[가-힣a-zA-Z]+$/;
+
+        const notIncludeCompanySelectFields = [
+            // "country"
+        ];
+
+        const passwordFields = [
+            "password",
+            "password_confirmation",
+        ];
+
+        const notRequiredValidationFields = [
+            "firstName",
+            "lastName",
+            "password",
+            "password_confirmation"
+        ];
+
+        const companyValidationFields = {
+            "name": false,
+            "country": false,
+            "companySearch": false,
+            "vendorcode": false,
+        };
+
+        const userValidationFields = {
+            "loginUserId": false,
+            "language": false,
+            // "firstName": false,
+            // "lastName": false,
+            "password": false,
+            "password_confirmation": false,
+        };
+
+        const isNumberCheckFileds = [
+            "phonenumber1",
+            "fax",
+        ];
+
+        const userPhoneValidation = [
+            "country_code_work",
+            "work_phone"
+        ];
+
+        const ssoAccessYn = /*[[${ssoAccessYn}]]*/ 'N';
+        const ciamConvertYn = /*[[${ciamConvertYn}]]*/ 'N';
+
+        function addValidationFieldsIn () {
+            const companyAddSpecificFieldList = {};
+            const userAddSpecificFieldList = {};
+
+            for (let key in fieldMap) {
+                if (key.startsWith('channelCompany')) {
+                    companyAddSpecificFieldList[key] = fieldMap[key];
+                } else if (key.startsWith('channelUser')) {
+                    userAddSpecificFieldList[key] = fieldMap[key];
+                }
+            }
+
+            for(let channel in companyAddSpecificFieldList) {
+                fieldMap[channel].forEach(channel => channel.forEach(fieldInfo => {
+                    if(fieldInfo.requiredYn === 'Y') companyValidationFields[fieldInfo.elementId] = false;
+                }))
+            }
+
+            for(let channel in userAddSpecificFieldList) {
+                fieldMap[channel].forEach(channel => channel.forEach(fieldInfo => {
+                    if(fieldInfo.requiredYn === 'Y') userValidationFields[fieldInfo.elementId] = false;
+                }))
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (ssoAccessYn === 'Y' || ciamConvertYn === 'Y') {
+                // 패스워드 필드를 숨기고 임시값 설정
+                document.getElementById("passwordField").style.display = 'none';
+                document.getElementById("password_confirmationField").style.display = 'none';
+
+                // 필수 체크는 유지하되, 임시값을 설정
+                document.getElementById("password").value = 'temporaryPassword123!';
+                document.getElementById("password_confirmation").value = 'temporaryPassword123!';
+            }
+
+            var shohCompanyDuplicateMsg = /*[[${shohCompanyDuplicateMsg}]]*/ '';
+            if (shohCompanyDuplicateMsg) {
+                alert(shohCompanyDuplicateMsg); // 모달로 대체 가능
+            }
+
+            addValidationFieldsIn();
+
+            // User Information
+            const languageSelect = document.getElementById("language");
+            const languageHidden = document.getElementById("languageHidden");
+
+            const countryCodeWorkSelect = document.getElementById("country_code_work");
+            const countryCodeWorkHidden = document.getElementById("country_code_work_Hidden");
+
+            const secDeptSelect = document.getElementById("secDept");
+            const secDeptHidden = document.getElementById("secDeptHidden");
+
+            // Initialize hidden fields on page load
+            languageHidden.value = languageSelect.value;
+            countryCodeWorkHidden.value = countryCodeWorkSelect.value;
+            secDeptHidden.value = secDeptSelect.value;
+
+            languageSelect.addEventListener("change", function() {
+                languageHidden.value = languageSelect.value;
+            });
+
+            countryCodeWorkSelect.addEventListener("change", function() {
+                countryCodeWorkHidden.value = countryCodeWorkSelect.value;
+            });
+
+            secDeptSelect.addEventListener("change", function() {
+                secDeptHidden.value = secDeptSelect.value;
+            });
+
+        });
+
+        function getValidationFields(target) {
+            let fields = {};
+
+            if (target.includes("company")) {
+                fields = companyValidationFields;
+            } else if (target.includes("user")) {
+                fields = userValidationFields;
+            }
+            return fields;
+        }
+
+        function addErrorInputClass(target) {
+            target.classList.add(errorInputClass);
+        }
+
+        function removeErrorInputClass(target) {
+            target.classList.remove(errorInputClass);
+        }
+
+        // 전화번호 유효성 검증
+        async function phoneNumberValidation(target) {
+            let fields = getValidationFields(target);
+
+            const phoneNumberFormFields = document.querySelector(target).querySelectorAll(".phoneNumberValidation");
+            if (!!phoneNumberFormFields) {
+                await phoneNumberFormFields.forEach((component) => {
+                    let value = component.value;
+                    let id = component.id;
+                    if (!!value && !phoneNumberRegex.test(value)) {
+                        addErrorInputClass(component);
+                        component.focus();
+                        fields[id] = false;
+                    } else {
+                        removeErrorInputClass(component);
+                        fields[id] = true;
+                    }
+                });
+            }
+        }
+
+        // 이메일 유효성 검증
+        async function emailValidation(target) {
+            let fields = getValidationFields(target);
+
+            const emailFormFields = document.querySelector(target).querySelectorAll(".emailValidation");
+            if (!!emailFormFields) {
+                await emailFormFields.forEach((component) => {
+                    let value = component.value;
+                    let id = component.id;
+                    if (!!value && !emailRegex.test(value)) {
+                        addErrorInputClass(component);
+                        component.focus();
+                        fields[id] = false;
+                    } else {
+                        removeErrorInputClass(component);
+                        fields[id] = true;
+                    }
+                });
+            }
+        }
+
+        // Eamil 중복 체크 - Call Backend API
+        async function checkPwd(paramsString) {
+            const result = await $.ajax({
+                url: "/registration/checkPwd",
+                type: "POST",
+                data: paramsString,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data){
+
+                },
+                error: function(error){
+
+                }
+            });
+
+            return result;
+        }
+
+        // 비밀번호 유효성 검증
+        async function passwordValidation(id) {
+            let fields = getValidationFields("#userInfo");
+
+            // 패스워드 유효성 검증 API 호출
+            let passwordFieldComponents = {};
+            const confirmId = passwordFields[1];
+            const password = passwordFields[0];
+            const currentComponent = document.getElementById(id);
+            const confirmErrorText = document.getElementById(`${confirmId}Error`);
+            const errorMsgText = document.getElementById(`${id}Error`);
+
+            for (let value of passwordFields) {
+                passwordFieldComponents[value] = document.getElementById(value);
+            }
+
+            if (id === "password") {
+                const params = {
+                    pwd: currentComponent.value
+                };
+                const paramsString = JSON.stringify(params);
+                const checkPassword = await checkPwd(paramsString);
+                const pwdErrorMsg = checkPassword.error;
+                errorMsgText.innerText = pwdErrorMsg || "";
+                if (!!pwdErrorMsg) {
+                    errorMsgText.classList.add(txtErrorClass);
+                    addErrorInputClass(currentComponent);
+                    userValidationFields[id] = false;
+                } else {
+                    errorMsgText.classList.remove(txtErrorClass);
+                    removeErrorInputClass(currentComponent);
+                    userValidationFields[id] = true;
+                }
+            }
+            if (passwordFieldComponents[password].value != passwordFieldComponents[confirmId].value) {
+                addErrorInputClass(passwordFieldComponents[confirmId]);
+                confirmErrorText.innerText = "Please enter the same password";
+                confirmErrorText.classList.add(txtErrorClass);
+                userValidationFields[confirmId] = false;
+            } else {
+                removeErrorInputClass(passwordFieldComponents[confirmId]);
+                confirmErrorText.innerText = "";
+                confirmErrorText.classList.remove(txtErrorClass);
+                userValidationFields[confirmId] = true;
+            }
+        }
+
+        // target 활성화
+        function setActive(target) {
+            const id = target.id.toLowerCase();
+
+            if (id.includes('user')) {
+                companyInfoComponent.style.display = 'none';
+                userInfoComponent.style.display = 'block';
+
+                companyInfoTab.classList.remove("is_active");
+                userInfoTab.classList.add("is_active");
+            } else if (id.includes('company')) {
+                companyInfoComponent.style.display = 'block';
+                userInfoComponent.style.display = 'none';
+
+                companyInfoTab.classList.add("is_active");
+                userInfoTab.classList.remove("is_active");
+            }
+
+            $('html, body').animate({
+                scrollTop: 0
+            }, 100);
+        }
+
+        // 필수 필드 값 검증
+        async function checkRequiredFields(target) {
+            let fields = getValidationFields(target);
+
+            const requiredFields = document.querySelector(target).querySelectorAll("[required]");
+            if (!!requiredFields) {
+                await Object.entries(requiredFields).map(([key, component]) => {
+                    let value = component.value;
+                    let id = component.id;
+                    if (!value) {
+                        if (id === "searchCompany") {
+                            component = companyName;
+                            fields["name"] = false;
+                            addErrorInputClass(component);
+                            component.focus();
+                        } else {
+                            fields[id] = false;
+                            addErrorInputClass(component);
+                            component.focus();
+                        }
+                    } else {
+                        if (!notRequiredValidationFields.includes(id)) {
+                            removeErrorInputClass(component);
+                            fields[id] = true;
+                        }
+                    }
+                });
+            }
+        }
+
+        // 문자 유효성 검증
+        async function characterValidation(target) {
+            let fields = getValidationFields(target);
+
+            const characterFormFields = document.querySelector(target).querySelectorAll(".characterValidation");
+            if (!!characterFormFields) {
+                await characterFormFields.forEach((component) => {
+                    let value = component.value;
+                    let id = component.id;
+
+                    const errorMsgId = id + "Error";
+                    const errorMsgText = document.getElementById(errorMsgId);
+                    if (!value || !characterRegex.test(value)) {
+                        addErrorInputClass(component);
+                        component.focus();
+
+                        errorMsgText.classList.add(txtErrorClass);
+                        errorMsgText.innerText = "The name field must only contain letters";
+
+                        fields[id] = false;
+                    } else {
+                        removeErrorInputClass(component);
+
+                        errorMsgText.classList.remove(txtErrorClass);
+                        errorMsgText.innerText = "";
+
+                        fields[id] = true;
+                    }
+                });
+            }
+        }
+
+        // validation 상태값 체크
+        async function checkFieldsValidated(target) {
+            let fields = getValidationFields(target);
+            console.log('fields: ', fields);
+
+            for (let key in fields) {
+                if (!fields[key]) {
+                    console.log('invalid key:', key);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // company search validation check
+        function isSearchCompanyBtnClicked() {
+            const value = countryHidden.value;
+            if (!!value) {
+                companyValidationFields["companySearch"] = true;
+            }
+        }
+
+        // target에 해당하는 Information 전체 필드들의 Validation 상태 체크
+        // target = "company" or "user"
+        async function validationCheck(target) {
+            const idString = `#${target}`;
+
+            isSearchCompanyBtnClicked();
+            await checkRequiredFields(idString);
+            await phoneNumberValidation(idString);
+            await emailValidation(idString);
+            //await characterValidation(idString);
+
+            passwordFields.map(async (id) => {
+                await passwordValidation(id);
+            });
+
+            if (!(await checkFieldsValidated(target))) {
+                return false;
+            } else {
+                console.log('success validation!');
+                return true;
+            }
+        }
+
+        function resetFieldValue (element) {
+            if(element.id === 'isNewCompany' || element.id === 'country') return;
+            // 특정 클래스를 가진 요소는 초기화하지 않음
+            if (document.getElementById('dynamicFields').contains(element)) return;
+
+            if (element.tagName.toLowerCase() === 'input') element.value = '';
+            else if (element.tagName.toLowerCase() === 'select') {
+                element.selectedIndex = 0;
+            }
+        }
+
+        function resetCompanyInformationField () {
+            Object.keys(companyValidationFields).forEach(key => {
+                companyValidationFields[key] = false;
+            });
+
+            const createCompanyButtonElement = document.querySelector('#createCompanyButton');
+
+            vendorCodeField.required = true;
+            const pElement = vendorCodeField.parentNode.querySelector('p');
+            pElement.classList.add('requ');
+
+            switchDisplay("selectCompanyBtn", false);
+            switchDisplay("noDataResult", false);
+            const fieldsElement = document.querySelectorAll('#companyInfo input, #companyInfo select');
+            const isNewCompanyElement = document.querySelector('#isNewCompany');
+
+            const isCompanyCreating = isNewCompanyElement.value;
+
+            fieldsElement.forEach(element => {
+                resetFieldValue(element);
+                element.readOnly = 'readonly';
+                if(element.id === 'name') return element.removeAttribute('readonly');
+            });
+
+            if (isCompanyCreating) isNewCompanyElement.value = false;
+            else {
+                isNewCompanyElement.value = true;
+                createCompanyButtonElement.classname = 'btn_m';
+            }
+        }
+
+        // Next Button
+        async function clickedNextBtn(target) {
+            const id = target.id;
+            let clickedId = "";
+
+            if (target.id.includes("Tab")) {
+                clickedId = "companyInfo";
+            } else {
+                clickedId = target.id.includes("companyInfo") ? "companyInfo" : "userInfo" ;
+            }
+
+            const good = await validationCheck(clickedId);
+            if (good) {
+                if (clickedId === "companyInfo") {
+                    countryHidden.value = country.value;
+                    setActive(userInfoTab);
+                } else {
+                    // isNewCompany 값을 체크
+                    var isNewCompany = $("#isNewCompany").val();
+
+                    if (isNewCompany === "true") {
+                        // isNewCompany가 "true"일 때는 중복 체크를 수행
+                        checkCompanyDuplicate();
+                    } else {
+                        // isNewCompany가 "true"가 아니면 바로 폼을 제출
+                        submitBtn.click();
+                    }
+                }
+            } else {
+                return false;
+            }
+        }
+
+        function checkCompanyDuplicate() {
+            var dunsNo = $("#dunsno").val();
+            var isNewCompany = $("#isNewCompany").val();
+            var bizRegNo1 = $("#bizregno1").val();
+            // isNewCompany가 "true"이고 bizRegNo1 값이 비어있지 않을 때만 중복 체크 수행
+            if (isNewCompany === "true" && bizRegNo1) {
+                $.ajax({
+                    url: "/search/checkCompanyDuplicate",
+                    type: "POST",
+                    data: JSON.stringify({
+                        name: $("#name").val(),
+                        bizregno1: bizRegNo1,
+                        dunsno: dunsNo,
+                        channel: $("input[name='channel']").val(),
+                        isNewCompany: isNewCompany
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(res) {
+                        const backButton = document.getElementById("backCompanyInfoBtn");
+
+                        if (res.result === "duplicate") {
+                            function handleReCheckBusinessLicenseNumber () {
+                                const searchAccountIdField  = document.getElementById('filter_accountId');
+
+                                ModalAlertClose('#errorModal')
+                                backButton.click();
+                                ModalOpen("#searchCompanyModal");
+
+                                searchAccountIdField.value = res.accountId;
+
+                                doSearchCompany();
+                            }
+
+                            openModal('error', handleReCheckBusinessLicenseNumber, String(res.msg));
+                        } else if (res.result === 'validationError') {
+                            function handleAlreadyExistBusinessLicenseNumber () {
+                                ModalAlertClose('#errorModal')
+                                backButton.click();
+                            }
+
+                            openModal('error', handleAlreadyExistBusinessLicenseNumber, String(res.msg));
+                        } else {
+                            // 중복이 없을 경우 폼 제출
+                            submitBtn.click();
+                        }
+                    },
+                    error: function(error) {
+                        console.error("Error checking company duplicate:", error);
+                    }
+                });
+            } else {
+                // isNewCompany가 "true"가 아니거나 bizRegNo1 값이 비어있을 경우 폼을 제출
+                submitBtn.click();
+            }
+        }
+
+        // submit 이벤트 리스너
+        $(document).on('submit', "form", async (event) => {
+            loading("open");
+        });
+
+        // Open Company Search Popup
+        function onSearchCompany(){
+            // reference file : ~/scripts/searchCompany.js
+            executeSearchCompany();
+        }
+
+        // search company를 통해 선택된 회사 정보를 Company information 필드들에 매칭
+        function setCompanyInformation(oCompanyInfo){
+            console.debug("oCompanyInfo :: ", oCompanyInfo);
+
+            // different name
+            $('#fax').val(oCompanyInfo.faxno || '');
+            $('#street_address').val(oCompanyInfo.streetAddress || oCompanyInfo.streetGl || '');
+            // $('#zip_code').val(oCompanyInfo.zipCode || '');
+
+            companyName.readOnly = true;
+            companyValidationFields["companySearch"] = true;
+            for (let key in oCompanyInfo) {
+                const currentValue = oCompanyInfo[key];
+                const matachedComponent = document.getElementById(key);
+                if (!!matachedComponent && !notIncludeCompanySelectFields.includes(key)) {
+                    matachedComponent.dispatchEvent(new Event('input', { bubbles: true }));
+                    matachedComponent.value = currentValue || '';
+                }
+            }
+            if (oCompanyInfo.dnbListYn) {
+                const vendorCodeElement = document.getElementById("vendorcode");
+                companyValidationFields['vendorcode'] = true;
+                if (vendorCodeElement) {
+                    // 필수 속성 해제
+                    vendorCodeElement.required = false;
+                    isNewCompanyElement.value = "true";
+
+                    // 부모 요소 내의 'p' 태그에서 'requ' 클래스를 제거
+                    const pElement = vendorCodeElement.parentNode.querySelector('p');
+                    if (pElement) {
+                        pElement.classList.remove('requ');
+                    }
+                }
+            } else {
+                const vendorCodeElement = document.getElementById("vendorcode");
+                companyValidationFields['vendorcode'] = false
+                if (vendorCodeElement) {
+                    // 필수 속성 해제
+                    vendorCodeElement.required = true;
+                    isNewCompanyElement.value = false;
+
+                    // 부모 요소 내의 'p' 태그에서 'requ' 클래스를 제거
+                    const pElement = vendorCodeElement.parentNode.querySelector('p');
+                    if (pElement) {
+                        pElement.classList.add('requ');
+                    }
+                }
+            }
+        }
+
+
+        // 모든 Select와 Input 태그에 input 이벤트 추가
+        // 필드 Validation
+        $(document).on('input', "select, input", async (event) => {
+            const target = event.target;
+            const id = target.id;
+
+            const errorMsgId = id + "Error";
+            const errorMsgText = document.getElementById(errorMsgId);
+            if (passwordFields.includes(id)) {
+                await passwordValidation(id);
+            } else if (id === 'bizregno1') {
+                const countryCode = document.getElementById('country').value;
+
+                if(countryCode === 'KR') {
+                    let inputValue = target.value.replace(/\D/g, '');
+                    inputValue = inputValue.slice(0, 10);
+                    target.value = inputValue;
+                }
+                if (target.classList.contains(errorInputClass)) {
+                    removeErrorInputClass(target);
+                }
+                if (!!errorMsgText) {
+                    if (errorMsgText.classList.contains(txtErrorClass)) {
+                        errorMsgText.classList.remove(txtErrorClass);
+                        errorMsgText.innerText = '';
+                    }
+                }
+
+            } else {
+                if (target.classList.contains(errorInputClass)) {
+                    removeErrorInputClass(target);
+                }
+                if (!!errorMsgText) {
+                    if (errorMsgText.classList.contains(txtErrorClass)) {
+                        errorMsgText.classList.remove(txtErrorClass);
+                        errorMsgText.innerText = '';
+                    }
+                }
+            }
+        });
+
+        $(document).on('keydown', 'input', async (event) => {
+            const keyCode = event.keyCode;
+            const target = event.target;
+            const id = target.id;
+            const value = target.value;
+
+            if (keyCode === 13) {
+                event.preventDefault();
+                if (id === "name") {
+                    const message = "please enter a company name";
+                    if (!value) {
+                        setErrorModalMsg(message);
+                        ModalAlertOpen('#errorDialogBox');
+                        return;
+                    }
+                    onSearchCompany();
+                }
+            }
+
+        });
+    </script>
+</div>
+
+<div>
+    <div th:replace="~{${searchCompanyModal}}"></div>
+</div>
+
+</html>

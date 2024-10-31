@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<script>
+
+</script>
+<th:block th:fragment="ciamApprovalDetail">
+    <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+    <h2>Ciam Approval Detail</h2>
+
+    <form method="POST" class="content_ty4" id="approvalInformationForm" >
+
+        <dl class="list_ty3">
+            <dt>Type :</dt>
+            <!-- requestTypeText 값을 표시할 곳 -->
+            <dd id="requestTypeText"></dd>
+            <dt>Channel :</dt>
+            <!-- channelDisplayName 값을 표시할 곳 -->
+            <dd th:text="${channels[0]['channelDisplayName']}"></dd>
+        </dl>
+
+        <h3>Apprvoal List</h3>
+        <div id="searchCiamApprovalDetailListResult" class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center" style="height: auto;">
+        </div>
+
+        <h3>Company Information</h3>
+        <ul class="form_list1">
+            <li>
+                <p class="tit">Company Name</p>
+                <input
+                        type="text"
+                        class="input"
+                        th:value="${companyObject['registerCompany']['name']}"
+                        readonly>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Business Location</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${companyObject['registerCompany']['country']}"
+                                readonly>
+                    </div>
+                    <div>
+                        <p class="tit">State</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${companyObject['registerCompany']['state']}"
+                                readonly>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Region</p>
+                        <input
+                                type="text"
+                                class="input"
+                                readonly>
+                    </div>
+                    <div>
+                        <p class="tit">City</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${companyObject['registerCompany']['city']}"
+                                readonly>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Street</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${companyObject['registerCompany']['street_address']}"
+                                readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Zip/Postal Code</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${companyObject['registerCompany']['zip_code']}"
+                                readonly>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Company Phone Number</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${companyObject['registerCompany']['phonenumber1']}"
+                                readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Company Fax</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${companyObject['registerCompany']['fax']}"
+                                readonly>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Web Stie</p>
+                        <input
+                                type="text"
+                                class="input"
+                                readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Business License Number</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${companyObject['registerCompany']['bizregno1']}"
+                                readonly>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Representative</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${companyObject['registerCompany']['representative']}"
+                                readonly>
+                    </div>
+                    <div>
+                        <p class="tit" th:if="${channels[0].channelType == 'CUSTOMER'}">Account ID</p>
+                        <p class="tit" th:unless="${channels[0].channelType == 'CUSTOMER'}">Vendor Code</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${companyObject['registerCompany']['vendorcode']}"
+                                readonly>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- Additional Information Fields : START -->
+        <th:block th:replace="~{fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelCompanyAdditionalShortFieldList}, ${fieldMap.channelCompanyAdditionalLongFieldList}, 'additional')}"></th:block>
+        <!-- Additional Information Fields : END -->
+
+        <!-- Specific Information Fields : START -->
+        <th:block th:replace="~{fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelCompanySpecShortFieldList}, ${fieldMap.channelCompanySpecLongFieldList}, 'specific')}"></th:block>
+        <!-- Specific Information Fields : END -->
+
+        <h3 class="mar_ty2">User Information</h3>
+        <ul class="form_list1">
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Login ID</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${accountObject['loginId']}"
+                                readonly>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Preferred Language</p>
+                        <select class="select" aria-readonly="true">
+                            <option th:each="curLanguage: ${accountObject['languages']}"
+                                    th:if="${curLanguage != null}"
+                                    th:value="${curLanguage.value}"
+                                    th:utext="${curLanguage.name}"
+                                    th:selected="${curLanguage.value == accountObject['language']}">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">First Name</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${accountObject['firstName']}"
+                                readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Last Name</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${accountObject['lastName']}"
+                                readonly>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Department</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${accountObject['secDept']}"
+                                readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Job Title</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="${accountObject['job_title']}"
+                                readonly>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Phone Number</p>
+                        <input
+                                type="text"
+                                class="input"
+                                th:value="|${accountObject['country_code_work']} ${accountObject['work_phone']}|"
+                                readonly>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- Additional Information Fields : START -->
+        <th:block th:replace="~{fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelUserAdditionalShortFieldList}, ${fieldMap.channelUserAdditionalLongFieldList}, 'additional')}"></th:block>
+        <!-- Additional Information Fields : END -->
+
+        <!-- Specific Information Fields : START -->
+        <th:block th:replace="~{fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelUserSpecShortFieldList}, ${fieldMap.channelUserSpecLongFieldList}, 'specific')}"></th:block>
+        <!-- Specific Information Fields : END -->
+
+        <h3 class="mar_ty2">Role Management</h3>
+        <ul class="form_list1">
+            <li>
+                <div class="col_wrap1">
+                    <div>
+                        <p class="tit">Channel</p>
+                        <input type="text" name="" id="" th:value="${channels[0]['channelDisplayName']}" placeholder="" class="input" readonly>
+                    </div>
+                    <div>
+                        <p class="tit">Role</p>
+                        <select class="select" name="change_role" id="approvalInformationRole" disabled onchange="changeUserRole(this.value)">
+                            <option th:each="curRole: ${accountObject['roles']}"
+                                    th:if="${curRole != null}"
+                                    th:value="${curRole.name}"
+                                    th:utext="${curRole.name}"
+                                    th:selected="${curRole.name == accountObject['role']}">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+<!--        <h3 class="mar_ty2">Status Update</h3>-->
+<!--        <ul class="form_list1">-->
+<!--            <li>-->
+<!--                <p class="tit">Status</p>-->
+<!--                <select name="statusUpdate" id="statusUpdate" class="select" onchange="selectStatusUpdate()">-->
+<!--                    <option value="approved">Approve</option>-->
+<!--                    <option value="rejected">Reject</option>-->
+<!--                </select>-->
+<!--            </li>-->
+<!--            <li id="rejectReasonField" style="display: none;">-->
+<!--                <p class="tit">Reject Reason</p>-->
+<!--                <input type="text" name="rejectReason" id="rejectReason" placeholder="" class="input">-->
+<!--            </li>-->
+<!--        </ul>-->
+
+        <!-- hidden fields -->
+        <input type="hidden" name="requestType" th:value="${payload['requestType']}">
+        <input type="hidden" name="selectedRowData" th:value="${payload['selectedRowData']}">
+        <input type="hidden" name="channelBizAdminLocationRole" id="channelBizAdminLocationRole">
+        <input type="hidden" name="channelBizAdminSubsidiaryRole" id="channelBizAdminSubsidiaryRole">
+        <input type="hidden" name="channelBizAdminDivisionRole" id="channelBizAdminDivisionRole">
+
+    </form>
+
+    <script th:inline="javascript">
+        console.log('companyObject', [[${companyObject}]])
+        console.log('channelHeader', [[${channelHeader}]]);
+        console.log('channelHeader channelName', [[${channelHeader["channelName"]}]]);
+
+
+        const submitBtn = document.getElementById('submit');
+        const formElement = document.querySelector('#approvalInformationForm');
+
+        const requestTypeTextElement = document.getElementById('requestTypeText');
+        const payloadData = [[${payload}]] || '';
+        console.log("payloadData :: " + payloadData.requestType);
+        //const payloadSelectedRowData = payloadData.selectedRowData;
+        const requestType = payloadData.requestType;
+        // const requestType =
+        //const selectedRowData = payloadSelectedRowData ? JSON.parse(payloadSelectedRowData) : '';
+
+        const ciamApprovalDetailListResultElement = document.querySelector('#searchCiamApprovalDetailListResult');
+
+        let oSearchCiamApprovalDetailListResultGrid = null;
+        let aHeader, aResultsData, mobileDisplaySize = 4;
+        let startIdx = 0, endIdx = mobileDisplaySize;
+        let columnDefs = [];
+
+        const requestTypeTextList = {
+            'W01': [[#{myPage.approvalList.requestTypeSelectbox.newApproval}]],
+            'W02': [[#{myPage.approvalList.requestTypeSelectbox.conversionApproval}]],
+            'W03': [[#{myPage.approvalList.requestTypeSelectbox.invitationApproval}]],
+            'W04': [[#{myPage.approvalList.requestTypeSelectbox.adApproval}]],
+            'W05': [[#{myPage.approvalList.requestTypeSelectbox.roleManagement}]],
+            'W06': [[#{myPage.approvalList.requestTypeSelectbox.ssoAccessApproval}]],
+            'W07': [[#{myPage.approvalList.requestTypeSelectbox.companyDomain}]],
+        };
+
+        const initailGridOptions = {
+            loading: true,
+            columnDefs: [],
+            rowData: [],
+            rowSelection: 'single',
+            pagination : true,
+            paginationPageSize: 10, // 한 페이지에 표시할 행 수
+            suppressHorizontalScroll: false, // 수평 스크롤을 억제
+            domLayout: 'autoHeight', // 자동 높이 조정
+            localeText: {
+                noRowsToShow: ""  // 'No Rows To Show' 메시지를 'No Match Found'로 변경
+            },
+            overlayLoadingTemplate: `<img style="width: 100px;" src="/theme/assets/image/common/loading.svg" alt="loading">`
+        }
+
+        function setRequestTypeText() {
+            if (payloadData.requestType) {
+                requestTypeTextElement.innerText = payloadData.requestType;  // requestTypeTextElement에 값을 설정
+            } else {
+                requestTypeTextElement.innerText = 'Unknown Type';  // 값이 없을 경우 기본 텍스트 설정
+            }
+        }
+
+        function initiailizeFields() {
+            setRequestTypeText();
+            $("#statusUpdate").val("approved").trigger("change");
+        }
+
+        function changeUserRole(selectedRole) {
+            if (selectedRole == 'Channel biz Admin') {
+                ModalOpen('#selectedRoleModal');
+            }
+        }
+
+        function initializeGrid(){
+            startIdx = 0;
+            endIdx = mobileDisplaySize;
+
+            // for PC
+            if(!!oSearchCiamApprovalDetailListResultGrid){
+                oSearchCiamApprovalDetailListResultGrid.destroy();
+            }
+
+            oSearchCiamApprovalDetailListResultGrid = agGrid.createGrid(ciamApprovalDetailListResultElement, initailGridOptions);
+
+            searchCiamApprovalDetailList();
+        }
+
+        function searchCiamApprovalDetailList() {
+            let params = {
+                    wfId : payloadData.wfId
+            };
+
+            $.ajax({
+                url: "/myPage/CiamApprovalDetailListSerach",
+                type: "POST",
+                data: JSON.stringify(params),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(oResult){
+                    console.log(oResult);
+                    renderResultTable(oResult);
+                },
+                error: function(e){
+                    console.log(e);
+                    const message = "데이터 통신중 에러발생";
+                }
+            });
+        }
+
+        function renderResultTable(oResult) {
+            aResultsData = oResult ? oResult.result : [];
+
+            const columnDefs = [
+                {
+                    headerName: 'WF Level',
+                    field: 'wfLevel',
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true
+                },
+                {
+                    headerName: 'Approver Email',
+                    field: 'approverEmail',
+                    width: 250,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true
+                },
+                {
+                    headerName: 'Status',
+                    field: 'status',
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true
+                },
+                {
+                    headerName: 'Approved Email',
+                    field: 'approvedEmail',
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true
+                },
+                {
+                    headerName: 'Approved Date',
+                    field: 'approvedDate',  // wfMaster[5]에 해당
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true
+                }
+            ];
+
+            oSearchCiamApprovalDetailListResultGrid.setGridOption("columnDefs", columnDefs);
+            oSearchCiamApprovalDetailListResultGrid.setGridOption("rowData", aResultsData);
+            oSearchCiamApprovalDetailListResultGrid.sizeColumnsToFit();
+            oSearchCiamApprovalDetailListResultGrid.setGridOption("loading", false);
+        }
+
+
+        $(document).ready(() => {
+            initiailizeFields();
+            initializeGrid();
+        });
+    </script>
+</th:block>
+</html>

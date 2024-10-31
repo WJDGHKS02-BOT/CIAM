@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>SAML Error Page</title>
+
+    <style>
+        @font-face {
+            font-family: 'SamsungOne';
+            src: url('/fonts/SamsungOne-400.ttf');
+        }
+
+        @font-face {
+            font-family: 'SamsungOne';
+            src: url('/fonts/SamsungOne-700.ttf');
+            font-weight: 700;
+        }
+
+        @font-face {
+            font-family: 'SamsungSharp';
+            src: url('/fonts/SamsungSharpSans-Bold.ttf');
+            font-weight: bold;
+        }
+
+        html,
+        body {
+            background-image: url('/images/overlay.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            font-family: "SamsungOne", "Open Sans", sans-serif;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-header {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        .samsung-logo-blue-1 {
+            flex-shrink: 0;
+            width: 198.02px;
+            position: relative;
+            margin-top: 80px;
+        }
+
+        .gigya-label-text,
+        .gigya-composite-control-header,
+        .login-find-id,
+        .gigya-forgotPassword,
+        .gigya-input-submit,
+        .gigya-composite-control,
+        .gigya-required-display {
+            font-family: "SamsungOne", "Open Sans", sans-serif !important;
+        }
+
+        .gigya-input-text,
+        .gigya-input-password {
+            width: 70% !important;
+            display: block !important;
+            margin: 0 auto !important;
+        }
+
+        .gigya-composite-control.gigya-composite-control-password.login-password {
+            width: 70%;
+            margin-left: 15%;
+        }
+
+        .gigya-input-password.login-password-input-box,
+        .gigya-composite-control-submit,
+        .gigya-label,
+        .gigya-label.login-password-label {
+            width: 100% !important;
+            display: block !important;
+            margin: 0 auto !important;
+        }
+
+        .gigya-composite-control-link {
+            float: none !important;
+        }
+
+        .gigya-login-providers-container div {
+            margin-left: 10% !important;
+        }
+
+        .gigya-login-provider-row {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    <div class="login-header">
+        <img class="samsung-logo-blue-1" style="width: 350px;" th:src="@{/images/Samsung_Business_Account.png}" />
+
+        <div id="showError" style="display:none;">
+            <div id="errorCodeDiv" >
+                <dt>
+                    <span th:text="#{loginError.errorCode} + ' '"></span>
+                    <span id="errorCode"></span>
+                </dt>
+            </div>
+            <div id="errorMessageDiv">
+                <dt>
+                    <span th:text="#{loginError.errorMessage} + ' '"></span>
+                    <span id="errorMessage"></span>
+                </dt>
+            </div>
+            <div id="errorRequestDiv">
+                <dt>
+                    <span th:text="#{loginError.errorRequest} + ' '"></span>
+                    <span id="errorRequest"></span>
+                </dt>
+            </div>
+            <div id="errorDescriptionDiv">
+                <dt>
+                    <span th:text="#{loginError.errorDescription} + ' '"></span>
+                    <span id="errorDescription"></span>
+                </dt>
+            </div>
+        </div>
+
+        <div id="sessionExpired" th:text="#{loginError.session_expired}"></div>
+        <a th:href="${loginPage}" th:text="#{loginError.back_to_home}"></a>
+    </div>
+</div>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function getError() {
+        var url_params = window.location.search.substring(1);
+        var error = url_params.split('=');
+        var para = decodeURIComponent((error[1] + '').replace(/\+/g, '%20'));
+        var obj_json = JSON.parse(para);
+        var showErrorElem = document.getElementById("showError");
+        document.getElementById('errorCode').textContent = obj_json.errorCode;
+        document.getElementById('errorMessageDiv').textContent = obj_json.errorMessage;
+        document.getElementById('errorRequestDiv').textContent = obj_json.callId;
+        document.getElementById('errorDescriptionDiv').textContent = obj_json.errorDescription;
+        showErrorElem.style.display = "block";
+
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        getError();
+    });
+    /*]]>*/
+</script>
+</body>
+</html>
+

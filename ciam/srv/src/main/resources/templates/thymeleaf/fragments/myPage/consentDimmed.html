@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="consentDimmed(type)">
+    <!-- Modal Dimmed -->
+    <div class="modal_wrap" th:id="|consentDimmed_${type}|">
+        <div class="modal modal_dimmed">
+            <div class="modal_header">
+                <button th:id="|consentDimmed_${type}CloseBtn|" type="button" class="modal_close_btn" th:onclick="ModalOpenClose('#consentDimmed_' + [[${type}]])"><span class="blind">Close</span></button>
+            </div>
+            <div class="modal_content">
+                <dl class="list_ty2">
+                    <h3 th:id="|consentDimmed_${type}Title|"></h3>
+                    <div th:id="|consentAgGrid_${type}|" class="pc_gd_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center custom-pagination-grid" style="height: auto;">
+                    </div>
+                    <div class="mar_ty1">
+                        <div th:if="${!(type == 'create' || type =='preview' || type == 'publishing')}">
+                            <input type="hidden" name="currentVersion" th:id="|currentVersion_${type}|" class="input wid_ty3" readonly>
+                            <input type="hidden" name="nextVersion" th:id="|nextVersion_${type}|" class="input wid_ty3" readonly>
+                            <!-- <div class="list_wrap1" th:unless="${type == 'add'}">
+                                <dl class="form_list6">
+                                    <h3>
+                                        Current Version
+                                    </h3>
+                                    <dd>
+                                        <input type="hidden" name="currentVersion" th:id="|currentVersion_${type}|" class="input wid_ty3" readonly>
+                                    </dd>
+                                    <h3>
+                                        Next Version
+                                    </h3>
+                                    <dd>
+                                        <input type="hidden" name="nextVersion" th:id="|nextVersion_${type}|" class="input wid_ty3" readonly>
+                                    </dd>
+                                </dl>
+                            </div> -->
+                            <div class="list_wrap1" th:if="${type == 'add'}">
+                                <dl class="form_list6">
+                                    <h3>
+                                        Language
+                                    </h3>
+                                    <dd>
+                                        <select type="text" name="curLanguage" id="curLanguage" class="select wid_ty3" readonly>
+                                        </select>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                        <div th:if="${type == 'publishing'}">
+                            <div class="list_wrap1">
+                                <dl class="form_list6">
+                                    <h3>
+                                        Publishing Date
+                                    </h3>
+                                    <dd>
+                                        <input type="text" name="publishingDate" id="publishingDate" placeholder="Date" class="input wid_ty3">
+                                    </dd>
+                                    <div id="publishingTimeDiv" class="" style="visibility: hidden;">
+                                        <h3>
+                                            Publishing Time
+                                        </h3>
+                                        <dd>
+                                            <input type="text" name="publishingTime" id="publishingTime" class="input wid_ty3">
+                                        </dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 th:unless="${type == 'publishing'}">Content</h3>
+                    <!-- modify 일 때 -->
+                    <div th:if="${type == 'modify' || type == 'add'}" th:id="|consentDimmed_${type}Content|" class="temrs_wrap">
+                        <textarea th:id="|txtContent_${type}|" rows="10" cols="100" style="width: 100%; height:500px"></textarea>
+                    </div>
+                    <!-- modify 아닐 때 -->
+                    <dd th:unless="${type == 'modify' || type == 'publishing' || type == 'add'}" th:id="|consentDimmed_${type}Content|" class="temrs_wrap ck ck-content ck-editor__editable ck-rounded-corners ck-editor__editable_inline ck-blurred" style="min-height: 50px;">
+                    </dd>
+                </dl>
+    
+            </div>
+            <div class="modal_footer">
+                <div class="wrap_btn2">
+                    <button
+                        th:id="|consentDimmed_${type}CancelBtn|" type="button" class="btn_m btn_white" th:onclick="ModalOpenClose('#consentDimmed_' + [[${type}]])">Cancel</button>
+                    <button th:if="${!(type == 'preview' || type == 'publishing')}"
+                        th:id="|consentDimmed_${type}SaveBtn|" type="button" class="btn_m">Save</button>
+                    <button th:if="${!(type == 'preview')}"
+                        th:id="|consentDimmed_${type}PublishingBtn|" type="button" class="btn_m btn_full_red" th:onclick="clickedPublishingBtn([[${type}]])">Publishing</button>
+                </div> 
+            </div>
+        </div>
+        <div class="dimmer" aria-hidden="true"></div>
+    </div>
+    <!-- // Modal Dimmed -->
+    <script type="module" th:inline="javascript">
+
+        import {
+			ClassicEditor,
+			Essentials,
+			Paragraph,
+			Bold,
+			Italic,
+			Font,
+			Table,
+			TableToolbar,
+    		SourceEditing,
+            Alignment,
+            GeneralHtmlSupport,
+		} from 'ckeditor5';
+
+        if ([[${type}]] == 'modify' || [[${type}]] == 'add') {
+            // initialData에 content 추가 예정
+            let currentDimTextareaId = '#txtContent_' + [[${type}]];
+            ClassicEditor
+                .create( document.querySelector( currentDimTextareaId ), {
+                    initialData: '',    // Initial Consent
+                    plugins: [ Essentials, Paragraph, Bold, Italic, Font, Table, TableToolbar, SourceEditing, Alignment, GeneralHtmlSupport ],
+                    htmlSupport: {
+                        allow: [ 
+                            {
+                                name: /.*/,
+                                attributes: true,
+                                classes: true,
+                                styles: true
+                            }
+                        ],
+                    },
+                    toolbar: {
+                        items: [
+                            'undo', 'redo', '|',
+                            'bold', 'italic', '|',
+                            'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 'alignment', '|',
+                            'insertTable', 'tableColumn', 'tableRow', 'mergeTableCells', '|',
+                            'sourceEditing'
+                        ],
+                        shouldNotGroupWhenFull: true // 툴바의 항목이 툴바 영역을 넘쳐도 "Show More Items" 버튼을 생성하지 않는 옵션
+                    },                
+                    // Configure the table plugin with additional options if necessary
+                    table: {
+                        contentToolbar: [
+                            'tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties'
+                        ]
+                    },
+                    height : '300px',  // 입력창의 높이
+                    // Define plugins to exclude
+                    removePlugins: ['Image', 'ImageToolbar', 'ImageCaption', 'ImageStyle', 'ImageResize', 'ImageUpload']
+                } )
+                .then( editor => {
+                    if ([[${type}]] == 'modify') {
+                        modifyPopupEditor = editor;
+                    } else if ([[${type}]] == 'add') {
+                        addPopupEditor = editor;
+                    } else if ([[${type}]] == 'create') {
+                        createPopupEditor = editor;
+                    }
+                    // window.editor = editor;
+                } )
+                .catch( error => {
+                    console.error( error );
+                } );
+        }
+        
+		
+	</script>
+    <script th:inline="javascript">
+        function initializePublishingPopup() {
+            if (!!$('#publishingDate')) {
+                const publishingTimeElement = document.getElementById("publishingTime");
+                const publishingTimeDivElement = document.getElementById("publishingTimeDiv");
+
+                publishingTimeElement.value = "18:00";
+                publishingTimeElement.innerText = "18:00 (KST)";
+
+                let offset = 7;  // 7일 전
+                let today = new Date();
+                let minDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+                // let startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - offset);
+                $('#publishingDate').daterangepicker({
+                    singleDatePicker: true,
+                    locale: {
+                        format: 'YYYY-MM-DD'
+                    },
+                    startDate: minDate,
+                    minDate: minDate,
+                    autoApply: true,
+                });
+
+                // $('#publishingDate').on(("apply.daterangepicker", (event, picker) => {
+                //     publishingTimeDivElement.style.visibility = "visible";
+                // }));
+            }
+        }
+        function consentSubmit(type, params) {
+            // 파라미터 추가 : id, cdcConsentId, regionId, name, countries, groupName, subsidiary, version, statusId, purpose
+
+            let url;
+            if (type == 'modify') {
+                url = "/systemConsents/updateConsentManagement";
+                params.version = (detailConsents.length > 0 && detailConsents[0].status == 'published') ? $("[name=nextVersion]").val() : $("[name=currentVersion]").val(); // 수정시만 버전 적용
+                params.currentVersion = $("[name=currentVersion]").val();
+            } else if (type == 'add') {
+                params.language = $("[name=curLanguage]").val();
+                url = "/systemConsents/insertConsentManagement";
+                params.version = 1;
+            } else if(type == 'history') {
+                // history에서 insertConsentManagement시 scheduled만 처리하기 때문에 소스 추가
+                params.statusId = 'scheduled';
+                params.currentVersion = params.version;
+                // 9/23 history scheduled는 update
+                url = "/systemConsents/updateConsentManagement";
+            } else {
+                url = "/systemConsents/insertConsentManagement";
+                params.version = 1;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+                
+            // 데이터를 form의 hidden 필드로 추가
+            form.appendChild(createHiddenInput('language', params.language));
+            form.appendChild(createHiddenInput('content', params.content));
+            form.appendChild(createHiddenInput('consentId', params.consentId));
+            form.appendChild(createHiddenInput('version', params.version));
+            form.appendChild(createHiddenInput('currentVersion', params.currentVersion));
+            form.appendChild(createHiddenInput('statusId', params.statusId));
+            form.appendChild(createHiddenInput('purpose', params.purpose));
+            form.appendChild(createHiddenInput('subsidiary', params.subsidiary));
+            form.appendChild(createHiddenInput('countries', params.countries));
+            form.appendChild(createHiddenInput('consentGroup', params.consentGroup));
+            form.appendChild(createHiddenInput('type', params.type));
+            form.appendChild(createHiddenInput('channel', params.channel));
+            form.appendChild(createHiddenInput('id', params.id));
+
+            if (params.statusId == 'scheduled') {
+                form.appendChild(createHiddenInput('releasedAt', $("#publishingDate").val())); // 배포시 publishingDate 추가
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function createHiddenInput(name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            return input;
+        }
+
+        $(document).ready(() => {
+            initializePublishingPopup();
+        });
+    </script>
+</th:block>
+</html>

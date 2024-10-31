@@ -1,0 +1,113 @@
+<!-- Modal Dimmed -->
+<div class="modal_wrap" id="reAuthenticationModal">
+    <div class="modal modal_dimmed M">
+        <div class="modal_header">
+            <h4>Re-Authentication</h4>
+            <button type="button" class="modal_close_btn" onclick="ModalOpenClose('#reAuthenticationModal')"><span class="blind">Close</span></button>
+        </div>
+        <div class="modal_content">
+            <h3></h3>
+            <div class="txt_ty6">
+                <strong>For security reasons, please log in again to<br>confirm your identity:</strong>
+                Log in with an existing site account
+            </div>
+
+            <dl class="form_list2">
+                <dt class="requ">Login ID</dt>
+                <dd>
+                    <input type="text" name="" id="reAuthenticationLoginId" th:value="${channelHeader != null ? channelHeader['loginUserId'] : ''}" th:placeholder="#{myPage.reAuthentication.placeholder.loginId}" class="input" readonly>
+                </dd>
+                <dt class="requ">Password</dt>
+                <dd>
+                    <div class="input_clear pass_word">
+                        <input type="password" id="reAuthenticationPassword" th:placeholder="#{myPage.reAuthentication.placeholder.password}" class="input">
+                        <button type="button" class="clear_btn"><span class="blind">삭제</span></button>
+                        <i class="eye_hide"></i>
+                    </div>
+                </dd>
+            </dl>
+        </div>
+        <div class="modal_footer">
+            <div class="bt_wrap2">
+                <button type="button" class="btn_xl" style="width: 100%;" onclick="signin()">Continue</button>
+            </div> 
+        </div>
+    </div>
+    <div class="dimmer" aria-hidden="true"></div>
+</div>
+<!-- // Modal Dimmed -->
+<script th:inline="javascript">
+    function signin() {
+        const reAuthenticationLoginId = document.getElementById('reAuthenticationLoginId');
+        const reAuthenticationPassword = document.getElementById('reAuthenticationPassword');
+
+        const reAuthenticationLoginIdValue = reAuthenticationLoginId.value;
+        const reAuthenticationPasswordValue = reAuthenticationPassword.value;
+
+        const emptyPasswordText = [[#{myPage.reAuthentication.emptyPassword}]] || '';
+        const invalidDataText = [[#{myPage.reAuthentication.invalidData}]] || '';
+
+        if (!reAuthenticationLoginIdValue) {
+            // 로그인 화면으로 이동
+            return;
+        }
+        if (!reAuthenticationPasswordValue) {
+            openModal('error', '', emptyPasswordText);
+            return;
+        }
+
+        const reAuthenticationPromise = new Promise((resolve, reject) => {
+            const reAuthenticationParams = {
+                "loginUserId": reAuthenticationLoginIdValue,
+                "password": reAuthenticationPasswordValue,
+            };
+
+            const reAuthenticationParamsString = JSON.stringify(reAuthenticationParams);
+
+            $.ajax({
+                url: "/myPage/login",
+                type: "POST",
+                data: reAuthenticationParamsString,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data){
+                    resolve(data);
+                },
+                error: function(error){
+                    reject();
+                }
+            });
+        });
+
+        Promise.all([reAuthenticationPromise]).then((data) => {
+            if (!!data) {
+                const result = data[0];
+                let modalType = 'error';
+                let modalText = '';
+
+                console.log('resultresult:', result);
+
+                const loginSuccessYn = result['loginSuccesYn'];
+                const emailSendSuccessYn = result['emailSendSuccesYn'];
+                
+                // 이메일 비밀번호 재인증 실패
+                if (loginSuccessYn == 'N') {
+                    modalText = invalidDataText
+                } 
+                // 이메일 전송 실패
+                else if (!loginSuccessYn || !emailSendSuccessYn || emailSendSuccessYn == 'N'){
+                    modalText = serverErrorText;
+                }
+                // 전부 성공
+                else {
+                    executeVerifyingAccount();
+                    return;
+                }
+
+                openModal('error', '', modalText);
+            }
+        }).catch((e) => {
+            openModal('error', '', serverErrorText);
+        });
+    }
+</script>

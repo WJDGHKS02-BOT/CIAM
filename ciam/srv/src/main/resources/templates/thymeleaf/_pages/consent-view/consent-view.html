@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0"
+          name="viewport" />
+    <title>Consent View</title>
+
+    <link href="/_styles/global.css"
+          rel="stylesheet" />
+    <link href="/_styles/reset.css"
+          rel="stylesheet" />
+    <link href="/_components/layout/header.css"
+          rel="stylesheet" />
+    <link href="/_components/layout/main.css"
+          rel="stylesheet" />
+    <link href="/_components/layout/footer.css"
+          rel="stylesheet" />
+    <link href="/_components/select/field-select-box.css"
+          rel="stylesheet" />
+    <link href="/theme/assets/css/terms.css"
+          rel="stylesheet" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <script th:inline="javascript">
+      const currentChannel = new URLSearchParams(location.search).get('channel');
+      const currentChannelList = {
+        "COMMON": 'common',
+      };
+      currentChannelList[currentChannel.toUpperCase()] = currentChannel;
+
+      // API 반환 형식
+      const apiResponseFormats = {
+        getConsentTypeList: {type: 'object', name: 'typeName', code: 'typeCode'},
+        getCountryList: {type: 'object', name: 'countryName', code: 'countryCode'},
+        getLanguageList: {type: 'array'},
+        getVersionList: {type: 'version', name: 'version', code: 'id'},
+      };
+
+      // [{typeName: typeCode}, ...반복] 형식을 {kay: value, ...반복} 형식으로 변환
+      function transformApiResponse({apiName, data}) {
+        const format = apiResponseFormats[apiName];
+
+        switch (format.type) {
+          case 'object':
+            return data.reduce((acc, item) => {
+              acc[item[format.name]] = item[format.code];
+              return acc;
+            }, {});
+          case 'array':
+            return data.reduce((acc, item) => {
+              acc[item] = item;
+              return acc;
+            }, {});
+          case 'version':
+            return data.reduce((acc, item) => {
+              acc[item[format.name]] = item[format.code];
+              return acc;
+            }, {});
+          default:
+            return {};
+        }
+      }
+
+      const handleGetConsentTypeList = async () => {
+        const channelElement = document.querySelector('select[name="field-channel"]');
+
+        const res = await axios.post('/consent/getConsentTypeList', {coverage: channelElement.value});
+        const translatedData = transformApiResponse({apiName: 'getConsentTypeList', data: res.data});
+        updateOptions('field-type', Object.entries(translatedData))
+      }
+
+      const handleGetCountryList = async () => {
+        const channelElement = document.querySelector('select[name="field-channel"]');
+        const typeElement = document.querySelector('select[name="field-type"]');
+
+        const res = await axios.post('/consent/getCountryList', {
+          coverage: channelElement.value,
+          typeId: typeElement.value
+        });
+        const translatedData = transformApiResponse({apiName: 'getCountryList', data: res.data});
+        updateOptions('field-country', Object.entries(translatedData))
+      }
+
+      const handleGetLanguageList = async () => {
+        const channelElement = document.querySelector('select[name="field-channel"]');
+        const typeElement = document.querySelector('select[name="field-type"]');
+        const countryElement = document.querySelector('select[name="field-country"]');
+
+        const res = await axios.post('/consent/getLanguageList', {
+          coverage: channelElement.value,
+          typeId: typeElement.value,
+          countries: countryElement.value
+        });
+        const translatedData = transformApiResponse({apiName: 'getLanguageList', data: res.data});
+        updateOptions('field-language', Object.entries(translatedData))
+      }
+
+      const handleGetVersionList = async () => {
+        const channelElement = document.querySelector('select[name="field-channel"]');
+        const typeElement = document.querySelector('select[name="field-type"]');
+        const countryElement = document.querySelector('select[name="field-country"]');
+        const languageElement = document.querySelector('select[name="field-language"]');
+
+        const res = await axios.post('/consent/getVersionList', {
+          coverage: channelElement.value,
+          typeId: typeElement.value,
+          countries: countryElement.value,
+          language: languageElement.value
+        });
+        const translatedData = transformApiResponse({apiName: 'getVersionList', data: res.data});
+        updateOptions('field-version', Object.entries(translatedData))
+      }
+
+      const handleConsentContent = async () => {
+        const consentContentElement = document.querySelector('.temrs_wrap');
+        const versionElement = document.querySelector('select[name="field-version"]');
+
+        const res = await axios.post('/consent/getConsentContent', {
+          id: versionElement.value
+        })
+
+        consentContentElement.innerHTML = res.data.content;
+        console.log(consentContentElement);
+      }
+
+      function updateOptions(selectId, options) {
+        const select = document.querySelector(`select[name="${selectId}"]`);
+        select.innerHTML = '';
+
+        const emptyOption = document.createElement('option');
+        emptyOption.textContent = '--';
+        emptyOption.value = '';
+        select.appendChild(emptyOption);
+
+        for (const [key, value] of options) {
+          const optionElement = document.createElement('option');
+          optionElement.textContent = key;
+          optionElement.value = value;
+          select.appendChild(optionElement);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const channelElement = document.querySelector('select[name="field-channel"]');
+        const typeElement = document.querySelector('select[name="field-type"]');
+        const countryElement = document.querySelector('select[name="field-country"]');
+        const languageElement = document.querySelector('select[name="field-language"]');
+        const versionElement = document.querySelector('select[name="field-version"]');
+
+        channelElement.addEventListener('change', handleGetConsentTypeList);
+        typeElement.addEventListener('change', handleGetCountryList);
+        countryElement.addEventListener('change', handleGetLanguageList);
+        languageElement.addEventListener('change', handleGetVersionList);
+        versionElement.addEventListener('change', handleConsentContent);
+
+        updateOptions('field-channel', Object.entries(currentChannelList));
+      })
+    </script>
+
+    <style>
+      .main {
+        margin: 0 auto;
+        max-width: 1024px;
+        align-items: center;
+        overflow-y: hidden;
+      }
+
+      .title {
+        font: var(--samsung-700-32);
+        color: var(--color-black);
+        margin-top: 48px;
+      }
+
+      .sub-title {
+        font: var(--samsung-400-16);
+        color: var(--color-gray-03);
+        margin: 10px 0 48px 0;
+      }
+
+      .field-wrapper {
+        flex: 1;
+      }
+
+      hr {
+        width: 100%;
+        height: 1px;
+        background: var(--color-gray-05);
+        margin: 24px 0;
+
+        &:nth-of-type(2) {
+          margin-top: 10px;
+        }
+      }
+
+      #consentContent {
+        font-size: 16px;
+        line-height: 1.5;
+        overflow-y: scroll;
+        padding-bottom: 10px;
+
+        .temrs_wrap {
+          overflow-y: hidden;
+        }
+
+        ol > li {
+          list-style: decimal !important;
+          margin-left: 16px;
+
+          > ol {
+            list-style: none;
+            margin-left: 16px;
+
+            > li {
+              list-style: disc !important;
+            }
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <th:block th:replace="_components/layout/header :: header"></th:block>
+
+    <th:block th:replace="_components/layout/main :: main(~{::content})">
+      <th:block th:fragment="content">
+        <h2 class="title">Consent View</h2>
+        <hr>
+        <div style="display: flex; justify-content: space-between; gap: 20px; width: 100%;">
+          <th:block th:replace="_components/select/field-select-box :: field-select-box(
+              fieldTitle='Channel',
+              fieldName='field-channel',
+              fieldValue='-',
+              required=false,
+              readonly=false,
+              disabled=false,
+              fieldState='',
+              stateMessage='',
+              options=null)">
+          </th:block>
+          <th:block th:replace="_components/select/field-select-box :: field-select-box(
+              fieldTitle='Type',
+              fieldName='field-type',
+              fieldValue='-',
+              required=false,
+              readonly=false,
+              disabled=false,
+              fieldState='',
+              stateMessage='',
+              options=null)">
+          </th:block>
+          <th:block th:replace="_components/select/field-select-box :: field-select-box(
+              fieldTitle='Country',
+              fieldName='field-country',
+              fieldValue='3',
+              required=false,
+              readonly=false,
+              disabled=false,
+              fieldState='',
+              stateMessage='',
+              options=null)">
+          </th:block>
+          <th:block th:replace="_components/select/field-select-box :: field-select-box(
+              fieldTitle='Language',
+              fieldName='field-language',
+              fieldValue='3',
+              required=false,
+              readonly=false,
+              disabled=false,
+              fieldState='',
+              stateMessage='',
+              options=null)">
+          </th:block>
+          <th:block th:replace="_components/select/field-select-box :: field-select-box(
+              fieldTitle='Version',
+              fieldName='field-version',
+              fieldValue='3',
+              required=false,
+              readonly=false,
+              disabled=false,
+              fieldState='',
+              stateMessage='',
+              options=null)">
+          </th:block>
+        </div>
+        <hr>
+        <div id="consentContent">
+          <div class="temrs_wrap"></div>
+        </div>
+      </th:block>
+    </th:block>
+
+    <th:block th:replace="_components/layout/footer :: footer"></th:block>
+  </body>
+</html>

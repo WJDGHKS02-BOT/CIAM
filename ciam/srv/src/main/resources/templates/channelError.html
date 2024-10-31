@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>SAML Error Page</title>
+
+    <script>
+        function getError() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var errorParam = urlParams.get('error');
+            var error = JSON.parse(decodeURIComponent(errorParam));
+
+            document.getElementById("errorCode").innerHTML = error.errorCode;
+            document.getElementById("errorMessage").innerHTML = error.errorMessage;
+            document.getElementById("errorRequest").innerHTML = error.callId;
+            document.getElementById("errorDescription").innerHTML = error.errorDescription;
+            document.getElementById("showError").style.display = "block";
+        }
+    </script>
+
+    <style>
+        @font-face {
+            font-family: 'SamsungOne';
+            src: url('/fonts/SamsungOne-400.ttf');
+        }
+
+        @font-face {
+            font-family: 'SamsungOne';
+            src: url('/fonts/SamsungOne-700.ttf');
+            font-weight: 700;
+        }
+
+        @font-face {
+            font-family: 'SamsungSharp';
+            src: url('/fonts/SamsungSharpSans-Bold.ttf');
+            font-weight: bold;
+        }
+
+        html, body {
+            background-image: url('/images/overlay.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            font-family: "SamsungOne", "Open Sans", sans-serif;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-header {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        .samsung-logo-blue-1 {
+            flex-shrink: 0;
+            width: 198.02px;
+            position: relative;
+            margin-top: 80px;
+        }
+
+        .gigya-label-text,
+        .gigya-composite-control-header,
+        .login-find-id,
+        .gigya-forgotPassword,
+        .gigya-input-submit,
+        .gigya-composite-control,
+        .gigya-required-display,
+        .gigya-composite-control-link {
+            font-family: "SamsungOne", "Open Sans", sans-serif !important;
+        }
+
+        .gigya-input-text, .gigya-input-password {
+            width: 70% !important;
+            display: block !important;
+            margin-right: auto !important;
+            margin-left: auto !important;
+        }
+
+        .gigya-composite-control.gigya-composite-control-password.login-password,
+        .gigya-composite-control-submit {
+            width: 70%;
+            margin-left: 15%;
+        }
+
+        .gigya-label {
+            margin-left: 15% !important;
+        }
+
+        .gigya-label.login-password-label {
+            margin-left: 0 !important;
+        }
+
+        .gigya-login-providers-container div {
+            margin-left: 10% !important;
+        }
+
+        .gigya-login-provider-row {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div class="login-header">
+        <img class="samsung-logo-blue-1" style="width: 350px;" src="/images/Samsung_Business_Account.png" />
+
+        <div id="showError" style="display: none;">
+            <div>Error Code: <span id="errorCode"></span></div>
+            <div>Error Message: <span id="errorMessage"></span></div>
+            <div>Error Request: <span id="errorRequest"></span></div>
+            <div>Error Description: <span id="errorDescription"></span></div>
+        </div>
+
+        <div id="sessionExpired">
+            Session expired.
+        </div>
+        <a th:href="@{${loginPage}}">Back to home</a>
+    </div>
+</div>
+
+<script>
+    window.onload = function() {
+        getError();
+    };
+</script>
+</body>
+</html>

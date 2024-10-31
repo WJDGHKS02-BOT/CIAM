@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="keywords" content="SAMSUNG">
+    <meta name="description" content="SAMSUNG">
+    <title>Layout mypage | SAMSUNG</title>
+
+	<link rel="stylesheet" href="/theme/assets/css/librarys.min.css" />
+    <link rel="stylesheet" href="/theme/assets/css/base.css" />
+    <link rel="stylesheet" href="/theme/assets/css/content.css" />
+	<link rel="stylesheet" href="/theme/assets/css/terms.css" />
+	<link rel="stylesheet" href="/theme/assets/css/member.css" />
+
+    <script src="/theme/assets/js/libs/jquery.min.js"></script>
+    <script src="/theme/assets/js/libs/librarys.min.js"></script>
+    <script src="/theme/assets/js/ui/ui.common.js"></script>
+
+    <script src="/scripts/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Includes all JS & CSS for the JavaScript Data Grid -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+
+	<script type="importmap">
+		{
+			"imports": {
+				"ckeditor5": "/ckeditor5/ckeditor5.js",
+				"ckeditor5/": "/ckeditor5/"
+			}
+		}
+	</script>
+
+	<script th:inline="javascript" src="/scripts/modal.js"></script>
+	<script th:inline="javascript" src="/scripts/myPagePopup.js"></script>
+	<script th:inline="javascript" src="/scripts/customPaginationGrid.js"></script>
+	<script th:inline="javascript" src="/scripts/consentGrid.js"></script>
+	<script th:inline="javascript">
+        const channelHeader = [[${channelHeader}]]
+				const isSamsungEmailYn = channelHeader.loginUserId.endsWith('@samsung.com');
+				window.onload = () => {
+					if(isSamsungEmailYn) {
+						const vocButton = document.querySelector('.voc');
+						vocButton.remove();
+					}
+				}
+	</script>
+
+	<!-- <script type="module" src="/scripts/ckEditorModule.js">
+	</script> -->
+</head>
+<body>
+<div class="wrapper">
+	<!-- Header -->
+	<header class="header_ty">
+		<th:block th:replace="~{fragments/header :: header('mypage')}"></th:block>
+	</header>
+	<!-- // Header -->
+
+	<!-- Container -->
+	<main role="main" class="container_ty">
+		<!-- lnb -->
+        <div th:replace= "~{fragments/myPage/localNavigationBar :: localNavigationBar(${menu})}"></div>
+		<!-- //lnb -->
+
+		<!-- content -->
+		<div class="content">
+			<div th:replace="~{${content}}"></div>
+		</div>
+		<!-- //content -->
+	</main>
+	<!-- Footer -->
+	<!-- <footer class="footer">
+		<p>Copyright © 2024 Samsung. All Rights Reserved</p>
+		<a href="mailto:b2b.ciam@samsung.com;">Contact Us : b2b.ciam@samsung.com</a>
+	</footer> -->
+	<!-- // Footer -->
+	<!-- // Container -->
+</div>
+<div th:replace="~{popups/reAuthentication}"></div>
+<div th:replace="~{popups/verifyingAccount}"></div>
+<div th:replace="~{popups/samsungVerifyingAccount}"></div>
+<div th:replace="~{popups/alert}"></div>
+<div th:replace="~{popups/error}"></div>
+<div th:replace="~{popups/success}"></div>
+<div th:replace="~{popups/loading}"></div>
+<div th:replace="~{popups/unmask}"></div>
+
+<script th:inline="javascript">
+	let responseErrorCode = [[${responseErrorCode}]] ?? '';
+	let responseErrorDetails = [[${responseErrorDetails}]] ?? '';
+	let serverErrorText = [[#{common.serverError}]] || '';
+
+	function setErrorModalMsg(msg) {
+		openModal('alert', '', msg);
+	}
+
+	function reloadMyPage() {
+		window.location.reload();
+	}
+
+	// Input에서 엔터 시 Submit 막기
+	$('input[type="text"]').keydown(function() {
+		if (event.keyCode === 13) {
+			event.preventDefault();
+		};
+	});
+	function loading(flag) {
+		if (flag == "open") {
+			console.log('open loading');
+			ModalAlertOpen("#loadingPopup");
+		} else if (flag == "close") {
+			console.log('close loading');
+			ModalAlertClose("#loadingPopup");
+		}
+	}
+
+	function popupLoading(flag) {
+		if (flag == "open") {
+			console.log('open loading');
+			ModalAlertOpen("#popupLoadingPopup");
+		} else if (flag == "close") {
+			console.log('close loading');
+			ModalAlertClose("#popupLoadingPopup");
+		}
+	}
+
+	function accessDenied() {
+		// 권한 별 접근 제어
+		openModal('alert', '', "You can't access this menu");
+		setTimeout(() => {
+			window.location.href = "/";
+		}, 2000);
+	}
+
+
+	function clearFormData() {
+		localStorage.removeItem('requestType');
+		localStorage.removeItem('status');
+		localStorage.removeItem('channel');
+	}
+	
+	window.onsubmit = () => {
+		loading("open");
+	}
+
+	window.addEventListener("DOMContentLoaded", () => {
+		ModalAlertClose('#loadingPopup');
+	})
+</script>
+</body>
+</html>

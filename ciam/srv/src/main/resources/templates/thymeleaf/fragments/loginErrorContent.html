@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration In Progress</title>
+</head>
+<body>
+<div id="pending-title"
+     style="display: none;"
+     th:fragment="registrationInProgress">
+    <div class="member_content">
+        <div class="inner_white">
+            <div class="mem_ing">
+                <strong th:utext="#{selfregisteration.registrationStatus}"></strong>
+                <p th:utext="#{selfregisteration.registrationStatusText}"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="emp_pending-title"
+     style="display: none;"
+     th:fragment="registrationInProgress">
+        <div class="member_content">
+            <div class="inner_white">
+                <div class="mem_ing">
+                    <strong th:utext="#{loginError.empPendingTitle}"></strong>
+                    <p th:utext="#{loginError.empPendingText}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<div id="no-access-title"
+     style="display: none;"
+     th:fragment="registrationInProgress">
+    <div class="member_content">
+        <div class="inner_white">
+            <div class="mem_ing">
+                <strong th:utext="#{loginError.noAccessTitle}"></strong>
+                <p th:utext="#{loginError.noActiveTitle}"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--<div id="not-active-title" style="display: none;" th:fragment="registrationInProgress">-->
+<!--    <div class="member_content">-->
+<!--        <div class="inner_white">-->
+<!--            <div class="mem_ing">-->
+<!--                <strong th:utext="#{selfregisteration.registrationStatus}"></strong>-->
+<!--                <p th:utext="#{selfregisteration.registrationStatusText}"></p>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<div id="rejected-title"
+     style="display: none;"
+     th:fragment="registrationInProgress">
+    <div class="member_content">
+        <div class="inner_white">
+            <div class="mem_ing">
+                <strong th:utext="#{loginError.rejectedTitle}"></strong>
+                <p th:utext="#{loginError.rejected}"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="CDC_OnPage"></div>
+<form method="post">
+    <input name="regToken"
+           type="hidden" />
+    <input name="adCdcUid"
+           type="hidden" />
+    <input name="convertLoginId"
+           type="hidden" />
+</form>
+
+<!-- 두 번째 폼: ssoAccessSubmit 폼 -->
+<form id="ssoAccessForm"
+      method="post">
+    <input name="cdc_uid"
+           type="hidden" />
+    <input name="targetChannel"
+           type="hidden" />
+</form>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const p = new URLSearchParams(location.search);
+    const rt = p.get('regToken');
+    const f = document.forms[0];
+    const f2 = document.getElementById('ssoAccessForm');
+    document.querySelector('input[name="regToken"]').value = rt;
+    const onGigyaServiceReady = () => {
+      const
+          ch = gigya.thisScript.globalConf.channel,
+          uid = p.get('UID'),
+          approvalStatus = p.get('approvalStatus'),
+          cid = p.get('convertLoginId');
+      if (cid) {
+        f.action = `${gigya.thisScript.globalConf.newChannelRegisterJAVAURL}/${ch}`;
+        document.querySelector('input[name="convertLoginId"]').value = cid;
+        f.submit();
+      } else if (p.get('newADLogin')) {
+        f.action = `${gigya.thisScript.globalConf.newADLoginJAVAURL}/${ch || 'toolmate'}`;
+        f.submit();
+      } else if (uid) {
+        debugger;
+        switch (approvalStatus) {
+          case 'pending':
+            document.querySelector('#pending-title').style.display = 'block';
+            break;
+          case 'emp_pending':
+            document.querySelector('#emp_pending-title').style.display = 'block';
+            break;
+          default:
+            f.action = `${gigya.thisScript.globalConf.newChannelRegisterURL}/${ch}`;
+            document.querySelector('#no-access-title').style.display = 'block';
+        }
+      } else {
+        gigya.accounts.getAccountInfo({
+          regToken: rt, callback: r => {
+            if (!r.errorCode) {
+              debugger;
+              if (r.data.userStatus === 'registerReject') {
+                document.querySelector('#rejected-title').style.display = 'block';
+              } else if (!ch && r.data.userStatus !== 'active') {
+                document.querySelector('#pending-title').style.display = 'block';
+              } else {
+                if (r.data.channels[ch] === undefined) {
+                  debugger;
+                  if (r.socialProviders.includes('saml-samsung-ad')) {
+                    f.action = `${gigya.thisScript.globalConf.newChannelRegisterJAVAURL}/${ch}`;
+                    document.querySelector('input[name="adCdcUid"]').value = r.UID;
+                    f.submit();
+                  } else {
+                    f2.action = `${gigya.thisScript.globalConf.ssoAccessRegisterJAVAURL}`;
+                    document.querySelector('input[name="cdc_uid"]').value = r.UID; // 'cdc_uid'로 설정
+                    document.querySelector('input[name="targetChannel"]').value = ch; // targetChannel을 `${ch}`로 설정
+                    f2.submit();
+                  }
+                } else if (r.data.channels[ch].approvalStatus === undefined) {
+                  f.action = `${gigya.thisScript.globalConf.newChannelRegisterJAVAURL}/${ch}`;
+                  f.submit();
+                } else {
+                  switch (r.data.channels[ch].approvalStatus) {
+                    case 'pending':
+                      document.querySelector('#pending-title').style.display = 'block';
+                      break;
+                    case 'emp_pending':
+                      document.querySelector('#emp_pending-title').style.display = 'block';
+                      break;
+                    case 'approved':
+                      f.action = `${gigya.thisScript.globalConf.channelConsentUpdateJAVAURL}/${ch}`
+                      f.submit();
+                      break;
+                    default:
+                      f.action = `${gigya.thisScript.globalConf.newChannelRegisterJAVAURL}/${ch}`;
+                      document.querySelector('#no-access-title').style.display = 'block';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    };
+    const g = document.createElement("script");
+    var apiKey = /*[[${apiKey}]]*/ 'defaultApiKey';
+    g.type = "text/javascript";
+    g.src = `https://cdns.au1.gigya.com/JS/gigya.js?apiKey=${apiKey}`;
+    document.head.appendChild(g);
+    /*]]>*/
+</script>
+</body>
+</html>

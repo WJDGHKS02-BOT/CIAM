@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="approvalList">
+    <script>
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                ModalAlertClose('#loadingPopup');
+            }
+        });
+    </script>
+    <div th:unless="${channelHeader['myRole'] == 'General User'}">
+        <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+        <h2>Approval List</h2>
+        <form method="POST" class="content_ty4" id="formElement">
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Channel</dt>
+                        <dd>
+                            <select name="channel" id="channel" class="select wid_ty4"
+                                    th:aria-readonly="${role != null && role != 'CIAM Admin'}">
+                                <option th:each="curChannel: ${channel}"
+                                        th:if="${curChannel != null}"
+                                        th:value="${curChannel.channelName}"
+                                        th:utext="${curChannel.channelDisplayName}"
+                                        th:selected="${curChannel.channelName == session_channel}">
+                                </option>
+                            </select>
+                        </dd>
+                        <dt>Role</dt>
+                        <dd>
+                            <input type="text" name="role" id="role" th:value="${role != null ? role : ''}" class="input wid_ty4" readonly>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Request Type</dt>
+                        <dd>
+                            <select name="requestType" id="requestType" class="select wid_ty4">
+                                <option th:each="curRequestType: ${requestType}"
+                                        th:if="${curRequestType != null}"
+                                        th:value="${curRequestType.code}"
+                                        th:utext="${curRequestType.name}">
+                            </select>
+                        </dd>
+                        <dt>Status</dt>
+                        <dd>
+                            <select name="type" id="type" class="select wid_ty4">
+                                <option value="pending">Pending</option>
+                                <option value="inprogress">Inprogress</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </dd>
+                        <dt class="form_list6">
+                            <button type="button" class="btn_s search wid_ty5" onclick="clikcedApprovalListSearchBtn()">Search</button>
+                        </dt>
+                    </dl>
+                </div>
+            </div>
+
+            <th:block th:replace="~{fragments/myPage/customPaginationGrid :: customPaginationGrid(1, 0)}"></th:block>
+
+            <!-- hidden fields -->
+            <input type="hidden" name="selectedRowData" id="selectedRowData">
+            <!-- // hidden fields -->
+
+            <!-- Popup -->
+            <th:block th:replace="~{popups/approvalListStatusModal}"></th:block>
+            <!-- // Popup -->
+
+            <button type="submit" id="submit"></button>
+        </form>
+    </div>
+    <script th:inline="javascript">
+        const submitBtn = document.getElementById('submit');
+        const formElement = document.querySelector('#formElement');
+
+        const channelElement = document.getElementById('channel');
+        const roleElement = document.getElementById('role');
+        const requestTypeElement = document.getElementById('requestType');
+        const typeElement = document.getElementById('type');
+        const selectedRowDataElement = document.getElementById('selectedRowData');
+
+        const approvalRequestSuccessText = [[#{myPage.approvalRequest.successText}]] || '';
+
+        const approvalRequestAlreadyUsedDomainText = [[#{myPage.approvalRequest.alreadyUsedDomainText}]] || '';
+        const approvalRequestBlackListDomainText = [[#{myPage.approvalRequest.blackListDomainText}]] || '';
+        const approvalRequestAlreadyAppliedDomainText = [[#{myPage.approvalRequest.alreadyAppliedDomainText}]] || '';
+
+        const payloadChannels = [[${channel}]];
+
+        const blackListRole = [
+            "General User",
+        ];
+
+        function approvalListUpdateStatus() {
+            
+        }
+
+        function getColumn(name, fieldName, requestType, type, unSortIcon, textAlign, wrapText) {
+            let currentResultColumn = {
+                headerName: name,
+                unSortIcon: unSortIcon || 'true',
+                cellStyle: {
+                    textAlign: textAlign || "center",
+                },
+                tooltipValueGetter: (params) => {
+                    return params.value;
+                },
+                autoHeight: true,
+                wrapText: wrapText || false,
+            };
+
+            let currentCell = '';
+
+            if (!!fieldName) {
+                if (fieldName == 'company_domain') {
+                    currentCell = (params) => {
+                        const paramsData = params.data;
+                        const currentCompanyDomain = paramsData.company_domain;
+
+                        let resultCell = '';
+
+                        if (!!currentCompanyDomain) {
+                            let domainList = currentCompanyDomain.split(', ');
+                            for (let curDomain of domainList) {
+                                resultCell += `${curDomain}<br>`;
+                            }
+                        }
+                        
+                        return resultCell;
+                    }
+                } else if (fieldName.includes('_channel') && fieldName != 'target_channeltype') {
+                    currentCell = (params) => {
+                        const paramsData = params.data;
+                        const currentField = paramsData[fieldName];
+
+                        let currentChannelDisplayname = '';
+
+                        for (let channelInfo of payloadChannels) {
+                            if (channelInfo.channelName == currentField) {
+                                currentChannelDisplayname = channelInfo.channelDisplayName;
+                                break;
+                            }
+                        }
+                        return currentChannelDisplayname;
+                    }
+                } else {
+                    currentResultColumn.field = fieldName;
+                }
+            }
+
+            if (!!requestType && !!type) {
+                currentCell = (params) => {
+                    let button = document.createElement('button');
+                    let buttonText = '';
+                    let buttonStyle = '';
+                    let buttonOnclick = '';
+                    let formActionURL = "/myPage/userListDetail";
+                    let CellInnerHTML = '';
+
+                    let commonCallbackFunction = (curFormAction) => {
+                        formElement.action = curFormAction;
+                        selectedRowDataElement.value = JSON.stringify(params.data);
+
+                        submitBtn.click();
+                    }
+
+                    switch(type) {
+                        case 'pending':
+                            buttonText = "View";
+                            buttonStyle = "blue";
+                            buttonOnclick = () => {
+                                commonCallbackFunction(formActionURL);
+                            };
+                            switch(requestType) {
+                                case 'W01':
+                                    break;
+                                case 'W02':
+                                    break;
+                                case 'W03':
+                                    break;
+                                case 'W04':
+                                    break;
+                                case 'W05':
+                                    buttonText = "Select";
+                                    formActionURL = "/myPage/approvalListPendingSubmit";
+                                    let roleManagementPendingCallBackFunc = () => {
+                                        commonCallbackFunction(formActionURL);
+                                    }
+                                    buttonOnclick = () => {
+                                        openApprovalListStatus(roleManagementPendingCallBackFunc);
+                                    };
+                                    break;
+                                case 'W06':
+                                    break;
+                                case 'W07':
+                                    buttonText = "Select";
+                                    formActionURL = "/myPage/approvalListPendingSubmit";
+                                    let companyDomainPendingCallBackFunc = () => {
+                                        commonCallbackFunction(formActionURL);
+                                    }
+                                    buttonOnclick = () => {
+                                        openApprovalListStatus(companyDomainPendingCallBackFunc);
+                                    };
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        case 'inprogress':    
+                        case 'approved':
+                            buttonText = "Delete";
+                            buttonStyle = "red";
+
+                            switch(requestType) {
+                                case 'W01':
+                                    break;
+                                case 'W02':
+                                    break;
+                                case 'W03':
+                                    break;
+                                case 'W04':
+                                    break;
+                                case 'W05':
+                                    break;
+                                case 'W06':
+                                    break;
+                                case 'W07':
+                                    formActionURL = "/myPage/deleteDomain";
+                                    let companyDomainApprovedCallBackFunction = () => {
+                                        commonCallbackFunction(formActionURL);
+                                    }
+                                    // Delete 버튼
+                                    buttonOnclick = () => {
+                                        openModal('alert', companyDomainApprovedCallBackFunction, "Really delete this domain?");
+                                    };
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                    // set button options
+                    button.classList.add("btn_table_s", buttonStyle);
+                    button.innerText = buttonText;
+                    button.type = "button";
+                    button.onclick = buttonOnclick;
+
+                    return button;
+                };
+            }
+            if (!!currentCell) {
+                currentResultColumn.cellRenderer = currentCell;
+            }
+
+            return currentResultColumn;
+        }
+
+        // Grid 테이블 컬럼 세팅
+        function setTableColumns(requestType, type) {
+            // console.log('requestType: ', requestType);
+            // console.log('type: ', type);
+            let columnDefs = [];
+            
+            switch(requestType) {
+                case 'W01':
+                    switch(type) {
+                        case 'pending':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Request Role", "requestor_role"));
+                            columnDefs.push(getColumn("Registration Type", "registration_type"));
+                            columnDefs.push(getColumn("Requested Date", "requested_date"));
+                            columnDefs.push(getColumn("Detail", '', requestType, type)); // Cell renderer > View 버튼 필요
+                            break;
+                        case 'rejected':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Approver", "approved_email"));
+                            // columnDefs.push(getColumn("Registration Type", "registration_type"));
+                            columnDefs.push(getColumn("Reject Reason", "reject_reason"));
+                            // columnDefs.push(getColumn("Reject Approver", "approver_email"));
+                            columnDefs.push(getColumn("Rejected Date", "rejected_date"));
+                            break;
+                        case 'inprogress':
+                        case 'approved':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            /*columnDefs.push(getColumn("Request Role", "requestor_role"));*/
+                            columnDefs.push(getColumn("Approver", "approved_email"));
+                            columnDefs.push(getColumn("Approval Format", "approval_format"));
+                            columnDefs.push(getColumn("Approved Date", "approved_date"));
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case 'W02':
+                    switch(type) {
+                        case 'pending':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Request Role", "requestor_role"));
+                            columnDefs.push(getColumn("Registration Type", "registration_type"));
+                            columnDefs.push(getColumn("Requested Date", "requested_date"));
+                            columnDefs.push(getColumn("Detail", '', requestType, type)); // Cell renderer > View 버튼 필요
+                            break;
+                        case 'rejected':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Approver", "approved_email"));
+                            columnDefs.push(getColumn("Reject Reason", "reject_reason"));
+                            columnDefs.push(getColumn("Rejected Date", "rejected_date"));
+                            break;
+                        case 'inprogress':
+                        case 'approved':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Approver", "approved_email"));
+                            columnDefs.push(getColumn("Approval Format", "approval_format"));
+                            columnDefs.push(getColumn("Approved Date", "approved_date"));
+
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case 'W03':
+                    switch(type) {
+                        case 'pending':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Registration Type", "registration_type"));
+                            columnDefs.push(getColumn("Invitation Sendor", "invitaion_sender_email"));
+                            columnDefs.push(getColumn("Requested Date", "requested_date"));
+                            columnDefs.push(getColumn("Detail", '', requestType, type)); // Cell renderer > View 버튼 필요
+                            break;
+                        case 'rejected':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Approver", "approved_email"));
+                            columnDefs.push(getColumn("Reject Reason", "reject_reason"));
+                            columnDefs.push(getColumn("Rejected Date", "rejected_date"));
+                            break;
+                        case 'inprogress':
+                        case 'approved':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Approver", "approved_email"));
+                            columnDefs.push(getColumn("Approval Format", "approval_format"));
+                            columnDefs.push(getColumn("Approved Date", "approved_date"));
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case 'W04':
+                    switch(type) {
+                        case 'pending':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Request Role", "requestor_role"));
+                            columnDefs.push(getColumn("Registration Type", "registration_type"));
+                            columnDefs.push(getColumn("Requested Date", "requested_date"));
+                            columnDefs.push(getColumn("Detail", '', requestType, type)); // Cell renderer > View 버튼 필요
+                            break;
+                        case 'rejected':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Approver", "approved_email"));
+                            columnDefs.push(getColumn("Reject Reason", "reject_reason"));
+                            columnDefs.push(getColumn("Rejected Date", "rejected_date"));
+
+                            break;
+                        case 'inprogress':
+                        case 'approved':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "requestor_company_name"));
+                            columnDefs.push(getColumn("Company Code", "requestor_company_code"));
+                            columnDefs.push(getColumn("Approver", "approved_email"));
+                            columnDefs.push(getColumn("Approval Format", "approval_format"));
+                            columnDefs.push(getColumn("Approved Date", "approved_date"));
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case 'W05':
+                    switch(type) {
+                        case 'pending':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Request Role", "change_role"));
+                            columnDefs.push(getColumn("Current Role", "previous_role"));
+                            columnDefs.push(getColumn("Company", "bp_name"));
+                            columnDefs.push(getColumn("Requested Date", "request_date"));
+                            columnDefs.push(getColumn("Status", '', requestType, type)); // Cell renderer > View 버튼 필요
+                            break;
+                        case 'rejected':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Company", "bp_name"));
+                            columnDefs.push(getColumn("Current Role", "previous_role"));
+                            columnDefs.push(getColumn("Reject Reason", "reject_reason"));
+                            columnDefs.push(getColumn("Reject Approver", "approver_email"));
+                            columnDefs.push(getColumn("Rejected Date", "rejected_date"));
+                            break;
+                        case 'inprogress':
+                        case 'approved':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Request Role", "change_role"));
+                            columnDefs.push(getColumn("Previous Role", "previous_role"));
+                            columnDefs.push(getColumn("Company", "bp_name"));
+                            columnDefs.push(getColumn("Approver", "approver_email"));
+                            columnDefs.push(getColumn("Approval Format", "approval_format"));
+                            columnDefs.push(getColumn("Approved Date", "approved_date"));
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case 'W06':
+                    switch(type) {
+                        case 'pending':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Target Channel", "target_channel"));
+                            columnDefs.push(getColumn("Reg Channel", "reg_channel"));
+                            columnDefs.push(getColumn("Type", "target_channeltype"));
+                            columnDefs.push(getColumn("Requested Date", "requested_date"));
+                            columnDefs.push(getColumn("Detail", '', requestType, type)); // Cell renderer > View 버튼 필요
+                            break;
+                        case 'rejected':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Target Channel", "target_channel"));
+                            columnDefs.push(getColumn("Reg Channel", "reg_channel"));
+                            columnDefs.push(getColumn("Reject Reason", "reject_reason"));
+                            columnDefs.push(getColumn("Reject Approver", "approved_email"));
+                            columnDefs.push(getColumn("Rejected Date", "rejected_date"));
+                            break;
+                        case 'inprogress':
+                        case 'approved':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Target Channel", "target_channel"));
+                            columnDefs.push(getColumn("Reg Channel", "reg_channel"));
+                            columnDefs.push(getColumn("Granted Role", "requestor_role"));
+                            columnDefs.push(getColumn("Approver", "approved_email"));
+                            columnDefs.push(getColumn("Approval Format", "approval_format"));
+                            columnDefs.push(getColumn("Approved Date", "approved_date"));
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case 'W07':
+                    switch(type) {
+                        case 'pending':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Requestor Role", "requestor_role"));
+                            columnDefs.push(getColumn("Request Domain", "email_domain"));
+                            columnDefs.push(getColumn("Company", "bp_name"));
+                            columnDefs.push(getColumn("Company Domain", "company_domain", '', '', '', '', true));
+                            columnDefs.push(getColumn("Requested Date", "request_date"));
+                            columnDefs.push(getColumn("Status", '', requestType, type)); // Cell renderer > View 버튼 필요
+                            break;
+                        case 'rejected':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Request Domain", "email_domain"));
+                            columnDefs.push(getColumn("Company", "bp_name"));
+                            columnDefs.push(getColumn("Company Domain", "company_domain", '', '', '', '', true));
+                            columnDefs.push(getColumn("Reject Reason", "reject_reason"));
+                            columnDefs.push(getColumn("Reject Approver", "approver_email"));
+                            columnDefs.push(getColumn("Rejected Date", "rejected_date"));
+                            break;
+                        case 'inprogress':
+                        case 'approved':
+                            columnDefs.push(getColumn("Requestor ID", "requestor_email"));
+                            columnDefs.push(getColumn("Requestor Role", "requestor_role"));
+                            columnDefs.push(getColumn("Request Domain", "email_domain"));
+                            columnDefs.push(getColumn("Company", "bp_name"));
+                            columnDefs.push(getColumn("Approver", "approver_email"));
+                            columnDefs.push(getColumn("Approved Date", "approved_date"));
+                            columnDefs.push(getColumn("Approval Format", "approval_format"));
+                            columnDefs.push(getColumn("Delete Domain", '', requestType, type)); // Cell renderer > Delete 버튼 필요
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            return columnDefs;
+        }
+
+        // Search button onclick
+        function clikcedApprovalListSearchBtn() {
+            if (!!currentGrid) {
+                currentGrid.setGridOption("loading", true);    // loading - true
+            }
+            const params = {
+                channel: channelElement.value,
+                role: roleElement.value,
+                requestType: requestTypeElement.value,
+                type: typeElement.value,
+            };
+
+            let columnDefs = setTableColumns(requestTypeElement.value, typeElement.value);
+
+            const searchPromise = new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "/myPage/approvalListSearch",    // Please Set URL
+                    type: "POST",
+                    data: JSON.stringify(params),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: (oResult) => {
+                        console.log("Result Data: ", oResult);
+                        resolve(oResult);
+                    },
+                    error: (e) => {
+                        console.error("에러로그:", e);
+                        reject();
+                    }
+                });
+            });
+
+            Promise.all([searchPromise]).then((data)=> {
+                const result = data[0];
+                renderTableData(columnDefs, result);
+            });
+        }
+
+        // Grid 테이블에 데이터 세팅
+        function renderTableData(columnDefs, tableData) {
+            // 테스트 데이터~
+            let oTableData = [
+                {hello: "hi",}
+            ];
+
+            if(!!tableData) {
+                oTableData = tableData;
+            }
+            
+            const gridData = {
+                'header': columnDefs,   // header
+                'results': oTableData,  // data
+            };
+
+            renderResultTable(gridData);
+        }
+
+        $(document).ready(() => {
+            // 권한 별 접근 제어
+            if (blackListRole.includes([[${channelHeader['myRole']}]])) {
+                accessDenied();
+                return;
+            }
+
+            const sessionChannel = /*[[${session_channel}]]*/ '';
+
+            function loadFormData() {
+                const savedStatus = localStorage.getItem('status');
+                const savedRequestType = localStorage.getItem('requestType');
+                const savedChannel = localStorage.getItem('channel');
+
+                if (savedChannel) {
+                    channelElement.value = savedChannel;
+                } else {
+                    channelElement.value = sessionChannel; // session_channel을 기본값으로 설정
+                }
+
+                if (savedRequestType) {
+                    requestTypeElement.value = savedRequestType;
+                }
+
+                if (savedStatus) {
+                    typeElement.value = savedStatus;
+                }
+            }
+
+            loadFormData();
+
+            clikcedApprovalListSearchBtn();
+
+            // 에러코드가 있을 경우 에러 모달(+메세지) 출력
+            if ((typeof responseErrorCode) != 'string') {
+                let modalType = '';
+                let modalText = '';
+                const setResponseTextPromise = new Promise((resolve, reject) => {
+                    if (!!responseErrorCode) {
+                        modalType = 'error';
+                        switch(responseErrorCode) {
+                            case 50001:
+                                modalText = approvalRequestBlackListDomainText;
+                                break;
+                            case 50002:
+                                modalText = approvalRequestAlreadyUsedDomainText;
+                                break;
+                            case 50003:
+                                modalText = approvalRequestAlreadyAppliedDomainText;
+                                break;
+                            default:
+                                modalText = serverErrorText;
+                                break;
+                        }
+                    } else {
+                        modalType = 'success';
+                        modalText = approvalRequestSuccessText;
+                    }
+                    if (!!modalText) {
+                        resolve();
+                    }
+                });
+                
+                Promise.all([setResponseTextPromise]).then(() => {
+                    openModal(modalType, '', modalText);
+                });
+            }
+        });
+    </script>
+</th:block>
+</html>

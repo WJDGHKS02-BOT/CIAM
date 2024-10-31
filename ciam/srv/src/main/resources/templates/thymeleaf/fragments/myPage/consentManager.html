@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="consentManager">
+    <div th:unless="${channelHeader['myRole'] == 'General User' || channelHeader['myRole'] == 'Partner Admin' || channelHeader['myRole'] == 'Channel biz Admin'}">
+        <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+        <h2>Consent Manager</h2>
+        <form method="POST" class="content_ty4" id="consentManagerForm">
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Channel</dt>
+                        <dd>
+                            <select name="channel" id="channel" class="select wid_ty4" th:aria-readonly="${role != null && role != 'CIAM Admin'}">
+                                <option value="common">COMMON</option>
+                                <option th:each="curChannel: ${channel}"
+                                        th:if="${curChannel != null}"
+                                        th:value="${curChannel.channelName}"
+                                        th:utext="${curChannel.channelDisplayName}"
+                                        th:selected="${curChannel.channelName == session_channel}">
+                                </option>
+                            </select>
+                        </dd>
+                        <dt>Type</dt>
+                        <dd>
+                            <select name="consentType" id="consentType" class="select wid_ty4">
+                                <option value="">ALL</option>
+                            </select>
+                        </dd>
+                        <dt>Role</dt>
+                        <dd>
+                            <input type="text" name="role" id="role" th:value="${role != null ? role : ''}" class="input wid_ty4" readonly>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+    
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Location</dt>
+                        <dd>
+                            <select name="location" id="location" class="select wid_ty4">
+                                <option value="">ALL</option>
+                                <option th:each="curLocation: ${location}"
+                                        th:if="${curLocation != null}"
+                                        th:value="${curLocation.countryCode}"
+                                        th:utext="${curLocation.nameEn}">
+                                </option>
+                            </select>
+                        </dd>
+                        <dt>Subsidiary</dt>
+                        <dd>
+                            <select name="subsidiary" id="subsidiary" class="select wid_ty4">
+                                <option value="">ALL</option>
+                                <option th:each="curSubsidiary: ${subsidiary}"
+                                        th:if="${curSubsidiary != null}"
+                                        th:value="${curSubsidiary}"
+                                        th:utext="${curSubsidiary}">
+                                </option>
+                            </select>
+                        </dd>
+                        <dt>
+                            <button type="button" class="btn_s search wid_ty5" onclick="clickedConsentManagerSearchBtn()">Search</button>
+                        </dt>
+                    </dl>
+                </div>
+            </div>
+    
+            <!-- Grid Table -->
+            <th:block th:replace="~{fragments/myPage/customPaginationGrid :: customPaginationGrid(1, 1)}"></th:block>
+            <!-- Grid Table End -->
+    
+            <!-- Hidden Fields -->
+            <input id="selectedRowData" name="selectedRowData" type="hidden">
+            <input id="selectedGroupId" name="selectedGroupId" type="hidden">
+            <input id="selectedConsentId" name="selectedConsentId" type="hidden">
+            <input id="selectedChannel" name="selectedChannel" type="hidden">
+            <input id="selectedChannelNm" name="selectedChannelNm" type="hidden">
+            <input id="selectedConsentType" name="selectedConsentType" type="hidden">
+            <input id="selectedConsentTypeNm" name="selectedConsentTypeNm" type="hidden">
+            <input id="selectedLocation" name="selectedLocation" type="hidden">
+            <input id="selectedSubsidiary" name="selectedSubsidiary" type="hidden">
+            <!--<input id="selectedSubsidiaryNm" name="selectedSubsidiaryNm" type="hidden">-->
+            <!-- <input id="selectedLanguage" name="selectedLanguage" type="hidden"> -->
+            <!-- <input id="selectedLanguageNm" name="selectedLanguageNm" type="hidden"> -->
+    
+            <button type="submit" id="submit"></button>
+    
+            <th:block th:replace="~{fragments/myPage/createNewConsentConditionPopup}"></th:block>
+            <!-- Hidden Fields End -->
+        </form>
+    </div>
+    <script th:inline="javascript">
+        const submitBtn = document.getElementById("submit");
+        const formElement = document.querySelector('#consentManagerForm');
+
+        const selectedRowData = document.getElementById('selectedRowData');
+        const selectedGroupId = document.getElementById('selectedGroupId');
+        const selectedConsentId = document.getElementById('selectedConsentId');
+        const selectedChannel = document.getElementById('selectedChannel');
+        const selectedChannelNm = document.getElementById('selectedChannelNm');
+        const selectedConsentType = document.getElementById('selectedConsentType');
+        const selectedConsentTypeNm = document.getElementById('selectedConsentTypeNm');
+        const selectedLocation = document.getElementById('selectedLocation');
+        const selectedSubsidiary = document.getElementById('selectedSubsidiary');
+        // const selectedSubsidiaryNm = document.getElementById('selectedSubsidiaryNm');
+        // const selectedLanguage = document.getElementById('selectedLanguage');
+        // const selectedLanguageNm = document.getElementById('selectedLanguageNm');
+
+        const consentTypeSelectbox = document.getElementById('consentType');
+        const role = [[${role}]] || '';
+        const typeList = [[${type}]] || '';
+
+        const btnClass = [
+            "btn_table_s",
+            "blue",
+        ];
+
+        const allowType = [
+            "terms",
+            "privacy",
+            "marketing",
+        ];
+
+        const blackListRole = [
+            "General User",
+            "Partner Admin",
+            "Channel biz Admin"
+        ];
+
+        function clickedConsentManagerSearchBtn() {
+            if (!!currentGrid) {
+                currentGrid.setGridOption("loading", true);    // loading - true
+            }
+            const channelElement = document.getElementById('channel');
+            const consentTypeElement = document.getElementById('consentType');
+            const locationElement = document.getElementById('location');
+            const subsidirayElement = document.getElementById('subsidiary');
+
+            const params = {
+                'channel': channelElement.value,
+                'consentType': consentTypeElement.value,
+                'location': locationElement.value,
+                'subsidiray': subsidirayElement.value,
+            }
+
+            $.ajax({
+                url: "/systemConsents/consentManagementList", // Set API URL
+                type: "POST",
+                data: JSON.stringify(params),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(oResult){
+                    console.log('oResult', oResult);
+
+                    // const gridData = {
+                    // 'header': columnDefs,   // header
+                    // 'results': oResult,  // data
+                    // };
+                    renderTableData(oResult);
+                },
+                error: function(e){
+                    console.error("Error .... : ", e);
+                }
+            });
+        }
+
+        function clikcedCreateNewConsentBtn() {
+            openCreateNewConsentConditionPopup();
+            // window.location.href = "/myPage/createNewConsent";
+        }
+
+        function renderGridBtn(type, data) {
+            let button = document.createElement('button');
+
+            button.innerHTML = (type == 'detail' ? 'Detail' : 'View');
+            button.classList.add("btn_table_s", "blue");
+            
+            button.addEventListener('click', function() {
+                // 9/12 필요 파라미터 제외하고 주석처리
+                selectedRowData.value = JSON.stringify(data);
+                selectedGroupId.value = data.consentGroup;
+                selectedConsentId.value = data.consentId;
+                selectedChannel.value = data.channel;
+                selectedConsentType.value = data.consentType;
+                selectedLocation.value = data.location;
+                selectedSubsidiary.value = data.subsidiary;
+                // selectedLanguage.value = data.language;
+                selectedChannelNm.value = data.channelNm
+                selectedConsentTypeNm.value = data.consentTypeNm
+                // selectedSubsidiaryNm.value = data.subsidiaryNm
+                // selectedLanguageNm.value = data.languageNm
+
+                formElement.action = type == 'detail' ? "/myPage/consentDetailSubmit" :  "/myPage/consentHistorySubmit";
+
+                submitBtn.click();
+            });
+
+            return button;
+        }
+
+        function renderTableData(consent){
+            let oTableData = [[${consents}]] || '';
+
+            // search 클릭 후 render 시에 동작
+            if (!!consent) {
+                oTableData = consent;
+            }
+
+            // tableData type에 따라 하드코딩
+            let newTableData = [];
+            // for (let data of oTableData) {
+            //     if (allowType.includes(data.consentType)) {
+            //         newTableData.push(data);
+            //     }
+            // }
+
+            newTableData = oTableData;
+
+            const channel = [[${channel}]] || '';
+            const allLocation = [[${location}]] || '';
+            const session_channel = [[${session_channel}]] || '';
+            const session_display_channel = [[${session_display_channel}]] || '';
+            const subsidiary = [[${subsidiary}]] || '';
+
+            console.log("channel", channel);
+            console.log("type", typeList);
+            console.log("location", allLocation);
+            console.log("session_channel", session_channel);
+            console.log("session_display_channel", session_display_channel);
+            console.log("role", role);
+            console.log("subsidiary", subsidiary);
+
+            console.log(oTableData);
+
+            // 전역변수
+            columnDefs = [
+                {
+                    headerName: 'Consent Group',
+                    field: 'consentGroup', // consentGroup,
+                    unSortIcon: true,
+                    cellStyle: {
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Consent ID',
+                    field: 'consentId',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                    hide: true,
+                },
+                {
+                    headerName: 'Channel',
+                    field: 'channelNm', // channel,
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    cellRenderer: function (params) {
+                        let element = document.createElement('span');
+                        element.value = params.data.channel;
+                        element.innerText = params.data.channelNm;
+                        return element;
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Consent Type',
+                    field: 'consentTypeNm', // consentType
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Location',
+                    field: 'locationNm', // location
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                /*
+                {
+                    headerName: 'Version',
+                    field: 'version',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                */
+                {
+                    headerName: 'Subsidiary',
+                    field: 'subsidiary',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                /*
+                {
+                    headerName: 'Language',
+                    field: 'language',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                */
+                {
+                    headerName: 'Create Date',
+                    field: 'createDate',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                /*
+                {
+                    headerName: 'Release Date',
+                    field: 'releaseDate',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    cellRenderer: function(params) {
+                        return params.data.releaseDate || params.data.updateDate || '-';
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                {
+                    headerName: 'Status',
+                    field: 'statusNm',
+                    unSortIcon: true,
+                    cellStyle: { 
+                        textAlign: "center"
+                    },
+                    tooltipValueGetter: (params) => {
+                        return params.value;
+                    },
+                },
+                */
+                {
+                    headerName: 'Contents',
+                    cellStyle: { textAlign: 'center' },
+                    cellRenderer: function(params) {
+                        return renderGridBtn('detail', params.data);
+                    },
+                },
+                {
+                    headerName: 'History',
+                    cellStyle: { textAlign: 'center' },
+                    cellRenderer: function(params) {
+                        return renderGridBtn('history', params.data);
+                    }
+                }
+                // 채우면 됨
+            ];
+
+            // Table Header and Data Setting
+            const gridData = {
+                'header': columnDefs,   // header
+                'results': newTableData,  // data
+            };
+            renderResultTable(gridData);
+        }
+
+        $(document).ready(() => {
+            // 권한 별 접근 제어
+            if (blackListRole.includes([[${channelHeader['myRole']}]])) {
+                accessDenied();
+                return;
+            }
+            setConsentType(typeList, role, consentTypeSelectbox);
+            clickedConsentManagerSearchBtn();
+        });
+    </script>
+</th:block>
+</html>

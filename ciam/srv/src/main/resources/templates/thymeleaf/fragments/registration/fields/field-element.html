@@ -1,0 +1,83 @@
+<!-- Text Field -->
+<!-- 파라미터 종류 -->
+<!--
+  1. labelText - 라벨 텍스트의 메시지 키 (string)
+  2. inputName - input 요소의 name 속성 값 (string)
+  3. inputId - input 요소의 id 속성 값 (string)
+  4. inputValue - input 요소의 값 (string | number)
+  5. maxLength - input 요소의 최대 길이 (number)
+  6. required - 필드가 필수인지 여부 (boolean)
+  7. readonly - 필드가 읽기 전용인지 여부 (boolean)
+  8. disabled - 필드가 비활성화인지 여부 (boolean)
+-->
+<div style="display: flex; flex-direction: column; justify-content: end"
+     th:fragment="text-field(labelText, inputName, inputId, inputValue, maxLength, required, readonly, disabled)">
+  <p th:classappend="${required} ? 'tit requ' : 'tit'"
+     th:utext="#{${labelText}}"></p>
+  <input class="input"
+         th:disabled="${disabled}"
+         th:id="${inputId}"
+         th:maxlength="${maxLength}"
+         th:name="${inputName}"
+         th:readonly="${readonly}"
+         th:required="${required}"
+         th:value="${inputValue}"
+         type="text">
+</div>
+
+<!-- SelectBox Field with Dynamic Options -->
+<!-- 파라미터 종류 -->
+<!--
+1. labelText - 라벨 텍스트의 메시지 키 (string)
+2. inputName - select 요소의 name 속성 값 (string)
+3. inputId - select 요소의 id 속성 값 (string)
+4. options
+5. required - 필드가 필수 여부 (boolean)
+6. disabled - 필드가 비활성화인지 여부 (boolean)
+-->
+<div style="display: flex; flex-direction: column; justify-content: end"
+     th:fragment="select-box-field(labelText, inputName, inputId, options, required, disabled,selectedValue)">
+  <p th:classappend="${required} ? 'tit requ' : 'tit'"
+     th:utext="#{${labelText}}"></p>
+  <select class="select"
+          th:disabled="${disabled}"
+          th:id="${inputId}"
+          th:name="${inputName}"
+          th:required="${required}">
+    <option value="">-- select --</option>
+    <option th:each="info : ${options}"
+            th:selected="${info.value == selectedValue}"
+            th:utext="${info.display}"
+            th:value="${info.value}"></option>
+  </select>
+  <input th:id="${inputId + 'Hidden'}"
+         th:name="${inputName}"
+         th:value="${selectedValue != null ? selectedValue : ''}"
+         type="hidden">
+</div>
+
+
+
+<!-- 그 외 -->
+<div style="display: flex; flex-direction: column; justify-content: end"
+     th:fragment="country-select-box-field(labelText, inputName, inputId, countries, selectedCountry, required, readonly, disabled)">
+  <p th:classappend="${required} ? 'tit requ' : 'tit'"
+     th:utext="#{${labelText}}"></p>
+  <select class="select"
+          th:disabled="${disabled}"
+          th:id="${inputId}"
+          th:name="${inputName}"
+          th:readonly="${readonly}"
+          th:required="${required}">
+    <option value="">-- select --</option>
+    <option th:each="location: ${countries}"
+            th:if="${location != null}"
+            th:selected="${location.countryCode == selectedCountry}"
+            th:utext="${location.country}"
+            th:value="|${location.countryCode}|"></option>
+  </select>
+  <input th:id="${inputId + 'Hidden'}"
+         th:name="${inputName}"
+         th:value="${selectedCountry != null ? selectedCountry : ''}"
+         type="hidden">
+</div>

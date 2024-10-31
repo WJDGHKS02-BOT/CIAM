@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="addNewApproverModal">
+    <!-- Modal Dimmed -->
+    <div class="modal_wrap" id="addNewApproverModal">
+        <div class="modal modal_dimmed">
+            <div class="modal_header">
+                <h4>Add New Approver</h4>
+                <button type="button" class="modal_close_btn" onclick="closeAddNewApproverModal()"><span class="blind">Close</span></button>
+            </div>
+            <div class="modal_content">
+                <div class="list_wrap2" id="addNewApproverModalFields">
+                    <!-- form_list1 -->
+                    <ul class="form_list1">
+                        <li>
+                            <div class="col_wrap1">
+                                <div>
+                                    <p class="tit">User ID</p>
+                                    <div class="input_search full">
+                                        <input type="text" id="addNewApproverModalUserID" class="input">
+                                        <button type="button" onclick="searchUser()"><span class="blind">검색</span></button>
+                                    </div>
+                                </div>
+                                <div></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="col_wrap1">
+                                <div>
+                                    <p class="tit">First Name</p>
+                                    <input class="input" id="addNewApproverModalFirstName" readonly>
+                                </div>
+                                <div>
+                                    <p class="tit">List Name</p>
+                                    <input class="input" id="addNewApproverModalListName" readonly>
+                                </div>
+                            </div>
+                        </li>
+                        <li>						
+                            <div class="col_wrap1">
+                                <div>
+                                    <p class="tit">Role</p>
+                                    <input class="input" id="addNewApproverModalRole" readonly>
+                                </div>
+                                <div>
+                                    <p class="tit">Department</p>
+                                    <input class="input" id="addNewApproverModalDepartment" readonly>
+                                </div>
+                            </div>
+                        </li>
+                        <li>						
+                            <div class="col_wrap1">
+                                <div>
+                                    <p class="tit">Company Name</p>
+                                    <input class="input" id="addNewApproverModalCompanyName" readonly>
+                                </div>
+                                <div>
+                                    <p class="tit">Creator ID</p>
+                                    <input class="input" id="addNewApproverModalcreatorID" readonly>
+                                </div>
+                            </div>
+                        </li>
+                        <li style="display: none;">				
+                            <div class="col_wrap1">
+                                <div>
+                                    <p class="tit">Status</p>
+                                    <select class="select" id="addNewApproverModalStatus">
+
+                                    </select>
+                                </div>
+                                <div></div>
+                            </div>
+                        </li>
+                    </ul>
+                    <!-- //form_list1 -->
+                </div>
+            </div>
+            <div class="modal_footer">
+                <div class="wrap_btn2" id="addBtnWrap">
+                    <button
+                        type="button" class="btn_m btn_white" onclick="closeAddNewApproverModal()">Cancel</button>
+                    <button
+                        type="button" class="btn_m" onclick="clickAddNewApproverModalAddBtn()">Add</button>
+                </div>
+            </div>
+        </div>
+        <div class="dimmer" aria-hidden="true"></div>
+    </div>
+
+    
+    <!-- // Modal Dimmed -->
+
+    <script th:inline="javascript">
+        let newApproverData = '';
+
+        // 팝업창 필드 초기화
+        function initializeAddNewApproverModalFields() {
+            const addNewApproverModalFields = document.querySelector('#addNewApproverModalFields').querySelectorAll('input');
+
+            for (let inputElement of addNewApproverModalFields) {
+                inputElement.value = '';
+            }
+        }
+
+        // Add New Approver 팝업창 열기
+        function openAddNewApproverModal() {
+            ModalOpen('#addNewApproverModal');
+        }
+
+        // Add New Approver 팝업창 닫기
+        function closeAddNewApproverModal() {
+            initializeAddNewApproverModalFields();
+            ModalOpenClose('#addNewApproverModal');
+        }
+
+        // 유저 검색
+        function searchUser() {
+            newApproverData = '';
+            const addNewApproverModalUserIDElement = document.getElementById('addNewApproverModalUserID');
+
+            const addNewApproverModalFirstName = document.getElementById('addNewApproverModalFirstName');
+            const addNewApproverModalListName = document.getElementById('addNewApproverModalListName');
+            const addNewApproverModalRole = document.getElementById('addNewApproverModalRole');
+            const addNewApproverModalDepartment = document.getElementById('addNewApproverModalDepartment');
+            const addNewApproverModalCompanyName = document.getElementById('addNewApproverModalCompanyName');
+            const addNewApproverModalcreatorID = document.getElementById('addNewApproverModalcreatorID');
+            const addNewApproverModalStatus = document.getElementById('addNewApproverModalStatus');
+
+            const userIDValue = addNewApproverModalUserIDElement.value;
+
+            if (!userIDValue) {
+                openModal('alert', '', "Please Enter User ID");
+                return;
+            } else {
+                loading("open");
+
+                const searchUserPromise = new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: `/approvalConfiguration/searchUserManagement?userId=${userIDValue || ''}`,    // setting get approver list url
+                        type: "GET",
+                        data: {},
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: (oResult) => {
+                            console.log(oResult);
+                            resolve(oResult);
+                        },
+                        error: (e) => {
+                            reject();
+                        }
+                    });
+                });
+
+                Promise.all([searchUserPromise]).then((data) => {
+                    const result = data[0].result;
+
+                    if (!!result) {
+                        newApproverData = result;
+                        // 9/5 approval_admins 테이블 저장시 필요
+                        newApproverData.type = currentSelectedRowData.approver; // type이 제일 중요
+                        newApproverData.channel = currentSelectedRowData.channel;
+                        newApproverData.ruleMasterId = currentSelectedRowData.ruleMasterId;
+                        newApproverData.ruleLevel = currentSelectedRowData.ruleLevel;
+                        newApproverData.country = currentSelectedRowData.country;
+                        newApproverData.subsidiary = currentSelectedRowData.subsidiary;
+                        newApproverData.division = currentSelectedRowData.division;
+                        
+                        addNewApproverModalFirstName.value = result.firstName || '';
+                        addNewApproverModalListName.value =  result.lastName || '';
+                        addNewApproverModalRole.value = result.role || '';
+                        addNewApproverModalDepartment.value = result.department || '';
+                        addNewApproverModalCompanyName.value = result.companyName || '';
+                        addNewApproverModalcreatorID.value = result.creatorId || '';
+                        addNewApproverModalStatus.value = '';
+                    }
+                    loading("close");
+                });
+            }
+        }
+
+        // Add 버튼 onclick
+        function clickAddNewApproverModalAddBtn() {
+            if (!newApproverData) {
+                openModal('alert', '', "Please Search User");
+            } else {
+                const addNewapproverPromise = new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: "/approvalConfiguration/insertApprovalAdmin",    // setting get approver list url
+                        type: "POST",
+                        data: JSON.stringify(newApproverData),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: (oResult) => {
+                            console.log(oResult);
+                            resolve(oResult);
+                        },
+                        error: (e) => {
+                            reject();
+                        }
+                    });
+                });
+
+                Promise.all([addNewapproverPromise]).then((data) => {
+                    const result = data[0];
+
+                    
+
+                    if (!!result) {
+                        closeAddNewApproverModal();     // 현재(Add New Approver) 팝업 끄기
+                        setApproverListGrid(payloadRole, currentParamsData); // Approver List 팝업 Grid ReSearch
+                        openModal('success', '', "Success to add new approver");
+                    } else {
+                        if (result == 0) {
+                            closeAddNewApproverModal();     // 현재(Add New Approver) 팝업 끄기
+                            setApproverListGrid(payloadRole, currentParamsData); // Approver List 팝업 Grid ReSearch
+                            openModal('success', '', "Duplicate approver");
+                        } else {
+                            openModal('error', '', "Failed to add new approver");
+                        }
+                    }
+                });
+            }
+        }
+
+        // User ID Input필드에서 엔터 입력 시 유저 검색 함수 실행
+        $('#addNewApproverModalUserID').keydown(function() {
+            if (event.keyCode === 13) {
+                searchUser();
+            };
+        });
+    </script>
+</th:block>
+</html>

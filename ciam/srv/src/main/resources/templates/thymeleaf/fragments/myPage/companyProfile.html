@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+    <th:block th:fragment="companyProfile">
+        <script th:inline="javascript">
+            const companyDataResult =  [[${companyDataResult}]] || '';
+            console.log('companyDataResult:', companyDataResult);
+        </script>
+        <h2>Company Profile</h2>
+        <form method="POST" class="content_ty1">
+            <h3>General Information</h3>
+            <ul class="form_list1">
+                <li>
+                    <div class="col_wrap1">
+                        <div>
+                            <p class="tit requ" th:text="#{selfregisteration.companyName}">Company Name</p>
+                            <input type="text" name="name" id="name"
+                                th:value="${companyDataResult != null ? companyDataResult?.name_search : ''}"
+                            placeholder="" class="input" maxlength="300" required readonly>
+                            <!-- th:value="${companyObject.registerCompany['name'] != null ? companyObject.registerCompany['name'] : ''}" -->
+                        </div>
+                        <!-- <div class="bt_sec">
+                            <button id="resetBtn" type="button" class="btn_l btn_gray" onclick="clickedResetBtn()" th:text=#{selfregisteration.reset}>Reset</button>
+                            <button id="searchCompany" type="button" class="btn_l" onclick="onSearchCompany()" th:text="#{selfregisteration.searchCompany}">Search company</button>
+                        </div> -->
+                    </div>
+                </li>
+                <li>
+                    <div class="col_wrap1">
+                        <div>
+                            <p class="tit requ" th:text="#{selfregisteration.businessLocation}">Business Location</p>
+                            <select name="country" id="country"
+                                    class="select" required readonly disabled>
+                                <option value=""></option>
+                                <option th:each="location: ${companyDataResult.countries}"
+                                    th:if="${location != null}"
+                                    th:value="|${location.countryCode}|"
+                                    th:utext="${location.nameEn}"
+                                    th:selected="${location.countryCode == companyDataResult['country']}"></option>
+                            </select>
+                            <input id="countryHidden" name="country" type="hidden"
+                            >
+                            <!-- th:value="${companyObject.registerCompany['country'] != null ? companyObject.registerCompany['country'] : ''}" -->
+                            <!-- <input type="text" name="state" id="state"
+                                   th:value="${companyObject.registerCompany.state != null ? companyObject.registerCompany['state'] : ''}"
+                                   placeholder="" class="input" readonly> -->
+                        </div>
+                        <div>
+                            <p class="tit" th:text="#{selfregisteration.state}">State</p>
+                            <input type="text" name="state" id="state"
+                            placeholder="" class="input" maxlength="50" readonly>
+                            <!-- th:value="${companyObject.registerCompany['state'] != null ? companyObject.registerCompany['state'] : ''}" -->
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="col_wrap1">
+                        <div>
+                            <p class="tit" th:text="#{selfregisteration.region}">Region</p>
+                            <input type="text" name="region" id="region"
+                            placeholder="" class="input" maxlength="50" readonly>
+                            <!-- th:value="${companyObject.registerCompany['region'] != null ? companyObject.registerCompany['region'] : ''}" -->
+                        </div>
+                        <div>
+                            <p class="tit" th:text=#{selfregisteration.city}>City</p>
+                            <input type="text" name="city" id="city"
+                            placeholder="" class="input" maxlength="70" readonly>
+                            <!-- th:value="${companyObject.registerCompany['city'] != null ? companyObject.registerCompany['city'] : ''}" -->
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="col_wrap1">
+                        <div>
+                            <p class="tit" th:text="#{selfregisteration.street}">Street</p>
+                            <input type="text" name="street_address" id="street_address"
+                            th:value="${companyDataResult != null ? companyDataResult?.street_address : ''}"
+                            placeholder="" class="input" maxlength="100" readonly>
+                            <!-- th:value="${companyObject.registerCompany['street_address'] != null ? companyObject.registerCompany['street_address'] : ''}" -->
+                        </div>
+                        <div>
+                            <p class="tit" th:text="#{selfregisteration.postalCode}">Postal Code</p>
+                            <input type="text" name="zip_code" id="zip_code"
+                            th:value="${companyDataResult != null ? companyDataResult?.zip_code : ''}"
+                            placeholder="" class="input" maxlength="10" readonly>
+                            <!-- th:value="${companyObject.registerCompany['zip_code'] != null ? companyObject.registerCompany['zip_code'] : ''}" -->
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="col_wrap1">
+                        <div>
+                            <p class="tit" th:text="#{selfregisteration.phoneNumber1}">Company Phone Number</p>
+                            <input type="text" name="phonenumber1" id="phonenumber1"
+                            th:value="${companyDataResult != null ? companyDataResult?.phonenumber1 : ''}"
+                            placeholder="" class="input" maxlength="40" readonly>
+                            <!-- th:value="${companyObject.registerCompany['phonenumber1'] != null ? companyObject.registerCompany['phonenumber1'] : ''}" -->
+                                   <!-- 24.07.15 phoneNumberValidation 클래스 제거 -->
+                                   <!-- placeholder="" class="input phoneNumberValidation" maxlength="40" readonly> -->
+                        </div>
+                        <div>
+                            <p class="tit" th:text="#{selfregisteration.fax}">Company Fax</p>
+                            <input type="text" name="fax" id="fax"
+                            placeholder="" class="input" maxlength="40" readonly>
+                            <!-- th:value="${companyObject.registerCompany['fax'] != null ? companyObject.registerCompany['fax'] : ''}" -->
+                                   <!-- 24.07.15 phoneNumberValidation 클래스 제거 -->
+                                   <!-- placeholder="" class="input phoneNumberValidation" maxlength="40" readonly> -->
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="col_wrap1">
+                        <div>
+                            <p class="tit" th:text="#{selfregisteration.mfaEmailText}">Business Email</p>
+                            <input type="text" name="email" id="email"
+                            placeholder="" class="input" maxlength="100" readonly>
+                            <!-- th:value="${companyObject.registerCompany['email'] != null ? companyObject.registerCompany['email'] : ''}" -->
+                                   <!-- 24.07.15 emailValidation 클래스 제거 -->
+                                   <!-- placeholder="" class="input emailValidation" maxlength="100" readonly> -->
+                        </div>
+                        <div>
+                            <p class="tit" th:text="#{selfregisteration.businessLicenseNumber}">Business License Number</p>
+                            <input type="text" name="bizregno1" id="bizregno1"
+                            th:value="${companyDataResult != null ? companyDataResult?.bizregno1 : ''}"
+                            placeholder="" class="input" maxlength="20" readonly>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="col_wrap1">
+                        <div>
+                            <p class="tit" th:text="#{selfregisteration.representative}">Representative</p>
+                            <input type="text" name="representative" id="representative"
+                            placeholder="" class="input" maxlength="14" readonly>
+                        </div>
+                        <div>
+                            <p class="tit requ"
+                               th:text="${type == 'CMDM'} ? #{selfregisteration.accountId} : #{selfregisteration.vendorCode}">
+                                Vendor Code
+                            </p>
+                            <input type="text" name="vendorcode" id="vendorcode"
+                                th:value="${companyDataResult != null ? companyDataResult['vendorcode'] : ''}"
+                                placeholder="" class="input" maxlength="255" readonly>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <th:block th:if="${!socialProviders.contains('saml-samsung-ad')}">
+                <!-- Additional Information Fields : START -->
+                <th:block th:replace="fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelCompanyAdditionalShortFieldList}, ${fieldMap.channelCompanyAdditionalLongFieldList}, 'additional')"></th:block>
+                <!-- Additional Information Fields : END -->
+
+                <!-- Specific Information Fields : START -->
+                <th:block th:replace="fragments/registration/fields/add-spec-information-fields :: add-spec-information-fields(${fieldMap.channelCompanySpecShortFieldList}, ${fieldMap.channelCompanySpecLongFieldList}, 'specific')"></th:block>
+                <!-- Specific Information Fields : END -->
+            </th:block>
+
+        </form>
+        <script th:inline="javascript">
+            const socialProviders = /*[[${socialProviders}]]*/ '';
+
+
+            function clickedEditBtn() {
+
+            }
+
+            function clickedEditCancelBtn() {
+
+            }
+            
+            function clickedSubmitCancelBtn() {
+
+            }
+            
+            function clickedSubmitBtn() {
+
+            }
+
+            function clickedBtn(btnType) {
+                switch(btnType) {
+                    case 'edit':
+                        clickedEditBtn();
+                        break;
+                    case 'editCancel':
+                        clickedEditCancelBtn();
+                        break;
+                    case 'submitCancel':
+                        clickedSubmitCancelBtn();
+                        break;
+                    case 'submit':
+                        clickedSubmitBtn();
+                    default:
+                        break;
+                }
+            }
+        </script>
+    </th:block>
+
+</html>

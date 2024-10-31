@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="saerchCompany">
+    <!-- Modal Dimmed -->
+    <form>
+        <div class="modal_wrap" id="ModalOpen">
+            <div class="modal modal_dimmed">
+                <div class="modal_header">
+                    <h4>Company Search</h4>
+                    <button type="button" class="modal_close_btn" onclick="ModalOpenClose('#ModalOpen')"><span class="blind">닫기</span></button>
+                </div>
+                <div class="modal_content">
+                    
+                    <!-- search -->
+                    <div class="mem_wrap1">
+                        <!-- mem_form_list2 -->
+                        <ul class="mem_form_list2">
+                            <li>
+                                <p class="tit">Company Name</p>
+                                <div class="input_search">
+                                    <input type="text" title="search" placeholder="search" class="input">
+                                    <button type="button"><span class="blind">검색</span></button>
+                                </div>
+                            </li>
+                            <li>						
+                                <div class="col_wrap1">
+                                    <div>
+                                        <p class="tit">Business Licence Number</p>
+                                        <input type="text" name="" id="" value="" placeholder="" class="input">
+                                    </div>
+                                    <div>
+                                        <p class="tit">Business Location</p>
+                                        <input type="text" name="" id="" value="" placeholder="" class="input" disabled>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>						
+                                <div class="col_wrap1">
+                                    <div>
+                                        <p class="tit">City</p>
+                                        <input type="text" name="" id="" value="" placeholder="" class="input">
+                                    </div>
+                                    <div>
+                                        <p class="tit">Street</p>
+                                        <input type="text" name="" id="" value="" placeholder="" class="input">
+                                    </div>
+                                </div>
+                            </li>
+                            <li>						
+                                <div class="col_wrap1">
+                                    <div>
+                                        <p class="tit">ZIP/Postal Code</p>
+                                        <input type="text" name="" id="" value="" placeholder="" class="input">
+                                    </div>
+                                    <div>
+                                        <p class="tit">DUNS No</p>
+                                        <input type="text" name="" id="" value="" placeholder="" class="input">
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <!-- //mem_form_list2 -->
+    
+                        <!-- button -->
+                        <div class="bt_wrap3">
+                            <div>
+                                <button type="button" class="btn_s btn_gray">Reset</button>
+                            </div>
+                            <div>
+                                <button type="button" class="btn_s btn_white">Cancel</button>
+                                <button type="button" class="btn_s search">Search</button>
+                            </div>
+                        </div>
+                        <!-- //button -->
+                    </div>				
+                    <!-- //search -->
+    
+                    <h5>Search result</h5>
+    
+                    <!-- pc grid 영역  -->
+                    <div class="pc_grid_wrap">
+                        pc grid 영역
+                    </div>
+                    <!-- //pc grid 영역  -->
+    
+                    <!-- mo result 영역 -->
+                    <div class="mo_result_list">
+    
+                        
+    
+                    </div>
+                    <!-- //mo result 영역 -->
+    
+                </div>
+                <div class="modal_footer">
+                    <div class="bt_wrap2 ">
+                        <button type="button" class="btn_s btn_line_blue">Create company</button>
+                    </div> 
+                </div>
+            </div>
+            <div class="dimmer" aria-hidden="true"></div>
+        </div>
+        <!-- // Modal Dimmed -->
+    </form>
+</div>
+</html>

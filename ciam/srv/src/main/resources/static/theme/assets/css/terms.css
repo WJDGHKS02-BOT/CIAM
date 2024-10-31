@@ -1,0 +1,225 @@
+@charset 'utf-8';
+/* terms */
+.temrs_wrap * {
+  font-style: revert;
+  font-weight: revert;
+  font-family: revert;
+  font-size: revert;
+  line-height: 1.5 !important;
+  background: none !important;
+}
+
+.temrs_wrap h1 {
+  font-size: 20px;
+  font-weight: 700;
+  padding: 0 0 30px;
+}
+
+.temrs_wrap dl dt {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 0 0 20px;
+}
+
+.temrs_wrap dl dd {
+  font-size: 14px;
+  font-weight: 400;
+  margin: 0 14px;
+  line-height: 1.5;
+}
+
+.temrs_wrap dl dd + dt {
+  padding: 30px 0 20px;
+}
+
+.temrs_wrap dl dd ol > li {
+  padding-left: 20px;
+  text-indent: -20px;
+}
+
+.temrs_wrap dl dd ol > li + li {
+  margin-top: 20px;
+}
+
+.temrs_wrap dl dd ol li > ol,
+.temrs_wrap dl dd ol li > ul {
+  margin-top: 20px;
+}
+
+.temrs_wrap dl dd ol li > ol li {
+  padding-left: 20px;
+  text-indent: -20px;
+}
+
+.temrs_wrap dl dd ol li > ul li {
+  padding-left: 10px;
+  text-indent: -10px;
+}
+
+.temrs_wrap dl dd ol li > ol li + li,
+.temrs_wrap dl dd ol li > ul li + li {
+  margin-top: 6px;
+}
+
+.temrs_wrap dl.mar dd {
+  margin: 0;
+}
+
+.temrs_wrap dl.mar dd ol,
+.temrs_wrap dl.mar dd ul {
+  margin-top: 20px;
+}
+
+.temrs_wrap dl.mar dd ol li {
+  padding-left: 20px;
+  text-indent: -20px;
+}
+
+.temrs_wrap dl.mar dd ul li {
+  padding-left: 10px;
+  text-indent: -10px;
+}
+
+.temrs_wrap dl.mar dd ol li + li,
+.temrs_wrap dl.mar dd ul li + li {
+  margin-top: 20px;
+}
+
+.temrs_wrap dl.mar dd ol.mat > li + li {
+  margin-top: 0px;
+}
+
+.temrs_wrap dl.mar dd ul + p {
+  margin-top: 20px;
+}
+
+.temrs_wrap dl.mar strong {
+  font-weight: 700;
+}
+
+.temrs_wrap dl.mar .link1 {
+  color: #0068EA;
+  text-decoration: underline;
+}
+
+.temrs_wrap dl.mar .link2 {
+  color: #0068EA;
+}
+
+.temrs_wrap dl.mar .link3 {
+  color: #E03030;
+  text-decoration: underline;
+}
+
+.temrs_wrap .inner_txt1 {
+  padding: 20px 0 0;
+  text-indent: 0;
+}
+
+.temrs_wrap .inner_txt1 > ul li {
+  padding: 10px 0 0 13px;
+  text-indent: -13px;
+}
+
+.temrs_wrap .inner_txt1 > ul.dash {
+  margin-top: 20px;
+}
+
+.temrs_wrap .inner_txt1 > ul.dash li {
+  padding: 0 0 0 10px;
+  text-indent: -10px;
+}
+
+.temrs_wrap .inner_txt1 table td ul {
+  margin-top: 0px;
+}
+
+.temrs_wrap .inner_txt2 > ul li {
+  padding: 10px 0 0 10px;
+  text-indent: -10px;
+}
+
+.temrs_wrap .inner_txt2 table td ul {
+  margin-top: 0px;
+}
+
+.temrs_wrap .mar1 {
+  margin: 10px 0;
+}
+
+.temrs_wrap .mar2 {
+  margin: 20px 0 0;
+}
+
+.temrs_wrap .sba_container
+.temrs_wrap .txt1 {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.temrs_wrap .txt1 + dl {
+  margin-top: 30px;
+}
+
+.temrs_wrap .txt2 {
+  margin-top: 9px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding-left: 15px;
+  text-indent: -15px;
+}
+
+.temrs_wrap .txt2 a {
+  text-decoration: underline;
+}
+
+.temrs_wrap table {
+  margin-top: 20px;
+  border-top: 1px solid #D9D9D9;
+  border-left: 1px solid #D9D9D9;
+  background-color: #fff;
+}
+
+.temrs_wrap table th {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 0;
+  border-right: 1px solid #D9D9D9;
+  border-bottom: 1px solid #D9D9D9;
+  line-height: 1.5;
+}
+
+.temrs_wrap table tbody th {
+  text-align: left;
+  padding: 10px 16px;
+}
+
+.temrs_wrap table .al_center {
+  text-align: center;
+}
+
+.temrs_wrap table .bold {
+  text-align: center;
+  font-weight: 700;
+}
+
+.temrs_wrap table td {
+  font-size: 14px;
+  font-weight: 400;
+  padding: 10px;
+  border-right: 1px solid #D9D9D9;
+  border-bottom: 1px solid #D9D9D9;
+  line-height: 1.5;
+}
+
+.temrs_wrap table td ul {
+  margin-top: 20px;
+}
+
+.temrs_wrap table td ul li {
+  padding-left: 10px;
+  text-indent: -10px;
+}

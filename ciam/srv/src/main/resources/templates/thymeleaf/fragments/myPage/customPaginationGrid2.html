@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="customPaginationGrid2(paginationHeader, btnType, type)">
+    <div class="list_wrap1 pad" th:if="${paginationHeader == 1}">
+        <div>
+            <dl class="form_list6 custom_form" th:unless="${btnType == 3}">
+                <dt>Show</dt>
+                <dd>
+                    <select name="" th:id="|selectGridPaginationSize_${type}|" class="select wid_ty1">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <span>entries</span>
+                </dd>
+            </dl>
+        </div>
+        <div>
+            <dl class="form_list6 custom_form table">
+                <dt th:unless= "${btnType == 3}">Search:</dt>
+                <dd th:unless= "${btnType == 3}">
+                    <div class="input_search wid_ty3">
+                        <input th:id="|gridDataSearch_${type}|" type="text" title="search" placeholder="search" class="input">
+                        <button type="button"><span class="blind">Search</span></button>
+                    </div>
+                </dd>
+                <dd class="mar_ty5">
+                    <button th:if="${btnType == 1}" id="createBtn" type="button" class="btn_l wid_ty6" onclick="clikcedCreateNewConsentBtn()">Create New Consent</button>
+                    <button th:if="${btnType == 2}" id="addNewLanguageBtn" type="button" class="btn_l wid_ty6" onclick="clickedPopupBtn('add')">Add New Language</button>
+                    <!-- <button th:if="${btnType == 3}" id="gridModifyBtn" type="button" class="btn_l btn_gray wid_ty5">Modify</button>
+                    <button th:if="${btnType == 3}" id="gridDeleteBtn" type="button" class="btn_l btn_full_red wid_ty5">Delete</button> -->
+                    <button th:if="${btnType == 3}" id="gridAddBtn" type="button" class="btn_l wid_ty5">Add</button>
+                </dd>
+            </dl>
+        </div>
+    </div>
+    
+    <div class="">
+        <div th:id="|customAgGrid_${type}|" class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center custom-pagination-grid" style="height: auto;">
+        </div>
+    </div>
+
+    <script type="module" th:inline="javascript">
+        const agGridId = "customAgGrid_" + [[${type}]];
+        const selectGridPaginationSizeId = "selectGridPaginationSize_" + [[${type}]];
+        const gridDataSearchId = "gridDataSearch_" + [[${type}]];
+
+        const components = {
+            'gridElementId': agGridId,
+            'gridPaginationSizeElementId': selectGridPaginationSizeId,
+            'gridSearchElementId': gridDataSearchId,
+        }
+
+        $(document).ready(() => {
+            initializeApproverListGrid(components);
+        });
+    </script>
+</th:block>
+</html>

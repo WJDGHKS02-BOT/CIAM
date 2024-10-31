@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<!-- <style>
+    .header-cell-center .ag-header-cell-center .ag-header-cell-label {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        text-align: center;
+    }
+</style> -->
+<th:block th:fragment= "ssoAccess">
+<link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+<h2>SSO Access</h2>
+
+<div class="content_ty3">
+
+    <h3>SSO Channel List</h3>
+    <dl class="form_list2">
+        <dt>Current Channel</dt>
+        <dd class="wid1">
+            <input type="text" name="" id="" th:value="${channels}" placeholder="" class="input" disabled>
+        </dd>
+    </dl>
+
+    <div class="mar_ty1">
+        <!--그리드 영역-->
+        <div id="searchSsoAccessResult" class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center" style="height: auto;">
+        </div>
+    </div>
+
+    <h3>Add/Delete permission</h3>
+    <form id="requestForm" method="POST" class="form-horizontal">
+        <input type="hidden" name="channels" th:value="${channels}" />
+        <dl class="form_list2">
+            <dt>Request Type</dt>
+            <dd class="wid1">
+                <select name="requestType" id="requestType" class="select">
+                    <option value=""></option>
+                    <option value="Add">Add</option>
+                    <option value="Delete">Delete</option>
+                </select>
+            </dd>
+            <dt>Target Channel</dt>
+            <dd class="wid_wrap1">
+                <select name="targetChannel" id="targetChannel" class="select">
+                    <option value=""></option>
+                </select>
+                <button type="button" class="btn_l" onclick="handleRequest()">Submit Request</button>
+            </dd>
+        </dl>
+    </form>
+</div>
+<script th:inline="javascript">
+    const searchSsoAccessResultElement = document.querySelector('#searchSsoAccessResult');
+
+    var addChannelsJson = /*[[${addChannels}]]*/ '[]';
+    var deleteChannelsJson = /*[[${deleteChannels}]]*/ '[]';
+
+    console.log('[[${channels}]]');
+
+    const adminTypeEditErrorMessage = /*[[#{myPage.userManagment.adminTypeEditErrorMessage}]]*/ '';
+    const submitRequestAlertMessage = /*[[#{myPage.ssoAccess.alertText}]]*/ '';
+    const submitRequestSuccessMessage = /*[[#{myPage.ssoAccess.successText}]]*/ '';
+
+    let oSearchSsoAccessResultGrid = null;
+    let aHeader, aResultsData, mobileDisplaySize = 4;
+    let startIdx = 0, endIdx = mobileDisplaySize;
+    let columnDefs = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeGrid();
+    });
+
+    const initailGridOptions = {
+        loading: true,
+        columnDefs: [],
+        rowData: [],
+        rowSelection: 'single',
+        pagination : false,
+        suppressHorizontalScroll: true, // 수평 스크롤을 억제
+        domLayout: 'autoHeight', // 자동 높이 조정
+        localeText: {
+            noRowsToShow: ""  // 'No Rows To Show' 메시지를 'No Match Found'로 변경
+        },
+        overlayLoadingTemplate: `<img style="width: 100px;" src="/theme/assets/image/common/loading.svg" alt="loading">`
+    }
+
+    function handleRequest() {
+        const requestType = document.getElementById('requestType').value;
+        const form = document.getElementById('requestForm');
+        const formData = new FormData(form);
+        const channelElement = document.getElementById('targetChannel'); // targetChannel은 삭제 대상 채널
+
+        if (!requestType) {
+            openModal('alert', '', "Please select Request Type");
+            return;
+        }
+        if (!channelElement.value) {
+            openModal('alert', '', "Please select Target Channel");
+            return;
+        }
+
+        let requestSubmitFunction = (requestType) => {
+            if (requestType === 'Add') {
+                // 폼을 제출
+                form.action = '/myPage/ssoAccessSubmit';
+                //auditLogSave(channelElement.value, "SSO Access", "Channel Add", "", requestType);
+                form.submit();
+            } else if (requestType === 'Delete') {
+                const formDataJson = {};
+                formData.forEach((value, key) => {
+                    formDataJson[key] = value;
+                });
+
+                $.ajax({
+                    url: "/myPage/ssoAccessDelete",
+                    type: 'POST',
+                    data: JSON.stringify(formDataJson), // form 데이터를 JSON으로 변환하여 전송
+                    contentType: "application/json; charset=utf-8",
+                    dataType: 'text',
+                    success: () => {
+                        console.log("success");
+                        openModal('success', () => window.location.href = '/myPage/ssoAccess', submitRequestSuccessMessage);
+                    },
+                    error: (error) => {
+                        openModal('error', '', adminTypeEditErrorMessage);
+                    },
+                    complete: () => {
+                        ModalAlertClose("#loadingPopup");
+                    }
+                });  
+            }
+        }
+
+        openModal('alert', requestSubmitFunction, submitRequestAlertMessage, '', requestType);
+    }
+
+    // clear grid data
+    function initializeGrid(){
+        startIdx = 0;
+        endIdx = mobileDisplaySize;
+
+        // for PC
+        if(!!oSearchSsoAccessResultGrid){
+            oSearchSsoAccessResultGrid.destroy();
+        }
+        
+        oSearchSsoAccessResultGrid = agGrid.createGrid(searchSsoAccessResultElement, initailGridOptions);
+
+        searchSsoAccess();
+    }
+
+    function searchSsoAccess() {
+        let params = {channels : [[${channels}]] };
+
+        $.ajax({
+            url: "/search/ssoAccessListSerach",
+            type: "POST",
+            data: JSON.stringify(params),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(oResult){
+                console.log(oResult);
+                renderResultTable(oResult);
+                addChannels = oResult.addChannels || [];
+                deleteChannels = oResult.deleteChannels || [];
+                initializeRequestType();
+            },
+            error: function(e){
+                const message = "데이터 통신중 에러발생";
+            }
+        });
+    }
+
+    function renderResultTable(oResult) {
+
+        aResultsData = oResult ? oResult.result : [];
+        aHeader = oResult ? oResult.header : [];
+        
+        // Grid Options: Contains all of the Data Grid configurations
+        columnDefs = [
+            {
+                headerName: 'Accessible Channel',
+                field: 'channelDisplayName',
+                width: 150,
+                cellStyle: { textAlign: 'center' },
+                headerClass: 'ag-header-cell-center',
+                unSortIcon: true,
+            }, {
+                    headerName: 'Channel Name', // 데이터로 저장되지만 화면에 보이지 않는 필드
+                    field: 'channelName',
+                    hide: true // 이 속성을 사용하면 열이 숨겨집니다.
+                    },
+            {
+                headerName: 'Granted Role',
+                field: 'adminType',
+                width: 200,
+                cellStyle: { textAlign: 'center' },
+                headerClass: 'ag-header-cell-center',
+                unSortIcon: true,
+            },
+            {
+                headerName: 'Authorized Date',
+                field: 'approvalStatusDate',
+                width: 150,
+                cellStyle: { textAlign: 'center' },
+                headerClass: 'ag-header-cell-center',
+                unSortIcon: true,
+            },
+            {
+                headerName: 'Status',
+                field: 'status',
+                width: 100,
+                cellStyle: { textAlign: 'center' },
+                headerClass: 'ag-header-cell-center',
+                unSortIcon: true,
+            },
+            {
+                headerName: 'Channel Access',
+                field: 'channelAccess',
+                width: 130,
+                cellRenderer: function(params) {
+                    if (params.data.status === 'active') {
+                        return `<button class="btn_table_s blue" onclick="onAccessClick('${params.data.channelName}')">Access</button>`;
+                    } else {
+                        return '';
+                    }
+                },
+                cellStyle: { textAlign: 'center' },
+                headerClass: 'ag-header-cell-center',
+            }
+        ];
+
+        oSearchSsoAccessResultGrid.setGridOption("columnDefs", columnDefs);
+        oSearchSsoAccessResultGrid.setGridOption("rowData", aResultsData);
+        oSearchSsoAccessResultGrid.sizeColumnsToFit();
+        oSearchSsoAccessResultGrid.setGridOption("loading", false);
+    }
+
+    function onAccessClick(channelName) {
+        const requestType = document.getElementById('requestType').value;
+
+        fetch(`/myPage/getAccessRedirect?channelName=${encodeURIComponent(channelName)}`, {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.url) {
+                    window.location.href = data.url; // 외부 URL로 리디렉션
+                } else {
+                    // alert('Redirect URL을 가져오지 못했습니다.');
+                }
+            })
+            .catch(error => {
+                // console.error('Error:', error);
+                // alert('오류가 발생했습니다.');
+            });
+    }
+
+    function initializeRequestType() {
+        const requestTypeElement = document.getElementById('requestType');
+        requestTypeElement.innerHTML = `
+                <option value=""></option>
+                <option value="Add">Add</option>
+                <option value="Delete">Delete</option>
+            `;
+
+        requestTypeElement.addEventListener('change', function() {
+            updateTargetChannelOptions(requestTypeElement.value);
+        });
+
+        updateTargetChannelOptions(requestTypeElement.value);
+    }
+    //
+    // // Update targetChannel options based on requestType
+    function updateTargetChannelOptions(requestType) {
+        const targetChannelElement = document.getElementById('targetChannel');
+        targetChannelElement.innerHTML = '';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '';
+        targetChannelElement.appendChild(defaultOption);
+
+        let channels = [];
+        if (requestType === 'Add') {
+            channels = addChannels;
+        } else if (requestType === 'Delete') {
+            channels = deleteChannels;
+        }
+
+        channels.forEach(channel => {
+            const option = document.createElement('option');
+            option.value = channel.channelName; // 실제 값은 channelName
+            option.textContent = channel.channelDisplayName; // 보여지는 부분은 channelDisplayName
+            targetChannelElement.appendChild(option);
+        });
+    }
+
+
+</script>
+</th:block>
+</html>

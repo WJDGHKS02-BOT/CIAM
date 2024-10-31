@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div >
+<div th:fragment="multiFactorAuthentication">
+    <form id="validate-form" method="POST" th:action="@{/registration/mfaSubmit}" class="member_content">
+        <input type="hidden" id= "channel" name="channel" th:value="${channel}">
+        <!-- <div th:replace="~{fragments/registration/title-step :: registration-title-step(3)}"></div> -->
+        <div th:replace="fragments/registration/title :: registration-title"></div>
+        <div th:replace="fragments/registration/step :: registration-step(3)"></div>
+
+        <div class="inner_white pad">
+            <h3 th:text="#{selfregisteration.multiFactorAuthenticator}"></h3>
+            <div class="txt_mem_wrap1">
+                <th:block th:utext="#{selfregisteration.multiFactorAuthenticatorText}"></th:block>
+            </div>
+
+            <ul class="mem_form_list3">
+                <li>
+                    <span class="radio">
+                        <input type="radio" name="mfa" id="mafTfa" value="mafTfa">
+                        <label for="mafTfa">
+                            <span>
+                                <em class="auth" th:text="#{selfregisteration.authenticator}"></em>
+                                <th:block th:utext="#{selfregisteration.authenticatorComment}"></th:block>
+                            </span>
+                        </label>
+                    </span>
+                </li>
+                <li>
+                    <span class="radio">
+                        <input type="radio" name="mfa" id="mafEmail" value="mafEmail" checked>
+                        <label for="mafEmail">
+                            <span>
+                                <em class="email" th:text="#{selfregisteration.mfaEmailText}"></em>
+                                <th:block th:utext="#{selfregisteration.emailAuth}"></th:block>
+                            </span>
+                        </label>
+                    </span>
+                </li>
+            </ul>
+
+            <div class="bt_wrap4">
+                <button type="button" class="btn_l back" th:text="#{selfregisteration.back}" onclick="clickedBackBtn()"></button>
+                <button type="submit" class="btn_l next" id="nextBtn" th:text="#{selfregisteration.next}"></button>
+            </div>
+        </div>
+    </form>
+    <script th:inline="javascript">
+        const channel = [[${channel}]] || '';
+        const backUrl = `/registration/consent?param=${channel}`; // 필요한 파라미터를 URL에 추가
+        // Back Button
+        function clickedBackBtn() {
+            window.location.href = backUrl;
+        }
+
+        // submit 이벤트 리스너
+        $(document).on('submit', "form", async (event) => {
+            loading("open");
+        });
+    </script>
+</div>
+</div>
+</html>

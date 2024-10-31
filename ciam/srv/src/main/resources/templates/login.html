@@ -1,0 +1,262 @@
+<!-- <!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>SAML Login Page</title>
+    <script>
+        const sysval = {
+            CDC_GMAPDA: 'your_gmapda_key',
+            CDC_GMAPVD: 'your_gmapvd_key',
+            CDC_TOOLMATE: 'your_toolmate_key',
+            CDC_SBA: 'your_sba_key',
+            CDC_PARTNERHUB: 'your_partnerhub_key',
+            CDC_E2E: '4_rs8eX994RAoaLGhCYnBm6A',
+            CDC_MMP: 'your_mmp_key',
+            CDC_ETS: 'your_ets_key',
+            CDC_EDO: 'your_edo_key'
+        };
+
+        const channel = 'e2e';
+        let cdcKey = '';
+
+        switch (channel) {
+            case 'gmapda':
+                cdcKey = sysval.CDC_GMAPDA;
+                break;
+            case 'gmapvd':
+                cdcKey = sysval.CDC_GMAPVD;
+                break;
+            case 'toolmate':
+                cdcKey = sysval.CDC_TOOLMATE;
+                break;
+            case 'sba':
+                cdcKey = sysval.CDC_SBA;
+                break;
+            case 'partnerhub':
+                cdcKey = sysval.CDC_PARTNERHUB;
+                break;
+            case 'e2e':
+                cdcKey = sysval.CDC_E2E;
+                break;
+            case 'mmp':
+                cdcKey = sysval.CDC_MMP;
+                break;
+            case 'ets':
+                cdcKey = sysval.CDC_ETS;
+                break;
+            case 'edo':
+                cdcKey = sysval.CDC_EDO;
+                break;
+            default:
+                alert("Invalid channel access");
+                throw new Error("Invalid channel access");
+        }
+
+        if (!cdcKey) {
+            alert("Invalid channel access");
+            throw new Error("Invalid channel access");
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://cdns.au1.gigya.com/js/gigya.js?apikey=4_rs8eX994RAoaLGhCYnBm6A`;
+        script.type = 'text/javascript';
+        script.onload = function () {
+            onGigyaServiceReady();
+        };
+        document.head.appendChild(script);
+
+        function onGigyaServiceReady() {
+            gigya.socialize.addEventHandlers({
+                onLogin: () => gigya.accounts.getAccountInfo({
+                    callback: e => {
+                        debugger;
+                        if ((new Date() - new Date(e.data.channels[gigya.thisScript.globalConf.channel].lastLogin || '2000-01-01T00:00:00Z')) / 86400000 > 90) {
+                            gigya.accounts.showScreenSet({
+                                screenSet: 'Default-RegistrationLogin',
+                                startScreen: 'gigya-password-change-required-screen'
+                            });
+                        } else {
+                            gigya.accounts.setAccountInfo({
+                                data: {
+                                    channels: {
+                                        [gigya.thisScript.globalConf.channel]: {
+                                            lastLogin: new Date().toISOString()
+                                        }
+                                    }
+                                },
+                                callback: () => gigya.fidm.saml.continueSSO(),
+                            });
+                        }
+                    }
+                }),
+            });
+            const gigya_events = gigya.getUrlParam('events');
+            if (!gigya_events) {
+                const g = document.createElement("iframe");
+                debugger;
+                const baseUrl = window.location.origin;
+                g.src = `${baseUrl}/signin/${channel}/saml-ad`;
+                g.style = 'display: none;';
+                document.body.appendChild(g);
+            } else if (gigya_events.includes('socialize.login')) {
+                const params = new URLSearchParams(location.search);
+                if (params.get('errorCode') === '0')
+                    gigya.socialize.notifyLogin({
+                        dontHandleScreenSet: true,
+                        siteUID: params.get('UID'),
+                        UIDSig: params.get('UIDSignature'),
+                        UIDTimestamp: params.get('signatureTimestamp'),
+                        callback: e =>
+                            e.profile?.username || (location.href =
+                                    `${gigya.thisScript.globalConf.noChannelPermissionURL}?apiKey=${gigya.apiKey}&regToken=${e.regToken}&newADLogin=true`
+                            )
+                    })
+            };
+            gigya.hasSession().then(se => se ?
+                gigya.fidm.saml.continueSSO() :
+                !gigya.getUrlParam('events') && gigya.accounts.showScreenSet({
+                    screenSet: 'Default-RegistrationLogin',
+                    startScreen: 'gigya-login-screen',
+                    containerID: "CDC_OnPage"
+                }));
+        }
+    </script>
+    <style>
+        @font-face {
+            font-family: 'SamsungOne';
+            src: url('/fonts/SamsungOne-400.ttf');
+        }
+
+        @font-face {
+            font-family: 'SamsungOne';
+            src: url('/fonts/SamsungOne-700.ttf');
+            font-weight: 700;
+        }
+
+        @font-face {
+            font-family: 'SamsungSharp';
+            src: url('/fonts/SamsungSharpSans-Bold.ttf');
+            font-weight: bold;
+        }
+
+        html,
+        body {
+            background-image: url('/images/overlay.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            font-family: "SamsungOne", "Open Sans", sans-serif;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-header {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        .samsung-logo-blue-1 {
+            flex-shrink: 0;
+            width: 198.02px;
+            position: relative;
+            margin-top: 80px;
+        }
+
+        .gigya-label-text {
+            font-family: "SamsungOne", "Open Sans", sans-serif !important;
+        }
+
+        .gigya-composite-control-header {
+            font-family: "SamsungOne", "Open Sans", sans-serif !important;
+        }
+
+        .login-find-id {
+            font-family: "SamsungOne", "Open Sans", sans-serif !important;
+            margin-left: -15% !important;
+        }
+
+        .gigya-forgotPassword {
+            font-family: "SamsungOne", "Open Sans", sans-serif !important;
+        }
+
+        .gigya-input-submit {
+            font-family: "SamsungOne", "Open Sans", sans-serif !important;
+        }
+
+        .gigya-composite-control {
+            font-family: "SamsungOne", "Open Sans", sans-serif !important;
+        }
+
+        .gigya-input-text {
+            width: 70% !important;
+            display: block !important;
+            margin-right: auto !important;
+            margin-left: auto !important;
+        }
+
+        .gigya-input-password {
+            width: 70% !important;
+            display: block !important;
+            margin-right: auto !important;
+            margin-left: auto !important;
+        }
+
+        .gigya-composite-control.gigya-composite-control-password.login-password {
+            width: 70%;
+            margin-left: 15%;
+        }
+
+        .gigya-input-password.login-password-input-box {
+            width: 100% !important;
+            display: block !important;
+            margin-right: auto !important;
+            margin-left: auto !important;
+        }
+
+        .gigya-composite-control-submit {
+            width: 70% !important;
+            margin-left: 15% !important;
+        }
+
+        .gigya-label {
+            margin-left: 15% !important;
+        }
+
+        .gigya-label.login-password-label {
+            margin-left: 0 !important;
+        }
+
+        .gigya-required-display {
+            font-family: "SamsungOne", "Open Sans", sans-serif !important;
+        }
+
+        .gigya-composite-control-link {
+            float: none !important;
+        }
+
+        .gigya-login-providers-container div {
+            margin-left: 10% !important;
+        }
+
+        .gigya-login-provider-row {
+            display: none !important;
+        }
+    </style>
+
+</head>
+
+<body>
+<div>
+    <div class="login-header">
+        <img class="samsung-logo-blue-1" style="width: 350px;" th:src="@{/images/Samsung_Business_Account.png}" />
+    </div>
+    <div id="CDC_OnPage"></div>
+</div>
+</body>
+
+</html> -->

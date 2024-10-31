@@ -1,0 +1,77 @@
+.button {
+  border-radius: 8px;
+  width: 100%;
+}
+
+.button-size--xs {
+  height: 30px;
+  font: var(--samsung-700-14);
+}
+
+.button-size--s {
+  height: 40px;
+  font: var(--samsung-700-16);
+}
+
+.button-size--m {
+  height: 44px;
+  font: var(--samsung-700-16);
+}
+
+@media screen and (max-width: 768px) {
+  .button-size--m {
+    height: 50px;
+  }
+}
+
+.button-size--l {
+  height: 60px;
+  font: var(--samsung-700-18);
+}
+
+.button-theme--white {
+  color: var(--color-gray-02);
+  border: 1px solid var(--color-gray-05);
+  background-color: var(--color-white);
+  
+  &:hover {
+    background-color: var(--color-bg-light-blue);
+  }
+}
+
+.button-theme--black {
+  color: var(--color-white);
+  background-color: var(--color-gray-01);
+  
+  &:hover {
+    background-color: var(--color-black);
+  }
+}
+
+.button-theme--error {
+  color: var(--color-white);
+  background-color: var(--color-error);
+  
+  &:hover {
+    background-color: var(--color-error-dark);
+  }
+}
+
+.button-theme--blue {
+  color: var(--color-white);
+  background-color: var(--color-point);
+  
+  &:hover {
+    background-color: var(--color-point-dark);
+  }
+}
+
+.button-theme--lined-blue {
+  color: var(--color-point);
+  border: 1px solid var(--color-point);
+  background-color: var(--color-white);
+  
+  &:hover {
+    background-color: var(--color-bg-light-blue);
+  }
+}
