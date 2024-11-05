@@ -5,13 +5,14 @@ function onGigyaServiceReady() {
   const params = new URLSearchParams(window.location.search);
   const gig_events = params.get('gig_events');
 
-  const isADLoginRequest = gig_events?.includes('socialize.login');
+  const isADLoginRequest = gig_events?.split(',').includes('socialize.login');
   if (isADLoginRequest) {
     const isSuccessAdLogin = params.get('errorCode') === '0';
     const isRequiredAuthentication = params.get('errorCode') === '403101' || params.get('errorCode') === '403102';
 
     // AD 로그인 성공
     if (isSuccessAdLogin) {
+      setItemWithExpiry('user_uid', params.get('UID'));
       debugger;
       return gigya.socialize.notifyLogin({
         dontHandleScreenSet: true,
@@ -19,13 +20,13 @@ function onGigyaServiceReady() {
         UIDSig: params.get('UIDSignature'),
         UIDTimestamp: params.get('signatureTimestamp'),
         callback: function () {
-          // return location.assign(`${location.origin}/login-proxy${location.search}`);
-          return continueSSO();
+          return location.assign(`${location.origin}/login-proxy${location.search}`);
         }
       });
     }
     // AD 로그인 실패
     else {
+      setItemWithExpiry('user_uid', params.get('UID'));
       debugger;
       if (isRequiredAuthentication) {
         (async function () {
@@ -43,6 +44,7 @@ function onGigyaServiceReady() {
         if (CHANNEL === 'btp') {
           return location.href = '/approval-status-error?approvalStatus=btp';
         }
+        // TODO: newChannelRegister 함수 사용 대체
         return location.assign(`${HOST_URL.java}/login-error?apiKey=${GIGYA_API_KEY}&regToken=${params.get('regToken')}&newADLogin=true`);
       }
     }
@@ -50,19 +52,9 @@ function onGigyaServiceReady() {
 
   gigya.socialize.addEventHandlers({
     onLogin: async () => {
-      if (isBtpLogin) return gigya.fidm.saml.continueSSO();
-      else {
-        const {data: accountInfo} = await accounts.getAccountInfo();
-        await accounts.setAccountInfo({lastLogin: accountInfo.lastTenureCheck});
-        await accounts.search({
-          query: `SELECT data, profile, UID
-                  from accounts
-                  WHERE UID = '${signInSession.UID ?? accountInfo.UID ?? params.get('UID')}'`,
-          updateUserRecord: false,
-        });
-        await isUpdateConsent({UID: signInSession.UID ?? accountInfo.UID ?? params.get('UID')});
-        await continueSSO();
-      }
+      debugger;
+      await accounts.getAccountInfo();
+      await continueSSO();
     },
     onLogout: () => {
     },
@@ -78,13 +70,13 @@ function onGigyaServiceReady() {
       const isGetAccountInfo = res.methodName === 'accounts.getAccountInfo';
       if (isGetAccountInfo) {
         signInSession.userInfo = res.response;
-        localStorage.setItem('user_uid', res.response.UID);
+        setItemWithExpiry('user_uid', res.response.UID);
       }
     },
   });
 
   gigya.accounts.addEventHandlers({
-    onLogin: async () => {
+    onLogin: () => {
     },
     onLogout: () => {
     },
@@ -101,6 +93,8 @@ function onGigyaServiceReady() {
   });
   // 세션 체크
   gigya.hasSession((session) => {
+    console.log(session);
+    debugger;
     if (session) return continueSSO();
   })
 }

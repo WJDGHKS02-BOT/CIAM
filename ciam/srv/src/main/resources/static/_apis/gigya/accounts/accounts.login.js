@@ -15,22 +15,11 @@ async function accounts_login({email, password, captchaToken}) {
   async function handleResponse(response) {
     switch (response.errorCode) {
       case ERROR_CODES.SUCCESS:
+        debugger;
         signInSession.UID = response.UID;
-        return gigya.fidm.saml.continueSSO();
-
-        // const {data: accountInfo} = await accounts.getAccountInfo();
-        // await accounts.setAccountInfo({lastLogin: accountInfo.lastTenureCheck});
-        // await accounts.search({
-        //   query: `SELECT data, profile, UID
-        //           from accounts
-        //           WHERE UID = '${signInSession.UID}'`,
-        //   updateUserRecord: true,
-        // });
-        // await isUpdateConsent({UID: signInSession.UID});
-        // await signInSession.clearSession();
-        // return location.assign(`${location.origin}/login-proxy${location.search}`);
+        return continueSSO();
       case ERROR_CODES.accounts.PENDING:
-        return location.assign(`/account-status`);
+        return location.assign(`/approval-status-error?approvalStatus=pending`);
       case ERROR_CODES.captcha.IS_REQUIRED:
         showLoginPageResponseMessages('captcha.IS_REQUIRED');
         return showCaptcha();

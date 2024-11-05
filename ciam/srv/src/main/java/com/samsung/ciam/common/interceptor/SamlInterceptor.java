@@ -17,6 +17,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * 1. FileName	: SamlInterceptor.java
+ * 2. Package	: com.samsung.ciam.common.interceptor
+ * 3. Comments	: SAML 인증 요청에 대한 인터셉터로, 사용자 인증 및 채널 선택을 수행
+ * 4. Author	: 서정환
+ * 5. DateTime	: 2024. 11. 04.
+ * 6. History	:
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date		 |	Name			|	Comment
+ * <p>
+ * -------------  -----------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.		 | 서정환			|	최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
+
 @Component
 public class SamlInterceptor implements HandlerInterceptor {
 
@@ -29,6 +48,31 @@ public class SamlInterceptor implements HandlerInterceptor {
   @Autowired
   private MenuAccessControlRepository menuAccessControlRepository;
 
+  /*
+   * 1. 메소드명: preHandle
+   * 2. 클래스명: SamlInterceptor
+   * 3. 작성자명: 서정환
+   * 4. 작성일자: 2024. 11. 04.
+   */
+  /**
+   * <PRE>
+   * 1. 설명
+   *    요청을 가로채어 사용자 인증, 채널 선택, 및 메뉴 접근 권한을 처리하는 메소드
+   * 2. 사용법
+   *    Spring의 인터셉터 체인에서 자동 호출됨
+   * 3. 예시 데이터
+   *    - Input (HTTP 요청):
+   *      request URI: /myPage/personalInformation
+   *      session data: authenticatedUser = null (인증되지 않은 사용자)
+   *    - Output:
+   *      인증되지 않은 사용자일 경우, 로그인 페이지(/sso/login)로 리다이렉트
+   * </PRE>
+   * @param request HTTP 요청 객체
+   * @param response HTTP 응답 객체
+   * @param handler 처리 핸들러
+   * @return boolean 접근을 허용할 경우 true, 차단할 경우 false
+   * @throws Exception 예외 발생 시
+   */
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
     //====================================하드코딩 영역
@@ -95,10 +139,8 @@ public class SamlInterceptor implements HandlerInterceptor {
         // 채널 선택 페이지로 리다이렉트
         request.getSession().setAttribute("channels", matchedChannels);
         request.getSession().setAttribute("isMultiChannel", "Y");//페이지 새로고침 X
-        //request.getSession().setAttribute("session_channel", "");//페이지 새로고침 X
         request.getSession().setAttribute("selectedChannelRedirectUrl", request.getRequestURI());//페이지 새로고침 X
         response.sendRedirect("/myPage/selectChannel");
-        //request.getRequestDispatcher("/myPage/selectChannel").forward(request, response);
         return false;
       }
 

@@ -9,12 +9,47 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
 
+/**
+ * 1. FileName	: EncryptUtil.java
+ * 2. Package	: com.samsung.ciam.utils
+ * 3. Comments	: AES GCM 모드를 사용하여 데이터 암호화와 복호화를 수행하는 유틸리티 클래스
+ * 4. Author	: 서정환
+ * 5. DateTime	: 2024. 11. 04.
+ * 6. History	:
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date		 |	Name			|	Comment
+ * <p>
+ * -------------  -----------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.		 | 서정환			|	최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
+
 @Slf4j
 public class EncryptUtil {
 
     private static final int GCM_TAG_LENGTH = 16; // GCM 태그 길이 (16바이트)
     private static final int GCM_IV_LENGTH = 12; // GCM IV 길이 (12바이트)
 
+    /*
+     * 1. 메소드명: encryptData
+     * 2. 클래스명: EncryptUtil
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    주어진 데이터를 AES GCM 모드를 사용하여 암호화하고 Base64로 인코딩하여 반환
+     * 2. 사용법
+     *    encryptData("데이터") 와 같이 사용하여 암호화된 데이터를 얻음
+     * </PRE>
+     * @param data 암호화할 데이터
+     * @return String 암호화된 Base64 문자열, 암호화 실패 시 null 반환
+     */
     public final static String encryptData(String data) {
         try {
             // Base64로 인코딩된 APP_KEY 디코딩
@@ -49,6 +84,22 @@ public class EncryptUtil {
         }
     }
 
+    /*
+     * 1. 메소드명: decryptData
+     * 2. 클래스명: EncryptUtil
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    AES GCM 모드를 사용하여 Base64로 인코딩된 암호화 데이터를 복호화하여 원본 문자열로 반환
+     * 2. 사용법
+     *    decryptData("암호화된 데이터") 와 같이 사용하여 복호화된 데이터를 얻음
+     * </PRE>
+     * @param encryptedData 복호화할 Base64 인코딩된 암호화 데이터
+     * @return String 복호화된 원본 문자열, 복호화 실패 시 null 반환
+     */
     public static String decryptData(String encryptedData) {
         try {
             // Base64로 인코딩된 APP_KEY 디코딩
@@ -83,6 +134,22 @@ public class EncryptUtil {
         }
     }
 
+    /*
+     * 1. 메소드명: encodeBase64
+     * 2. 클래스명: EncryptUtil
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    문자열 데이터를 Base64로 인코딩하여 반환
+     * 2. 사용법
+     *    encodeBase64("원본 문자열") 과 같이 사용하여 인코딩된 문자열을 얻음
+     * </PRE>
+     * @param value 인코딩할 문자열 데이터
+     * @return String Base64 인코딩된 문자열
+     */
     public static String encodeBase64(String value) {
         return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }

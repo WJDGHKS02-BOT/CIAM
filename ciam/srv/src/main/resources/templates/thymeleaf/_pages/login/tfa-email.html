@@ -24,6 +24,9 @@
     <script src="/_apis/samsung/samsung.js"></script>
     <script src="/_apis/gigya/ERROR_CODES.js"></script>
     <script src="/_apis/gigya/continueSSO.js"></script>
+    <script src="/_apis/localStorage.js"></script>
+    <script src="/_apis/_instance/setupBaseURL.js"></script>
+
 
     <script src="/_pages/login/sign-in-session.js"></script>
     <script src="/_pages/login/components/show-login-page-response-messages.js"></script>
@@ -37,13 +40,13 @@
       const GIGYA_PARENT_KEYS = [[${parentKeys}]];
       const HOST_URL = [[${hostUrl}]];
       const CHANNEL = [[${channel}]];
-      const isAdLogin = new URLSearchParams(location.search).get('adLogin')
-      const isBtpLogin = CHANNEL === 'btp';
 
       window.onload = async function () {
         showLoadingSpinner();
-        samsungInstance.defaults.baseURL = samsungInstanceURL;
-        gigyaInstance.defaults.baseURL = gigyaInstanceURL;
+        setupBaseURL({
+          gigyaURL: gigyaInstanceURL,
+          samsungURL: samsungInstanceURL
+        })
 
         const VALIDITY = {
           code: false,
@@ -84,31 +87,8 @@
         try{
           showLoadingSpinner();
           await accounts.tfa.email.completeVerification({code: verificationCode});
-
-          // AD 로그인 인 경우
-          if (isAdLogin) {
-            const {UID} = await samsung.updateUserRecord();
-
-            debugger;
-            await accounts.search({
-              query: `SELECT data, profile, UID
-                  from accounts
-                  WHERE UID = '${UID}'`,
-              updateUserRecord: false,
-            })
-            debugger;
-            await socialize.notifyLogin();
-          } else {
-            const {UID} = await samsung.updateUserRecord();
-
-            await accounts.search({
-              query: `SELECT data, profile, UID
-                  from accounts
-                  WHERE UID = '${UID}'`,
-              updateUserRecord: false,
-            })
-            await socialize.notifyLogin();
-          }
+          await samsung.updateUserRecord();
+          await socialize.notifyLogin();
         } catch(err) {
           console.error(err);
         } finally {

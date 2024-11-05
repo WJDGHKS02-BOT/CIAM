@@ -26,6 +26,9 @@
     <script src="/_apis/samsung/samsung.js"></script>
     <script src="/_apis/gigya/ERROR_CODES.js"></script>
     <script src="/_apis/gigya/continueSSO.js"></script>
+    <script src="/_apis/localStorage.js"></script>
+    <script src="/_apis/_instance/setupBaseURL.js"></script>
+
 
     <script src="/_pages/login/sign-in-session.js"></script>
     <script src="/_pages/login/components/show-login-page-response-messages.js"></script>
@@ -39,8 +42,6 @@
       const GIGYA_PARENT_KEYS = [[${parentKeys}]];
       const HOST_URL = [[${hostUrl}]];
       const CHANNEL = [[${channel}]];
-      const isBtpLogin = CHANNEL === 'btp'
-      const isAdLogin = new URLSearchParams(location.search).get('adLogin');
 
       async function handleSubmitForm() {
         try {
@@ -54,11 +55,6 @@
           if (loginResponse === 'REQUIRED_AUTHENTICATION') {
             const {data: userTfaSettings} = await samsung.getUserTfaSettings();
             const IS_TFA_OTP = userTfaSettings.tfaMethods.gigyaTotp;
-
-            // btp 로그인이 아닌 경우
-            // await accounts.tfa.getProviders();
-            // await accounts.tfa.initTFA({provider: 'gigyaEmail', isSetGigyaAssertion: true});
-            // await accounts.tfa.getEmails();
 
             if (IS_TFA_OTP) return location.assign(`${location.pathname}/tfa/otp${location.search}`);
             return location.assign(`${location.pathname}/tfa/email${location.search}`);
@@ -80,9 +76,11 @@
 
       document.addEventListener('DOMContentLoaded', function () {
         showLoadingSpinner();
+        setupBaseURL({
+          gigyaURL: gigyaInstanceURL,
+          samsungURL: samsungInstanceURL
+        })
 
-        samsungInstance.defaults.baseURL = samsungInstanceURL;
-        gigyaInstance.defaults.baseURL = gigyaInstanceURL;
         initializeLoginForm();
         updateSamsungEmployeeLoginButtonVisibility(CHANNEL);
 

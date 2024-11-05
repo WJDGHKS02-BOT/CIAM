@@ -1020,106 +1020,108 @@ public class EntryPointsService {
     }
 
     public String consentVersionCheck(Map<String, String> payload, HttpSession session, RedirectAttributes redirectAttributes) {
-        String uid = payload.get("uid"); // uid는 payload에서 가져옴
-        String channel = payload.get("channel");
+          return "N";
 
-        JsonNode CDCUserProfile = cdcTraitService.getCdcUser(uid, 0);
-
-        String subsidiary = CDCUserProfile.path("data").path("subsidiary").asText("");
-
-        // SQL 쿼리를 StringBuilder를 사용하여 작성
-        StringBuilder queryBuilder = new StringBuilder();
-        queryBuilder.append("WITH RankedConsents AS ( ");
-        queryBuilder.append("    SELECT ");
-        queryBuilder.append("        uac.id, ");
-        queryBuilder.append("        uac.consent_id, ");
-        queryBuilder.append("        uac.consent_content_id, ");
-        queryBuilder.append("        uac.uid, ");
-        queryBuilder.append("        uac.status, ");
-        queryBuilder.append("        c.cdc_consent_id, ");
-        queryBuilder.append("        c.coverage, ");
-        queryBuilder.append("        c.type_id, ");
-        queryBuilder.append("        c.subsidiary, ");
-        queryBuilder.append("        cc.version, ");
-        queryBuilder.append("        cc.status_id, ");
-        queryBuilder.append("        cc.language_id, ");
-        queryBuilder.append("        ROW_NUMBER() OVER (PARTITION BY c.coverage, c.type_id ORDER BY uac.id DESC) AS rn ");
-        queryBuilder.append("    FROM user_agreed_consents uac ");
-        queryBuilder.append("    JOIN consents c ON uac.consent_id = c.id ");
-        queryBuilder.append("    JOIN consent_contents cc ON cc.id = uac.consent_content_id ");
-        queryBuilder.append("    WHERE uac.uid = :uid ");  // Named Parameter 사용
-        queryBuilder.append(") ");
-        queryBuilder.append("SELECT ");
-        queryBuilder.append("    id, ");
-        queryBuilder.append("    consent_id, ");
-        queryBuilder.append("    consent_content_id, ");
-        queryBuilder.append("    uid, ");
-        queryBuilder.append("    status, ");
-        queryBuilder.append("    cdc_consent_id, ");
-        queryBuilder.append("    coverage, ");
-        queryBuilder.append("    type_id, ");
-        queryBuilder.append("    subsidiary, ");
-        queryBuilder.append("    version, ");
-        queryBuilder.append("    status_id,");
-        queryBuilder.append("    language_id ");
-        queryBuilder.append("FROM RankedConsents ");
-        queryBuilder.append("WHERE rn = 1 ");
-        queryBuilder.append("ORDER BY id DESC;");
-
-        // Native Query 생성
-        Query query = entityManager.createNativeQuery(queryBuilder.toString());
-
-        // uid 파라미터 설정
-        query.setParameter("uid", uid);
-
-        // 쿼리 결과를 리스트로 가져오기
-        List<Object[]> userConsentAgreedList = query.getResultList();
-        List<Map<String, Object>> userConsentAgreedData = new ArrayList<>();
-
-        // 쿼리 결과 매핑
-        for (Object[] row : userConsentAgreedList) {
-            Map<String, Object> rowData = new HashMap<>();
-            rowData.put("id", row[0]); // T.id
-            rowData.put("consentId", row[1]); // T.consent_id
-            rowData.put("consentContentId", row[2].toString()); // T.consent_content_id
-            rowData.put("uid", row[3]); // T.uid
-            rowData.put("status", row[4]); // T.status
-            rowData.put("cdcConsentId", row[5].toString()); // c.cdc_consent_id
-            rowData.put("coverage", row[6]); // c.coverage
-            rowData.put("type", row[7]); // c.coverage
-            rowData.put("subsidiary", row[8]); // c.subsidiary
-            rowData.put("version", row[9]); // cc.version
-            rowData.put("statusId", row[10]); // cc.status_id
-            rowData.put("languageId", row[11]); // cc.status_id
-            userConsentAgreedData.add(rowData);
-        }
-
-        // 비교 로직 구현
-        boolean isMkt = userConsentAgreedData.stream()
-                .filter(consent -> "b2b".equals(consent.get("type")))
-                .map(consent -> consent.get("status").toString())
-                .anyMatch(status -> "agreed".equals(status)); // 'agreed'가 있으면 true 반환 // 초기값을 false로 설정
-
-        if(isMkt) {
-            session.setAttribute("newConsentMktYn","Y");
-        } else {
-            session.setAttribute("newConsentMktYn","N");
-        }
-
-        boolean isValid = false;
-        isValid = userConsentAgreedData.stream()
-                .anyMatch(userConsent -> "historic".equals(userConsent.get("statusId")));
-
-        userConsentAgreedData.stream()
-                .filter(consent -> channel.equals(consent.get("coverage")) && "privacy".equals(consent.get("type")))
-                .findFirst()
-                .ifPresentOrElse(
-                        consent -> session.setAttribute("newConsentLanguage", consent.get("languageId")),
-                        () -> session.setAttribute("newConsentLanguage", "en") // 값이 없을 경우 기본값으로 "en" 설정
-                );
-
-        // 최종 결과 반환
-        return isValid ? "Y" : "N";
+//        String uid = payload.get("uid"); // uid는 payload에서 가져옴
+//        String channel = payload.get("channel");
+//
+//        JsonNode CDCUserProfile = cdcTraitService.getCdcUser(uid, 0);
+//
+//        String subsidiary = CDCUserProfile.path("data").path("subsidiary").asText("");
+//
+//        // SQL 쿼리를 StringBuilder를 사용하여 작성
+//        StringBuilder queryBuilder = new StringBuilder();
+//        queryBuilder.append("WITH RankedConsents AS ( ");
+//        queryBuilder.append("    SELECT ");
+//        queryBuilder.append("        uac.id, ");
+//        queryBuilder.append("        uac.consent_id, ");
+//        queryBuilder.append("        uac.consent_content_id, ");
+//        queryBuilder.append("        uac.uid, ");
+//        queryBuilder.append("        uac.status, ");
+//        queryBuilder.append("        c.cdc_consent_id, ");
+//        queryBuilder.append("        c.coverage, ");
+//        queryBuilder.append("        c.type_id, ");
+//        queryBuilder.append("        c.subsidiary, ");
+//        queryBuilder.append("        cc.version, ");
+//        queryBuilder.append("        cc.status_id, ");
+//        queryBuilder.append("        cc.language_id, ");
+//        queryBuilder.append("        ROW_NUMBER() OVER (PARTITION BY c.coverage, c.type_id ORDER BY uac.id DESC) AS rn ");
+//        queryBuilder.append("    FROM user_agreed_consents uac ");
+//        queryBuilder.append("    JOIN consents c ON uac.consent_id = c.id ");
+//        queryBuilder.append("    JOIN consent_contents cc ON cc.id = uac.consent_content_id ");
+//        queryBuilder.append("    WHERE uac.uid = :uid ");  // Named Parameter 사용
+//        queryBuilder.append(") ");
+//        queryBuilder.append("SELECT ");
+//        queryBuilder.append("    id, ");
+//        queryBuilder.append("    consent_id, ");
+//        queryBuilder.append("    consent_content_id, ");
+//        queryBuilder.append("    uid, ");
+//        queryBuilder.append("    status, ");
+//        queryBuilder.append("    cdc_consent_id, ");
+//        queryBuilder.append("    coverage, ");
+//        queryBuilder.append("    type_id, ");
+//        queryBuilder.append("    subsidiary, ");
+//        queryBuilder.append("    version, ");
+//        queryBuilder.append("    status_id,");
+//        queryBuilder.append("    language_id ");
+//        queryBuilder.append("FROM RankedConsents ");
+//        queryBuilder.append("WHERE rn = 1 ");
+//        queryBuilder.append("ORDER BY id DESC;");
+//
+//        // Native Query 생성
+//        Query query = entityManager.createNativeQuery(queryBuilder.toString());
+//
+//        // uid 파라미터 설정
+//        query.setParameter("uid", uid);
+//
+//        // 쿼리 결과를 리스트로 가져오기
+//        List<Object[]> userConsentAgreedList = query.getResultList();
+//        List<Map<String, Object>> userConsentAgreedData = new ArrayList<>();
+//
+//        // 쿼리 결과 매핑
+//        for (Object[] row : userConsentAgreedList) {
+//            Map<String, Object> rowData = new HashMap<>();
+//            rowData.put("id", row[0]); // T.id
+//            rowData.put("consentId", row[1]); // T.consent_id
+//            rowData.put("consentContentId", row[2].toString()); // T.consent_content_id
+//            rowData.put("uid", row[3]); // T.uid
+//            rowData.put("status", row[4]); // T.status
+//            rowData.put("cdcConsentId", row[5].toString()); // c.cdc_consent_id
+//            rowData.put("coverage", row[6]); // c.coverage
+//            rowData.put("type", row[7]); // c.coverage
+//            rowData.put("subsidiary", row[8]); // c.subsidiary
+//            rowData.put("version", row[9]); // cc.version
+//            rowData.put("statusId", row[10]); // cc.status_id
+//            rowData.put("languageId", row[11]); // cc.status_id
+//            userConsentAgreedData.add(rowData);
+//        }
+//
+//        // 비교 로직 구현
+//        boolean isMkt = userConsentAgreedData.stream()
+//                .filter(consent -> "b2b".equals(consent.get("type")))
+//                .map(consent -> consent.get("status").toString())
+//                .anyMatch(status -> "agreed".equals(status)); // 'agreed'가 있으면 true 반환 // 초기값을 false로 설정
+//
+//        if(isMkt) {
+//            session.setAttribute("newConsentMktYn","Y");
+//        } else {
+//            session.setAttribute("newConsentMktYn","N");
+//        }
+//
+//        boolean isValid = false;
+//        isValid = userConsentAgreedData.stream()
+//                .anyMatch(userConsent -> "historic".equals(userConsent.get("statusId")));
+//
+//        userConsentAgreedData.stream()
+//                .filter(consent -> channel.equals(consent.get("coverage")) && "privacy".equals(consent.get("type")))
+//                .findFirst()
+//                .ifPresentOrElse(
+//                        consent -> session.setAttribute("newConsentLanguage", consent.get("languageId")),
+//                        () -> session.setAttribute("newConsentLanguage", "en") // 값이 없을 경우 기본값으로 "en" 설정
+//                );
+//
+//        // 최종 결과 반환
+//        return isValid ? "Y" : "N";
 
     }
 }

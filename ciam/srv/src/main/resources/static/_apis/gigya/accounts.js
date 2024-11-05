@@ -9,7 +9,6 @@ import accounts_tfa_totp_verify from "./accounts/accounts.tfa.totp.verify.js";
 import accounts_tfa_finalizeTFA from "./accounts/accounts.tfa.finalizeTFA.js";
 import accounts_finalizeRegistration from "./accounts/accounts.finalizeRegistration.js";
 import accounts_getAccountInfo from "./accounts/accounts.getAccountInfo.js";
-import accounts_session_verify from "./accounts/accounts.session.verify.js";
 import accounts_resetPassword from "./accounts/accounts.resetPassword.js";
 import accounts_search from "./accounts/accounts.search.js";
 import accounts_setAccountInfo from "./accounts/accounts.setAccountInfo.js";
@@ -20,9 +19,6 @@ const accounts = {
   getAccountInfo: accounts_getAccountInfo,
   resetPassword: accounts_resetPassword,
   search: accounts_search,
-  session: {
-    verify: accounts_session_verify
-  },
   setAccountInfo: accounts_setAccountInfo,
   socialLogin: ({provider}) => {
     return gigya.accounts.socialLogin({provider: provider});

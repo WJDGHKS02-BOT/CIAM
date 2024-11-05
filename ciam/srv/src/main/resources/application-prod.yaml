@@ -17,7 +17,7 @@ spring:
     embedded-database-connection: none
     driver-class-name: org.postgresql.Driver
     #   운영 DB
-    url: jdbc:postgresql://localhost:1657/FaWTVxrjOqTl
+    url: jdbc:postgresql://postgres-78fece32-e8e3-4a01-8555-56020a4d330b.cu2h3ll9ayju.ap-northeast-2.rds.amazonaws.com:1657/FaWTVxrjOqTl
     username: 3d74227dd6f2
     password: 859967389188d29b36f50fcc448ac3
   #   Java Test DB
@@ -236,4 +236,5 @@ redirectChannelLoginPageURL:
   btp: https://bizaccounts.samsung.com
 
 samsungInstanceURL: "https://ciam.apimanagement.ap12.hana.ondemand.com"
-gigyaInstanceURL: "https://bizaccount-ciam.samsung.com"
+gigyaInstanceURL: "https://accounts.au1.gigya.com"
+#gigyaInstanceURL: "https://bizaccount-ciam.samsung.com"

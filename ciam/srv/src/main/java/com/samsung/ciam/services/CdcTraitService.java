@@ -24,21 +24,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.lang.Nullable;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -2359,6 +2359,49 @@ public class CdcTraitService {
         }
     }
 
+    public String setAccountStatus(Map<String, String> payload, HttpSession session, RedirectAttributes redirectAttributes) {
+        String channel = payload.get("channel");
+        String uid = payload.get("uid");
+        ObjectMapper mapper = new ObjectMapper();
+        try{
+            if(!"btp".equals(channel)) {
+                JsonNode accUser = getCdcUser(uid,0);
+                Map<String, Object> data = mapper.convertValue(accUser.get("data"), Map.class);
+                Map<String, Object> channels = mapper.convertValue(data.get("channels"), Map.class);
+                Map<String, Object> channelMapData = mapper.convertValue(channels.get(payload.get("channel")), Map.class);
 
+                String userStatus = (String) data.get("userStatus");
+                String channelApprovalStatus = (String) channelMapData.get("approvalStatus");
+
+                if("inactive".equals(channelApprovalStatus) || "inactive".equals(userStatus)) {
+                    Map<String, Object> dataFields = new HashMap<>();
+                    Map<String, Object> cdcParams = new HashMap<>();
+
+                    String lastLogin = Instant.now()
+                            .atOffset(ZoneOffset.UTC)
+                            .truncatedTo(ChronoUnit.MILLIS)  // 밀리초까지 표시하고 나머지 자릿수 제거
+                            .format(DateTimeFormatter.ISO_INSTANT);
+
+                    cdcParams.put("UID", uid);
+                    dataFields.put("userStatus", "active");  // userStatus만 업데이트
+
+                    dataFields.put("channels", Map.of(
+                            channel, Map.of(
+                                    "approvalStatus", "approved","lastLogin",lastLogin
+                            )
+                    ));
+                    cdcParams.put("data", mapper.writeValueAsString(dataFields));
+
+                    GSResponse response = gigyaService.executeRequest("default", "accounts.setAccountInfo", cdcParams);
+                    log.info("Account status updated to for UID: {}. Response: {}",  uid, response.getResponseText());
+                }
+            }
+        }
+        catch (Exception e) {
+            log.error("Error updating account status for UID: {}", e);
+        }
+
+        return "Y";
+    }
 }
 

@@ -38,7 +38,7 @@
         <then>
             <!-- 커스텀 Slack Webhook Appender -->
             <appender name="SLACK" class="com.samsung.ciam.common.core.component.SlackAppender">
-                <webhookUrl>https://hooks.slack.com/services/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</webhookUrl>
+                <webhookUrl>https://hooks.slack.com/services/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</webhookUrl>
             </appender>
 
             <!-- ERROR 로그만 Slack으로 전송 -->

@@ -7,10 +7,43 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+/**
+ * 1. FileName	: SlackAppender.java
+ * 2. Package	: com.samsung.ciam.common.core.component
+ * 3. Comments	: Logback을 사용하여 특정 수준 이상의 로그를 Slack으로 전송하는 커스텀 Appender
+ * 4. Author	: 서정환
+ * 5. DateTime	: 2024. 11. 04.
+ * 6. History	:
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date		 |	Name			|	Comment
+ * <p>
+ * -------------  -----------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.		 | 서정환			|	최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 public class SlackAppender extends AppenderBase<ILoggingEvent> {
 
     private String webhookUrl;
 
+    /*
+     * 1. 메소드명: append
+     * 2. 클래스명: SlackAppender
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    로그 이벤트가 발생할 때 특정 수준 이상의 로그 메시지를 Slack Webhook을 통해 전송
+     * 2. 사용법
+     *    Logback 설정 파일에서 SlackAppender를 등록하여 사용
+     * </PRE>
+     * @param event 발생한 로그 이벤트
+     */
     @Override
     protected void append(ILoggingEvent event) {
         if (event.getLevel().isGreaterOrEqual(ch.qos.logback.classic.Level.ERROR)) {
@@ -55,6 +88,21 @@ public class SlackAppender extends AppenderBase<ILoggingEvent> {
         }
     }
 
+    /*
+     * 1. 메소드명: setWebhookUrl
+     * 2. 클래스명: SlackAppender
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    Slack Webhook URL 설정 메소드
+     * 2. 사용법
+     *    Logback 설정 파일에서 webhookUrl 설정을 통해 Slack Webhook URL 지정
+     * </PRE>
+     * @param webhookUrl Slack Webhook URL
+     */
     public void setWebhookUrl(String webhookUrl) {
         this.webhookUrl = webhookUrl;
     }

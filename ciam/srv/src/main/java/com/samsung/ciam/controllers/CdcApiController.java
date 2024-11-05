@@ -27,4 +27,10 @@ public class CdcApiController {
 
         return jsonNode;
     }
+
+    @ResponseBody
+    @PostMapping("/setAccountStatus")
+    public String setAccountStatus(@RequestBody Map<String, String> payload, HttpSession session, RedirectAttributes redirectAttributes) {
+       return cdcTraitService.setAccountStatus(payload ,session,redirectAttributes);
+    }
 }

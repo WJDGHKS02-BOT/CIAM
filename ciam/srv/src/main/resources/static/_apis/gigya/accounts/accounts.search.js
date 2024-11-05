@@ -9,43 +9,40 @@ async function accounts_search({query, updateUserRecord}) {
   }
 
   async function handleResponse(response) {
-    const userInfo = response.data.results[0].data;
-    const APPROVAL_STATUS = userInfo.channels[CHANNEL]?.approvalStatus;
+    const userInfo = response.data.results[0]?.data;
+    const APPROVAL_STATUS = userInfo?.channels[CHANNEL]?.approvalStatus;
     const USER_STATUS = userInfo.userStatus;
+    const isAdUser = response.data.results[0].socialProviders.split(',').includes('saml-samsung-ad');
+    debugger;
 
-    if (isBtpLogin) return;
 
-    switch (APPROVAL_STATUS) {
-      case 'approved' || 'inactive':
-        if (isAdLogin) signInSession.UID = response.data.results[0].UID;
+    if (USER_STATUS === 'active' || USER_STATUS === 'inactive') {
+      if (isBtpLogin) return;
 
-        if (updateUserRecord) {
-          return await samsung.updateUserRecord();
-        } else return response;
-      case 'pending':
-        debugger;
-        return location.assign(`/approval-status-error?approvalStatus=pending`);
-      case 'emp-pending':
-        debugger;
-        return location.assign(`/approval-status-error?approvalStatus=emp-pending`);
-      case 'disabled':
-        debugger;
-        return location.assign(`/approval-status-error?approvalStatus=disabled`);
-      default:
-        const SFDC = ['e2e', 'ets', 'partnerhub', 'mmp', 'edo'];
+      switch (APPROVAL_STATUS) {
+        case 'approved':
+          if (isAdLogin) signInSession.UID = response.data.results[0].UID;
+          return;
+        case 'inactive':
+          if (isAdLogin) signInSession.UID = response.data.results[0].UID;
+          return;
+        case 'pending':
+          debugger;
+          return location.assign(`/approval-status-error?approvalStatus=pending`);
+        case 'emp-pending':
+          debugger;
+          return location.assign(`/approval-status-error?approvalStatus=emp-pending`);
+        case 'disabled':
+          debugger;
+          return location.assign(`/approval-status-error?approvalStatus=disabled`);
+        default:
+          const SFDC = ['e2e', 'ets', 'partnerhub', 'mmp', 'edo'];
 
-        if (isAdLogin || response.data.results[0].profile?.samlData) {
-          signInSession.UID = response.data.results[0].UID;
-          return newChannelRegister({UID: response.data.results[0].UID});
-        }
-
-        if (USER_STATUS === 'active') {
-          SFDC.includes(CHANNEL)
-              ? location.assign(`${HOST_URL.php}/login-error?apiKey=${GIGYA_API_KEY}&regToken=${params.get('regToken')}&newADLogin=true`)
-              : ssoAccess();
-        }
-
-        return location.assign(`/approval-status-error?approvalStatus=pending`);
+          if (SFDC.includes(CHANNEL)) return location.assign(`${HOST_URL.php}`);
+          return ssoAccess(userInfo.UID, CHANNEL);
+      }
+    } else {
+      return location.assign(`/approval-status-error?approvalStatus=disabled`);
     }
   }
 
@@ -55,7 +52,7 @@ async function accounts_search({query, updateUserRecord}) {
 
 export default accounts_search;
 
-function ssoAccess() {
+function ssoAccess(uid, channel) {
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = `${HOST_URL.java}/new-channel/ssoAccess`;
@@ -65,8 +62,10 @@ function ssoAccess() {
 
   uidInput.type = 'hidden';
   uidInput.name = 'cdc_uid';
+  uidInput.value = uid;
   channelInput.type = 'hidden';
   channelInput.name = 'targetChannel';
+  channelInput.value = channel;
 
   form.appendChild(uidInput);
   form.appendChild(channelInput);

@@ -346,7 +346,7 @@ public class OneloginController {
             String approvalStatus = channelNode.path("approvalStatus").asText();
 
             // approvalStatus가 approved인 경우 key 값을 Set에 추가
-            if ("approved".equalsIgnoreCase(approvalStatus)) {
+            if ("approved".equalsIgnoreCase(approvalStatus) || "inactive".equalsIgnoreCase(approvalStatus)) {
                 approvedChannels.add(fieldName);
             }
         }

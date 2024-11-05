@@ -3,6 +3,25 @@ package com.samsung.ciam.common.cpi.enums;
 import java.util.AbstractMap;
 import java.util.Map;
 
+/**
+ * 1. FileName	: CpiResponseFieldMapping.java
+ * 2. Package	: com.samsung.ciam.common.cpi.enums
+ * 3. Comments	: CPI 응답 필드 매핑을 정의하는 열거형으로, 각 유형별로 필드 매핑을 설정
+ * 4. Author	: 서정환
+ * 5. DateTime	: 2024. 11. 04.
+ * 6. History	:
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date		 |	Name			|	Comment
+ * <p>
+ * -------------  -----------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.		 | 서정환			|	최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
+
 public enum CpiResponseFieldMapping {
 
     SBA(Map.ofEntries(
@@ -78,14 +97,60 @@ public enum CpiResponseFieldMapping {
 
     private final Map<String, String> fieldMap;
 
+    /*
+     * 1. 생성자명: CpiResponseFieldMapping
+     * 2. 클래스명: CpiResponseFieldMapping
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    CPI 응답 필드 매핑을 초기화하는 생성자
+     * 2. 사용법
+     *    각 열거형에 지정된 필드 매핑을 설정
+     * </PRE>
+     * @param fieldMap 필드 매핑을 위한 Map 객체
+     */
     CpiResponseFieldMapping(Map<String, String> fieldMap) {
         this.fieldMap = fieldMap;
     }
 
+    /*
+     * 1. 메소드명: getFieldMap
+     * 2. 클래스명: CpiResponseFieldMapping
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    CPI 응답 필드 매핑 정보를 반환
+     * 2. 사용법
+     *    각 열거형에서 필드 매핑 정보를 가져올 때 사용
+     * </PRE>
+     * @return Map<String, String> 필드 매핑 정보
+     */
     public Map<String, String> getFieldMap() {
         return fieldMap;
     }
 
+    /*
+     * 1. 메소드명: fromString
+     * 2. 클래스명: CpiResponseFieldMapping
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    문자열 값을 기반으로 해당하는 CpiResponseFieldMapping 열거형을 반환
+     * 2. 사용법
+     *    fromString("SBA") 와 같이 문자열을 통해 열거형을 가져올 때 사용
+     * </PRE>
+     * @param value 문자열로 입력된 열거형 이름
+     * @return CpiResponseFieldMapping 문자열에 해당하는 열거형 객체
+     */
     public static CpiResponseFieldMapping fromString(String value) {
         return CpiResponseFieldMapping.valueOf(value.toUpperCase());
     }

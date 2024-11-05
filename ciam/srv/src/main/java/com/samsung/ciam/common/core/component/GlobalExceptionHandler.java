@@ -13,6 +13,25 @@ import org.springframework.web.servlet.ModelAndView;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+
+/**
+ * 1. FileName	: GlobalExceptionHandler.java
+ * 2. Package	: com.samsung.ciam.common.core.component
+ * 3. Comments	: 전역 예외 처리를 담당하여 발생한 예외를 처리하고, 오류를 로그 및 데이터베이스에 저장
+ * 4. Author	: 서정환
+ * 5. DateTime	: 2024. 11. 04.
+ * 6. History	:
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date		 |	Name			|	Comment
+ * <p>
+ * -------------  -----------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.		 | 서정환			|	최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -20,6 +39,24 @@ public class GlobalExceptionHandler {
     @Autowired
     private ErrorLogRepository errorLogRepository;
 
+    /*
+     * 1. 메소드명: handleException
+     * 2. 클래스명: GlobalExceptionHandler
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    애플리케이션 전역에서 발생하는 예외를 처리하고, 필요한 경우 예외 정보를 데이터베이스에 저장 후 에러 페이지로 이동
+     * 2. 사용법
+     *    handleException(Exception ex, HttpServletRequest request, HttpSession session)
+     * </PRE>
+     * @param ex 발생한 예외 객체
+     * @param request 예외가 발생한 HTTP 요청 정보
+     * @param session 현재 사용자 세션 정보
+     * @return ModelAndView 에러 페이지로 리다이렉트하기 위한 ModelAndView 객체
+     */
     @ExceptionHandler(Exception.class)
     public ModelAndView handleException(Exception ex, HttpServletRequest request, HttpSession session) {
         String errorMessage = ex.getMessage();

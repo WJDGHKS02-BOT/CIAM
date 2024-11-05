@@ -1,216 +1,94 @@
 package com.samsung.ciam.controllers;
 
-import com.samsung.ciam.utils.BeansUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.Map;
+/**
+ * 1. FileName	: CpiApiService.java
+ * 2. Package	: com.samsung.ciam.common.cpi.service
+ * 3. Comments	: local,dev환경 데모용 페이지 컨트롤러
+ * 4. Author	: 서정환
+ * 5. DateTime	: 2024. 11. 04.
+ * 6. History	:
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date		 |	Name			|	Comment
+ * <p>
+ * -------------  -----------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.		 | 서정환			|	최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 
 @Controller
-@Profile({"local", "dev"})
+@Profile({"local", "dev"}) // 로컬 및 개발 환경에서만 활성화되는 컨트롤러
 public class DemoController {
+
+  /*
+   * 1. 메소드명: demo
+   * 2. 클래스명: DemoController
+   * 3. 작성자명: 서정환
+   * 4. 작성일자: 2024. 11. 04.
+   */
+  /**
+   * <PRE>
+   * 1. 설명
+   *    데모 페이지 View를 호출하여 welcome 화면을 렌더링.
+   * 2. 사용법
+   *    "/demo" URL로 접근하면 welcome 페이지가 표시됨.
+   * </PRE>
+   *
+   * @return welcome 화면을 위한 ModelAndView 객체
+   */
   @GetMapping("/demo")
   public ModelAndView demo() {
     return new ModelAndView("welcome");
   }
 
+  /*
+   * 1. 메소드명: testconsent
+   * 2. 클래스명: DemoController
+   * 3. 작성자명: 서정환
+   * 4. 작성일자: 2024. 11. 04.
+   */
+  /**
+   * <PRE>
+   * 1. 설명
+   *    약관 동의 테스트 페이지 View를 호출하여 testconsent 화면을 렌더링.
+   * 2. 사용법
+   *    "/testconsent" URL로 접근하면 약관 동의 테스트 페이지가 표시됨.
+   * </PRE>
+   *
+   * @return 약관 테스트 화면을 위한 ModelAndView 객체
+   */
   @GetMapping("/testconsent")
   public ModelAndView testconsent() {
     return new ModelAndView("testconsent");
   }
 
+  /*
+   * 1. 메소드명: testgetAccountInfo
+   * 2. 클래스명: DemoController
+   * 3. 작성자명: 서정환
+   * 4. 작성일자: 2024. 11. 04.
+   */
+  /**
+   * <PRE>
+   * 1. 설명
+   *    계정 정보 조회 테스트 페이지 View를 호출하여 testgetAccountInfo 화면을 렌더링.
+   * 2. 사용법
+   *    "/testgetAccountInfo" URL로 접근하면 계정 정보 조회 테스트 페이지가 표시됨.
+   * </PRE>
+   *
+   * @return 계정 조회 테스트 화면을 위한 ModelAndView 객체
+   */
   @GetMapping("/testgetAccountInfo")
   public ModelAndView testgetAccountInfo() {
     return new ModelAndView("testgetAccountInfo");
   }
 
-//  @GetMapping("/sign-in")
-//  public String newSignIn(HttpServletRequest request,
-//                          @RequestParam Map<String, String> params,
-//                          Model model
-//  ) {
-//    String scheme = request.getScheme(); // http 또는 https
-//    String serverName = request.getServerName(); // localhost 또는 도메인명
-//    int serverPort = request.getServerPort(); // 8080 같은 포트 번호
-//
-//    String hostURL = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
-//
-//    String samlContext = params.get("samlContext");
-//    String spName = params.get("spName");
-//    String channel = params.get("channel");
-//
-//    String loginURL = hostURL + "/sign-in?channel=" + channel;
-//    String logoutURL = hostURL + "/signin/" + channel + "/logout?spName=" + spName;
-//
-//    model.addAttribute("channel", channel);
-//    model.addAttribute("loginURL", loginURL);
-//    model.addAttribute("logoutURL", logoutURL);
-//    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
-//
-//    return "_pages/login/sign-in";
-//  }
-//
-//  @GetMapping("/sign-in/forgot-password")
-//  public String newForgetPassword(HttpServletRequest request,
-//                                  @RequestParam Map<String, String> params,
-//                                  Model model
-//  ) {
-//    String scheme = request.getScheme(); // http 또는 https
-//    String serverName = request.getServerName(); // localhost 또는 도메인명
-//    int serverPort = request.getServerPort(); // 8080 같은 포트 번호
-//
-//    String hostURL = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
-//
-//    String samlContext = params.get("samlContext");
-//    String spName = params.get("spName");
-//    String channel = params.get("channel");
-//
-//    String loginURL = hostURL + "/sign-in?channel=" + channel;
-//    String logoutURL = hostURL + "/signin/" + channel + "/logout?spName=" + spName;
-//
-//    model.addAttribute("channel", channel);
-//    model.addAttribute("loginURL", loginURL);
-//    model.addAttribute("logoutURL", logoutURL);
-//    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
-//
-//    return "_pages/login/forgot-password";
-//  }
-//
-//  @GetMapping("/sign-in/forgot-password/success")
-//  public String newForgetPasswordSuccess(HttpServletRequest request,
-//                                         @RequestParam Map<String, String> params,
-//                                         Model model
-//  ) {
-//    String scheme = request.getScheme(); // http 또는 https
-//    String serverName = request.getServerName(); // localhost 또는 도메인명
-//    int serverPort = request.getServerPort(); // 8080 같은 포트 번호
-//
-//    String hostURL = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
-//
-//    String samlContext = params.get("samlContext");
-//    String spName = params.get("spName");
-//    String channel = params.get("channel");
-//
-//    String loginURL = hostURL + "/sign-in?channel=" + channel;
-//    String logoutURL = hostURL + "/signin/" + channel + "/logout?spName=" + spName;
-//
-//    model.addAttribute("channel", channel);
-//    model.addAttribute("loginURL", loginURL);
-//    model.addAttribute("logoutURL", logoutURL);
-//    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
-//
-//    return "_pages/login/forgot-password-success";
-//  }
-//
-//  @GetMapping("/sign-in/tfa/email")
-//  public String tfaEmail(HttpServletRequest request,
-//                         @RequestParam Map<String, String> params,
-//                         Model model
-//  ) {
-//    String scheme = request.getScheme(); // http 또는 https
-//    String serverName = request.getServerName(); // localhost 또는 도메인명
-//    int serverPort = request.getServerPort(); // 8080 같은 포트 번호
-//
-//    String hostURL = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
-//
-//    String samlContext = params.get("samlContext");
-//    String spName = params.get("spName");
-//    String channel = params.get("channel");
-//
-//    String loginURL = hostURL + "/sign-in?channel=" + channel;
-//    String logoutURL = hostURL + "/signin/" + channel + "/logout?spName=" + spName;
-//
-//    model.addAttribute("channel", channel);
-//    model.addAttribute("loginURL", loginURL);
-//    model.addAttribute("logoutURL", logoutURL);
-//    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
-//
-//    return "_pages/login/tfa-email";
-//  }
-//
-//  @GetMapping("/sign-in/tfa/otp")
-//  public String tfaOtp(HttpServletRequest request,
-//                       @RequestParam Map<String, String> params,
-//                       Model model
-//  ) {
-//    String scheme = request.getScheme(); // http 또는 https
-//    String serverName = request.getServerName(); // localhost 또는 도메인명
-//    int serverPort = request.getServerPort(); // 8080 같은 포트 번호
-//
-//    String hostURL = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
-//
-//    String samlContext = params.get("samlContext");
-//    String spName = params.get("spName");
-//    String channel = params.get("channel");
-//
-//    String loginURL = hostURL + "/sign-in?channel=" + channel;
-//    String logoutURL = hostURL + "/signin/" + channel + "/logout?spName=" + spName;
-//
-//    model.addAttribute("channel", channel);
-//    model.addAttribute("loginURL", loginURL);
-//    model.addAttribute("logoutURL", logoutURL);
-//    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
-//
-//    return "_pages/login/tfa-otp";
-//  }
-//
-//  @GetMapping("/consent-view")
-//  public String consentView(HttpServletRequest request,
-//                            @RequestParam Map<String, String> params,
-//                            Model model
-//  ) {
-//    // http://localhost:8080 부분만 가져오는 방법
-//    String scheme = request.getScheme(); // http 또는 https
-//    String serverName = request.getServerName(); // localhost 또는 도메인명
-//    int serverPort = request.getServerPort(); // 8080 같은 포트 번호
-//
-//    String hostURL = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
-//
-//    String samlContext = params.get("samlContext");
-//    String spName = params.get("spName");
-//    String channel = params.get("channel");
-//
-//    String loginURL = hostURL + "/sign-in?channel=" + channel;
-//    String logoutURL = hostURL + "/signin/" + channel + "/logout?spName=" + spName;
-//
-//    model.addAttribute("channel", channel);
-//    model.addAttribute("loginURL", loginURL);
-//    model.addAttribute("logoutURL", logoutURL);
-//    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
-//
-//    return "_pages/consent-view/consent-view";
-//  }
-//
-//  @GetMapping("/login-proxy")
-//  public String loginProxy(HttpServletRequest request,
-//                           @RequestParam Map<String, String> params,
-//                           Model model
-//  ) {
-//    String scheme = request.getScheme(); // http 또는 https
-//    String serverName = request.getServerName(); // localhost 또는 도메인명
-//    int serverPort = request.getServerPort(); // 8080 같은 포트 번호
-//    String hostURL = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
-//
-//    String channel = params.get("channel");
-//    String spName = params.get("spName");
-//
-//    String loginURL = hostURL + "/sign-in?channel=" + channel;
-//    String logoutURL = hostURL + "/signin/" + channel + "/logout?spName=" + spName;
-//
-//    model.addAttribute("loginURL", loginURL);
-//    model.addAttribute("logoutURL", logoutURL);
-//    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
-//
-//    return "_pages/login/login-proxy";
-//  }
-//
-//  @GetMapping("/approval-status-error")
-//  public String approvalStatusError() {
-//    return "_pages/login/approval-status-error";
-//  }
 }

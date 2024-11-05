@@ -6,6 +6,9 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/_pages/login/sign-in-session.js"></script>
     <script src="/_components/spinner/loading-spinner.js"></script>
+    <script src="/_apis/localStorage.js"></script>
+    <script src="/_apis/is-update-consent.js"></script>
+
     <script th:inline="javascript">
       const GIGYA_API_KEY = [[${apiKey}]];
       const GIGYA_PARENT_KEYS = [[${parentKeys}]];
@@ -27,65 +30,97 @@
           });
           gigyaScript.onload = resolve;
           gigyaScript.onerror = reject;
+          debugger;
           document.getElementsByTagName('head')[0].appendChild(gigyaScript);
         });
       }
 
       window.onload = async () => {
         try {
-          const isLoggedIn = localStorage.getItem('user_uid') ?? false;
           await showLoadingSpinner();
-          if (isLoggedIn) await checkUserPermission();
+
+          const isLoggedIn = getItemWithExpiry('user_uid') ?? false;
+          if (isLoggedIn) {
+            await checkUserPermission();
+            await isUpdateConsent({UID: getItemWithExpiry('user_uid')});
+            debugger;
+          }
+          debugger;
           await loadGigya();
+          debugger;
         } catch(err) {
           console.error(err);
           await hideLoadingSpinner();
         }
       }
 
-      async function getUserInfo ({UID}) {
-        const {data: userInfo} = await axios.post("/getAccountInfo", {uid: UID});
-        return userInfo;
-      }
-
       async function checkUserPermission () {
-        const userInfo = await getUserInfo({UID: localStorage.getItem('user_uid')});
-        const APPROVAL_STATUS = userInfo.data.channels[CHANNEL]?.approvalStatus;
+        const {data: userInfo} = await axios.post("/getAccountInfo", {uid: getItemWithExpiry('user_uid')});
+        console.log(userInfo);
+
+        if (!userInfo) {
+          debugger;
+          localStorage.removeItem('user_uid');
+          return await loadGigya();
+        }
+
         const USER_STATUS = userInfo.data.userStatus;
-        const isAdUser = userInfo.socialProviders.includes('saml-samsung-ad');
-        const isAdLogin = new URLSearchParams(location.search).get('adLogin');
+        const isNotHaveChannel = !userInfo.data.channels
+        const isAdUser = userInfo.socialProviders.split(',').includes('saml-samsung-ad');
+        const params = new URLSearchParams(location.search);
+        const isAdLogin = params.get('adLogin');
+        const isBtpLogin = params.get('channel') === 'btp';
 
-        switch (APPROVAL_STATUS) {
-          case 'approved' || 'inactive':
-            if (isAdLogin) signInSession.UID = response.data.results[0].UID;
-            return;
-          case 'pending':
-            debugger;
-            return location.assign(`/approval-status-error?approvalStatus=pending`);
-          case 'emp-pending':
-            debugger;
-            return location.assign(`/approval-status-error?approvalStatus=emp-pending`);
-          case 'disabled':
-            debugger;
-            return location.assign(`/approval-status-error?approvalStatus=disabled`);
-          default:
-            const SFDC = ['e2e', 'ets', 'partnerhub', 'mmp', 'edo'];
+        if (isNotHaveChannel && (isAdUser || isAdLogin)) {
+          debugger;
+          return redirectNewChannel_JAVA_AD({UID: userInfo.UID});
+        }
 
-            if (isAdLogin || isAdUser) {
-              signInSession.UID = response.data.results[0].UID;
-              return newChannelRegister({UID: response.data.results[0].UID});
-            }
+        const APPROVAL_STATUS = userInfo.data.channels[CHANNEL]?.approvalStatus;
 
-            if (USER_STATUS === 'active') {
+        if (USER_STATUS === 'active' || USER_STATUS === 'inactive') {
+          debugger;
+          if (isBtpLogin) return;
+          debugger;
+          switch (APPROVAL_STATUS) {
+            case 'approved':
+              await axios.post('/setAccountStatus', {
+                uid: getItemWithExpiry('user_uid'),
+                channel: new URLSearchParams(location.search).get('channel'),
+              })
+              return;
+            case 'inactive':
+              await axios.post('/setAccountStatus', {
+                uid: getItemWithExpiry('user_uid'),
+                channel: new URLSearchParams(location.search).get('channel'),
+              })
+              return;
+            case 'pending':
+              debugger;
+              return location.assign(`/approval-status-error?approvalStatus=pending`);
+            case 'emp-pending':
+              debugger;
+              return location.assign(`/approval-status-error?approvalStatus=emp-pending`);
+            case 'disabled':
+              debugger;
+              return location.assign(`/approval-status-error?approvalStatus=disabled`);
+            default:
+              debugger;
+              const SFDC = ['e2e', 'ets', 'partnerhub', 'mmp', 'edo'];
+
+              if (isAdUser) return redirectNewChannel_JAVA_AD({UID: userInfo.UID});
+
               if (SFDC.includes(CHANNEL)) return location.assign(`${HOST_URL.php}`);
-              return ssoAccess();
-            }
-
-            return location.assign(`/approval-status-error?approvalStatus=pending`);
+              return redirectExpandChannel_JAVA(userInfo.UID, CHANNEL);
+          }
+        }
+        else {
+          debugger;
+          return location.assign(`/approval-status-error?approvalStatus=disabled`);
         }
       }
 
-      function ssoAccess() {
+      function redirectExpandChannel_JAVA(uid, channel) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `${HOST_URL.java}/new-channel/ssoAccess`;
@@ -95,8 +130,10 @@
 
         uidInput.type = 'hidden';
         uidInput.name = 'cdc_uid';
+        uidInput.value = uid;
         channelInput.type = 'hidden';
         channelInput.name = 'targetChannel';
+        channelInput.value = channel;
 
         form.appendChild(uidInput);
         form.appendChild(channelInput);
@@ -106,7 +143,8 @@
         return form.submit();
       }
 
-      function newChannelRegister({UID}) {
+      function redirectNewChannel_JAVA_AD({UID}) {
+        // const regToken = new URLSearchParams(location.search).get('regToken') ?? false;
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `${HOST_URL.java}/new-channel/register/${CHANNEL}`;
@@ -116,12 +154,11 @@
 
         regTokenInput.type = 'hidden';
         regTokenInput.name = 'regToken';
+        // if (regToken) regTokenInput.value = regToken;
 
         adCdcUidInput.type = 'hidden';
         adCdcUidInput.name = 'adCdcUid';
         adCdcUidInput.value = UID;
-        console.log(UID);
-        console.log(adCdcUidInput.value)
 
         form.appendChild(regTokenInput);
         form.appendChild(adCdcUidInput);

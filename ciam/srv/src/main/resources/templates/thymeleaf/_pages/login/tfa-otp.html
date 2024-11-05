@@ -30,6 +30,8 @@
     <script src="/_apis/samsung/samsung.js"></script>
     <script src="/_apis/gigya/ERROR_CODES.js"></script>
     <script src="/_apis/gigya/continueSSO.js"></script>
+    <script src="/_apis/localStorage.js"></script>
+    <script src="/_apis/_instance/setupBaseURL.js"></script>
 
     <script src="/_pages/login/sign-in-session.js"></script>
     <script src="/_pages/login/components/show-login-page-response-messages.js"></script>
@@ -43,8 +45,6 @@
       const GIGYA_PARENT_KEYS = [[${parentKeys}]];
       const HOST_URL = [[${hostUrl}]];
       const CHANNEL = [[${channel}]];
-      const isAdLogin = new URLSearchParams(location.search).get('adLogin');
-      const isBtpLogin = CHANNEL === 'btp';
       let isRegisteredQR;
 
       async function handleSubmitForm() {
@@ -58,50 +58,13 @@
           // QR 등록 되어 있는 경우
           if(isRegisteredQR) {
             await accounts.tfa.totp.verify({code});
-            // AD 로그인 인 경우
-            if(isAdLogin) {
-              const data = await samsung.updateUserRecord();
-              await accounts.search({
-                query: `SELECT data, profile, UID
-                  from accounts
-                  WHERE UID = '${data.UID}'`,
-                updateUserRecord: false,
-              })
-            }
-            // AD 로그인이 아닌 경우
-            else {
-              await accounts.search({
-                query: `SELECT data, profile, UID
-                    from accounts
-                    WHERE UID = '${signInSession.UID}'`,
-                updateUserRecord: false,
-              })
-            }
+            await samsung.updateUserRecord();
             await accounts.tfa.finalizeTFA();
             await accounts.finalizeRegistration();
           }
-          // QR 등록 되어 있지 않은 경우
           else {
             await accounts.tfa.totp.verify({code, sctToken: signInSession.sctToken});
-            // AD 로그인 인 경우
-            if(isAdLogin) {
-              const data = await samsung.updateUserRecord();
-              await accounts.search({
-                query: `SELECT data, profile, UID
-                  from accounts
-                  WHERE UID = '${data.UID}'`,
-                updateUserRecord: false,
-              })
-            }
-            // AD 로그인이 아닌 경우
-            else {
-              await accounts.search({
-                query: `SELECT data, profile, UID
-                    from accounts
-                    WHERE UID = '${signInSession.UID}'`,
-                updateUserRecord: true,
-              })
-            }
+            await samsung.updateUserRecord();
             await socialize.notifyLogin();
           }
         } catch(err) {
@@ -114,8 +77,11 @@
 
       document.addEventListener('DOMContentLoaded', async function () {
         showLoadingSpinner();
-        samsungInstance.defaults.baseURL = samsungInstanceURL;
-        gigyaInstance.defaults.baseURL = gigyaInstanceURL;
+
+        setupBaseURL({
+          gigyaURL: gigyaInstanceURL,
+          samsungURL: samsungInstanceURL
+        })
 
         const form = document.querySelector('.form');
         const submitButton = document.querySelector('#formSubmitButton');
