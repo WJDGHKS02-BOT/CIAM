@@ -33,6 +33,25 @@ import java.util.stream.Collectors;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+/**
+ * 1. FileName   : WFCreateService.java
+ * 2. Package    : com.samsung.ciam.services
+ * 3. Comments   : 다양한 워크플로우 생성 및 승인 로직을 처리하는 서비스 클래스
+ * 4. Author     : 서정환
+ * 5. DateTime   : 2024. 11. 04.
+ * 6. History    :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date         | Name           | Comment
+ * <p>
+ * -------------  -----------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.       | 서정환           | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
+
 @Slf4j
 @Service
 public class WFCreateService {
@@ -60,6 +79,26 @@ public class WFCreateService {
 // W06	SSO Access 승인
 // W07	Company Domain 승인
 
+    /*
+     * 1. 메소드명: wfCreate
+     * 2. 클래스명: WFCreateService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    워크플로우 데이터를 생성하여 결재 라인을 구성하고, 승인 상태에 따라 CDC 계정 업데이트를 처리하는 메소드
+     * 2. 사용법
+     *    세션과 워크플로우 데이터 맵을 입력받아 결재 라인을 생성하며, 워크플로우 ID를 반환
+     * 3. 예시 데이터
+     *    - Input: 세션과 wfData(Map), 예) {"workflow_code": "W01", "channel": "samsung"}
+     *    - Output: 생성된 워크플로우 ID (ex: "20241104_0001")
+     * </PRE>
+     * @param session 현재 세션 정보
+     * @param wfData 워크플로우 생성에 필요한 데이터
+     * @return 생성된 워크플로우 ID
+     */
     public String wfCreate(HttpSession session, Map<String, String> wfData){
         ObjectMapper objectMapper = new ObjectMapper();
         String wf_id = "";
@@ -67,6 +106,8 @@ public class WFCreateService {
             log.warn("WFCreate !!!!!!! Start {}", wfData );
             wf_id = wfIdGeneratorService.generateNewWfId();
             log.warn("WF_ID real:?? {}", wf_id);
+
+            // 세션에서 UID와 이메일 정보 가져오기
             String UID = (String) session.getAttribute("cdc_uid");
             String cdc_email = (String) session.getAttribute("cdc_email");
             String workflow_code = StringUtil.getStringValue(wfData.get("workflow_code"), "W01");
@@ -79,7 +120,7 @@ public class WFCreateService {
             String subsidiary = StringUtil.getStringValue(wfData.get("subsidiary"), "");
             String division =   StringUtil.getStringValue(wfData.get("division"), "");
             String rule_master_id = "";
-            String approveFormat = "auto"; // auto로 한번 고정되면 바꾸지말것! 전체 auto or 전체 self
+            String approveFormat = "auto"; // // 승인 형식 기본값 "auto" -> auto로 한번 고정되면 바꾸지말것! 전체 auto or 전체 self
 
             // domain request에서 사용하는 파라메터 
             String requestor_uid =   StringUtil.getStringValue(wfData.get("requestor_uid"), "");
@@ -103,7 +144,7 @@ public class WFCreateService {
                 cdc_email = requestor_email;
             }
             
-            int stage = 1; // 최대 Stage
+            int stage = 1; // 기본 결재 단계 초기화 -> 최대 Stage
             int wf_max_level = 1; // 최대 결재 레벨
             int wf_level = 1; // 현재 결재 레벨
         
@@ -115,8 +156,10 @@ public class WFCreateService {
             
             // 1. approval_rule_master 테이블과 approval_rule을 join해서 rule_master_id, stage, role ~~ 가져온다.
             try {
+                // 1. 결재 규칙 목록 조회
                 RuleList = wfMasterRepository.searchRule(channel, workflow_code, country, subsidiary, division);
 
+                // 첫 번째 규칙 정보 가져오기
                 Map<String, Object> stage_result = RuleList.get(0);
                 log.info("stage_result: {}", stage_result );
                 for (Map.Entry<String, Object> entry : stage_result.entrySet()) {
@@ -150,7 +193,7 @@ public class WFCreateService {
                             ", Approve Format: " + approveFormat + ", rule_master_id: " + rule_master_id);
 
 
-                    // 2. stage가 1인 경우 wf_max_level = 1로 변경하고 Rule Lv 순서대로 결재자 찾기. 자동승인 고려
+                    // 2. 결재 규칙에 따라 결재자 목록 조회 -> stage가 1인 경우 wf_max_level = 1로 변경하고 Rule Lv 순서대로 결재자 찾기. 자동승인 고려
                     switch (role) {
                         case "PA": // Partner Admin
                         TempwfList = wfMasterRepository.searchPA(channel, company_code, rule_master_id, rule_level);
@@ -176,7 +219,7 @@ public class WFCreateService {
                         default:
                             log.info("No matching role found.");
                     }
-                    // TempwfList에서 필요한 데이터만 추출하여 wfList에 추가
+                    // TempwfList에 데이터가 있을 경우, 단계(now_stage)를 증가시키고 wfList에 추가 -> TempwfList에서 필요한 데이터만 추출하여 wfList에 추가
                     if (TempwfList != null && !TempwfList.isEmpty()) {
                         now_stage++; // 걸린 Data가 있다면 stage를 1개씩 늘려준다. 
                         for (Map<String, Object> entry : TempwfList) {
@@ -200,7 +243,7 @@ public class WFCreateService {
                     }
    
                 }
-                // For 문장 끝난 이후, 결재 Data가 들어왔으면 결재선을 만들어준다. 
+                // 워크플로우 유형별 처리 -> For 문장 끝난 이후, 결재 Data가 들어왔으면 결재선을 만들어준다.
                 //now_stage = wf_max_level : stage의 최대값임.
                 switch (workflow_code) {
                     case "W01": // W01 신규유저가입
@@ -418,12 +461,38 @@ public class WFCreateService {
         return wf_id;
     }
 
+    /**
+     * 1. 메소드명: cdcUserUpdate
+     * 2. 클래스명: WFCreateService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    지정된 UID와 채널에 대해 CDC 사용자 정보를 업데이트하며, 승인 상태와 최종 로그인 시간을 설정하는 메소드.
+     * 2. 사용법
+     *    UID와 채널명, 승인 상태를 입력받아 해당 사용자의 CDC 데이터를 업데이트하고, 성공 여부를 반환함.
+     * 3. 예시 데이터
+     *    - Input: UID = "12345", channel = "samsung", approvalStatus = "approved"
+     *    - Output: "ok" (업데이트 성공 시) 또는 "failed" (업데이트 실패 시)
+     * </PRE>
+     *
+     * @param uid CDC 사용자 고유 ID
+     * @param channel 업데이트할 채널 이름
+     * @param approvalStatus 승인 상태 (예: "approved" 또는 "pending")
+     * @return 업데이트 성공 시 "ok", 실패 시 "failed"
+     */
     private String cdcUserUpdate(String uid,  String channel, String approvalStatus){
         ObjectMapper objectMapper = new ObjectMapper();
         Optional<Channels> optionalChannelObj = channelRepository.selectByChannelName(channel);
         Map<String, Object> dataFields = new HashMap<>();
         Map<String, Object> cdcParams = new HashMap<>();
+
+        // UID 설정
         cdcParams.put("UID", uid);
+
+        // 채널의 승인 상태와 날짜를 포함하여 데이터 필드 생성
         dataFields.put("channels", Map.of(
             channel, Map.of(
                     "approvalStatus", approvalStatus,
@@ -432,12 +501,16 @@ public class WFCreateService {
             )
         ));
         try {
+            // dataFields를 JSON 문자열로 변환하여 cdcParams에 추가
             cdcParams.put("data", objectMapper.writeValueAsString(dataFields));
         } catch (Exception e) {
             log.error("Error processing data fields", e);
         }
+        // CDC 계정 정보 업데이트 요청 전송
         GSResponse setAccountResponse = gigyaService.executeRequest("default", "accounts.setAccountInfo", cdcParams);
         log.info("CDCsetAccountInfo: {}", setAccountResponse.getResponseText());
+
+        // 업데이트 성공 시 "ok" 반환, 실패 시 "failed" 반환
         if (setAccountResponse.getErrorCode() == 0) {
             return "ok";
         } else {

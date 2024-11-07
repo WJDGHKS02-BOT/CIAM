@@ -3,55 +3,73 @@ package com.samsung.ciam.models;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * 1. 파일명   : VerificationDomain.java
+ * 2. 패키지   : com.samsung.ciam.models
+ * 3. 설명     : 재직인증 도메인 관리 테이블 (JPA)
+ * 4. 작성자   : 서정환
+ * 5. 작성일자 : 2024. 11. 04.
+ * 6. 히스토리 :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * 날짜         | 이름         | 설명
+ * <p>
+ * -------------|--------------|------------------------------------
+ * <p>
+ * 2024. 11. 04 | 서정환       | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Entity
 @Table(name = "verification_domains")
 public class VerificationDomain {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; //고유 식별자
 
     @Column(name = "channel")
-    private String channel;
+    private String channel; //채널
 
     @Column(name = "email_domain")
-    private String emailDomain;
+    private String emailDomain; //이메일 메인
 
     @Column(name = "status")
-    private String status;
+    private String status; //도메인 상태값
 
     @Column(name = "bpid")
-    private String bpid;
+    private String bpid; //회사코드
 
     @Column(name = "bp_name")
-    private String bpName;
+    private String bpName; //회사명
 
     @Column(name = "requestor_uid")
-    private String requestorUid;
+    private String requestorUid; //요청자 ID
 
     @Column(name = "requestor_email")
-    private String requestorEmail;
+    private String requestorEmail; //요청자 이메일
 
     @Column(name = "requestor_role")
-    private String requestorRole;
+    private String requestorRole; //요청자 ROLE
 
     @Column(name = "request_date")
-    private LocalDateTime requestDate;
+    private LocalDateTime requestDate; //요청일
 
     @Column(name = "approval_date")
-    private LocalDateTime approvalDate;
+    private LocalDateTime approvalDate; //승인날짜
 
     @Column(name = "approver_name")
-    private String approverName;
+    private String approverName; //승인자명
 
     @Column(name = "approver_email")
-    private String approverEmail;
+    private String approverEmail; //승인자 이메일
 
     @Column(name = "approver_uid")
-    private String approverUid;
+    private String approverUid; //승인자 UID
 
     @Column(name = "reject_reason")
-    private String rejectReason;
+    private String rejectReason; //반려 사유
 
     // Getters and Setters
 

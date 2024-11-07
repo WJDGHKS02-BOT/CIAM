@@ -3,31 +3,49 @@ package com.samsung.ciam.models;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * 1. 파일명   : SfdcProduct.java
+ * 2. 패키지   : com.samsung.ciam.models
+ * 3. 설명     : SFCC 필드 관리 테이블 (JPA) -> 실제 비즈니스 로직에 사용 X
+ * 4. 작성자   : 서정환
+ * 5. 작성일자 : 2024. 11. 04.
+ * 6. 히스토리 :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * 날짜         | 이름         | 설명
+ * <p>
+ * -------------|--------------|------------------------------------
+ * <p>
+ * 2024. 11. 04 | 서정환       | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Entity
 @Table(name = "sfdc_products")
 public class SfdcProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; //고유 식별자
 
     @Column(name = "subsidiary")
-    private String subsidiary;
+    private String subsidiary; //법인코드
 
     @Column(name = "level")
-    private String level;
+    private String level; //레벨
 
     @Column(name = "product_category")
-    private String productCategory;
+    private String productCategory; //카테고리
 
     @Column(name = "product_name")
-    private String productName;
+    private String productName; //필드 이름
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; //등록일시
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt; //수정일시
 
     // Getters and Setters
 

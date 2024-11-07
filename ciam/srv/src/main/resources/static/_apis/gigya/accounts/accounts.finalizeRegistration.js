@@ -16,6 +16,8 @@ async function accounts_finalizeRegistration() {
         return response;
       case ERROR_CODES.accounts.PENDING:
         return location.assign(`/approval-status-error?approvalStatus=pending`);
+      case ERROR_CODES.accounts.REQUIRED_PASSWORD_CHANGE:
+        return showLoginPageResponseMessages('accounts.REQUIRED_PASSWORD_CHANGE');
       default:
         return showLoginPageResponseMessages('all.INVALID_LOGIN_REQUEST');
     }

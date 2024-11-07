@@ -5,75 +5,93 @@ import java.time.ZoneId;
 
 import jakarta.persistence.*;
 
+/**
+ * 1. 파일명   : NewCompany.java
+ * 2. 패키지   : com.samsung.ciam.models
+ * 3. 설명     : CMDM 새 회사 등록 관리 테이블 (JPA)
+ * 4. 작성자   : 서정환
+ * 5. 작성일자 : 2024. 11. 04.
+ * 6. 히스토리 :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * 날짜         | 이름         | 설명
+ * <p>
+ * -------------|--------------|------------------------------------
+ * <p>
+ * 2024. 11. 04 | 서정환       | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Entity
 @Table(name = "new_companies")
 public class NewCompany {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; //고유 식별자
 
     @Column(name = "bpid")
-    private String bpid;
+    private String bpid; //BP ID
 
     @Column(name = "bizregno1")
-    private String bizRegNo1;
+    private String bizRegNo1; //사업자 등록번호1
 
     @Column(name = "bizregno02")
-    private String bizRegNo02;
+    private String bizRegNo02; //사업자 등록번호2
 
     @Column(name = "channeltype")
-    private String channelType;
+    private String channelType; //채널 유형
 
     @Column(name = "ciscode")
-    private String cisCode;
+    private String cisCode; //CIS 코드
 
     @Column(name = "city")
-    private String city;
+    private String city; //도시명
 
     @Column(name = "city_gl")
-    private String cityGl;
+    private String cityGl; //글로벌 도시명
 
     @Column(name = "companycode")
-    private String companyCode;
+    private String companyCode; //회사코드
 
     @Column(name = "country")
-    private String country;
+    private String country; //국가
 
     @Column(name = "\"source\"")
-    private String source;
+    private String source; //출처
 
     @Column(name = "description")
-    private String description;
+    private String description; //설명
 
     @Column(name = "district_gl")
-    private String districtGl;
+    private String districtGl; //글로벌 구역
 
     @Column(name = "dunsno")
-    private String dunsNo;
+    private String dunsNo; //DUNS번호
 
     @Column(name = "email")
-    private String email;
+    private String email; //이메일
 
     @Column(name = "name_gl")
-    private String nameGl;
+    private String nameGl; //글로벌명
 
     @Column(name = "faxno")
-    private String faxNo;
+    private String faxNo; //팩스번호
 
     @Column(name = "industry_type")
-    private String industryType;
+    private String industryType; //회사 특화필드
 
     @Column(name = "\"industryType1\"")
-    private String industryType1;
+    private String industryType1; //회사 특화필드1
 
     @Column(name = "\"industryType2\"")
-    private String industryType2;
+    private String industryType2; //회사 특화필드2
 
     @Column(name = "\"name\"")
-    private String name;
+    private String name; //조직명
 
     @Column(name = "\"orgId\"")
-    private String orgId;
+    private String orgId; //
 
     @Column(name = "phonenumber1")
     private String phoneNumber1;
@@ -88,64 +106,64 @@ public class NewCompany {
     private String productLists;
 
     @Column(name = "\"productCategoryLists\"")
-    private String productCategoryLists;
+    private String productCategoryLists; //
 
     @Column(name = "regch")
-    private String regCh;
+    private String regCh; //대표자
 
     @Column(name = "representative")
-    private String representative;
+    private String representative; //상태
 
     @Column(name = "state")
-    private String state;
+    private String state; //주
 
     @Column(name = "status")
-    private String status;
+    private String status; //상태
 
     @Column(name = "street_address")
-    private String streetAddress;
+    private String streetAddress; //도로명 주소
 
     @Column(name = "street_gl")
-    private String streetGl;
+    private String streetGl; //글로벌 도로명 주소
 
     @Column(name = "\"type\"")
-    private String type;
+    private String type; //유형
 
     @Column(name = "vatno")
-    private String vatNo;
+    private String vatNo; //회사 부가가치 번호
 
     @Column(name = "vendorcode")
-    private String vendorCode;
+    private String vendorCode; //회사 vendorcode
 
     @Column(name = "accountwebsite")
-    private String accountWebsite;
+    private String accountWebsite; //웹사이트
 
     @Column(name = "zip_code")
-    private String zipCode;
+    private String zipCode; //우편번호
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; //생성일시
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt; //수정일시
 
     @Column(name = "bpid_in_cdc")
-    private String bpidInCdc;
+    private String bpidInCdc; //CDC bpID
 
     @Column(name = "\"mtLicense\"")
-    private String mtLicense;
+    private String mtLicense; //MT 라이센스
 
     @Column(name = "\"mtStartDate\"")
-    private String mtStartDate;
+    private String mtStartDate; //MT 시작일
 
     @Column(name = "\"mtEndDate\"")
-    private String mtEndDate;
+    private String mtEndDate; //MT 종료일
 
     @Column(name = "region")
-    private String region;
+    private String region; //지역
 
     @Column(name = "subsidiary")
-    private String subsidiary;
+    private String subsidiary; //법인코드
 
     // Getters and Setters
 

@@ -635,7 +635,6 @@ public class ApprovalListService {
                     // wf_master 상태 업데이트
                     wfMasterRepository.updateW01WfMaster(uid, wf_id, cdc_email, W01change_role,  status, reject_reason, wf_level);
                     status = "disabled"; //CDC disabled : 승인 요청 반려 시
-                    String cdcUpdate = cdcUserUpdate(requestor_id,requestor_email, channel, status , adminType );// CDC Data를 Update 해준다.
 
                     log.info("reject mail: requestor_uid"+requestor_uid +" requestor_id:"+requestor_id );
 
@@ -652,8 +651,8 @@ public class ApprovalListService {
                     paramArr.put("lastName", CDCUser.get("profile").get("lastName") != null ? CDCUser.get("profile").get("lastName").asText() : "");
                     // 반려인 경우 Mail 발송 
                     mailService.sendMail(paramArr);
-            
 
+                    String cdcUpdate = cdcUserUpdate(requestor_id,requestor_email, channel, status , adminType );// CDC Data를 Update 해준다.
 
                     redirectAttributes.addFlashAttribute("cdcUserUpdate", cdcUpdate);
                     redirectAttributes.addFlashAttribute("responseErrorCode", 0);   // 성공코드 반환

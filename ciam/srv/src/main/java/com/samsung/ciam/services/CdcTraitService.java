@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.gigya.socialize.GSRequest;
 import com.gigya.socialize.GSResponse;
 import com.samsung.ciam.common.cpi.enums.CpiResponseFieldMapping;
 import com.samsung.ciam.common.cpi.service.CpiApiService;
@@ -24,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -41,6 +39,25 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+
+/**
+ * 1. FileName	: CdcTraitService.java
+ * 2. Package	: <insert package name here if applicable>
+ * 3. Comments	: CDC 통신과 관련된 메소드를 수행
+ * 4. Author	: 서정환
+ * 5. DateTime	: 2024. 11. 04.
+ * 6. History	:
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date		 | Name			| Comment
+ * <p>
+ * -------------  -----------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.	 | 서정환		| 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 
 @Slf4j
 @Service
@@ -84,22 +101,37 @@ public class CdcTraitService {
     private ChannelAddFieldRepository channelAddFieldRepository;
 
     @Autowired
-    private WfMasterRepository wfMasterRepository;
-
-    @Autowired
-    private WfIdGeneratorService wfIdGeneratorService;
-
-    @Autowired
     private ApprovalAdminRepository approvalAdminRepository;
 
-
+    /*
+     * 1. 메소드명: getCdcUser
+     * 2. 클래스명: CdcTraitService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    CDC 사용자 정보 조회->프로필,데이터,약관동의내용
+     * 2. 사용법
+     *    조회하고싶은 사용자 UID 전달하여 사용
+     * 3. 예시 데이터
+     *    - Input: uid = "21312312"
+     *    - Output: CDC 사용자 정보 값
+     * </PRE>
+     * @param  uid 사용자 UID
+     * @param  retryCnt 재시도횟수
+     * @return JSON 형태의 CDC 사용자 정보
+     */
     public JsonNode getCdcUser(String uid, int retryCnt) {
         Map<String, Object> cdcParams = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
+        //CDC 요청 파라미터 설정 -> 조회하고싶은 필드들 설정
         cdcParams.put("UID", uid);
         cdcParams.put("include", "identities-active,identities-all,identities-global, loginIDs, emails, profile, data, password, lastLoginLocation, regSource, irank, rba, subscriptions, userInfo, preferences");
         cdcParams.put("extraProfileFields", "languages,address,phones, education, honors, publications, patents, certifications, professionalHeadline, bio, industry, specialties, work, skills, religion, politicalView, interestedIn, relationshipStatus, hometown, favorites, followersCount, followingCount, username, locale, verified, timezone, likes, samlData");
 
+        //GIGYA활용하여 Account정보 조회 API 호출
         GSResponse response = gigyaService.executeRequest("default", "accounts.getAccountInfo", cdcParams);
 
         try {
@@ -130,12 +162,36 @@ public class CdcTraitService {
         }
     }
 
+    /*
+     * 1. 메소드명: consentSelector
+     * 2. 클래스명: CdcTraitService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    BTP 약관 정보 조회
+     * 2. 사용법
+     *
+     * 3. 예시 데이터
+     *    - Input: String uid, String channel, String language, String subsidiary
+     *    - Output: 동의해야할 약관 정보
+     * </PRE>
+     * @param uid 사용자 UID
+     * @param channel 약관 조회 채널
+     * @param language 약관 조회 언어
+     * @param subsidiary 약관 조회 법인
+     * @return 약관 정보가 담긴 MAP
+     */
     public Map<String, Object> consentSelector(String uid, String channel, String language, String subsidiary) {
+        //UID에 해당하는 CDC정보조회
         JsonNode accUser = getCdcUser(uid, 0);
         if (accUser == null || !accUser.has("profile") || !accUser.path("profile").has("country")) {
             log.error("User does not have country!");
         }
 
+        //CDC계정의 국자정보 조회
         String secCountry = accUser.path("profile").path("country").asText();
         String termsCommon = "";
         String termsChannel = "";
@@ -148,21 +204,25 @@ public class CdcTraitService {
         String commonTermContentId = "";
         String termsCommonText = "";
 
+        //약관 COMMON TERMS 유형 법인조건으로 조회 -> 미존재시 법인정보 ALL조회
         Consent commonTerm = Optional.ofNullable(consentRepository.selectLatestTermsByCoverageAndCountrySubsidiary("common", secCountry, subsidiary))
                 .orElseGet(() -> consentRepository.selectLatestTermsByCoverageAndCountrySubsidiary("common", secCountry, "ALL"));
 
+        //약관 COMMON TERMS 유형 국가 조건으로만 조회
         commonTerm = Optional.ofNullable(commonTerm)
                 .orElseGet(() -> consentRepository.selectLatestTermsByCoverageAndCountry("common", secCountry));
 
         if (commonTerm != null) {
             commonTermConsentId = String.valueOf(commonTerm.getId());
             termsCommon = commonTerm.getCdcConsentId();
+            //약관 컨텐츠 조회 -> 게시된 published만 조회
             ConsentContent termsCommonContent = consentContentRepository.selectLatestByConsentIdAndLanguageIdAndStatusId(commonTerm.getId(), language, "published");
 
             if (termsCommonContent != null) {
                 commonTermContentId = String.valueOf(termsCommonContent.getId());
                 termsCommonText = termsCommonContent.getContent();
             } else {
+                //약관 컨텐츠 미존재시 기본언어로 세팅된 언어로 조회
                 termsCommonContent = consentContentRepository.selectLatestByConsentIdAndLanguagePublishedId(commonTerm.getId(), commonTerm.getDefaultLanguage());
                 if (termsCommonContent != null) {
                     commonTermContentId = String.valueOf(termsCommonContent.getId());
@@ -173,10 +233,12 @@ public class CdcTraitService {
                 ;
             }
         } else {
+            //약관 COMMON TERMS 우형 미존재시 기본 TERMS 조회
             commonTerm = consentRepository.selectFirstByCoverageAndType("common", "terms");
             if (commonTerm != null) {
                 commonTermConsentId = String.valueOf(commonTerm.getId());
                 termsCommon = commonTerm.getCdcConsentId();
+                //약관 컨텐츠 조회 -> 기본언어로 세팅된 언어로 조회
                 ConsentContent termsCommonContentDef = consentContentRepository.selectLatestByConsentIdAndLanguageIdAndStatusId(commonTerm.getId(), commonTerm.getDefaultLanguage(), "published");
 
                 if (termsCommonContentDef != null) {
@@ -190,29 +252,30 @@ public class CdcTraitService {
             }
         }
 
-        // Get channel terms
-
-
         String channelTermsConsentId = "";
         String channelTermsContentId = "";
         String termsChannelText = "";
 
+        //약관 CHANNEL TERMS 유형 법인조건으로 조회 -> 미존재시 법인정보 ALL조회
         Consent channelTerms = Optional.ofNullable(
                         consentRepository.selectLatestTermsByCoverageAndCountrySubsidiary(channel, secCountry, subsidiary))
                 .orElseGet(() -> consentRepository.selectLatestTermsByCoverageAndCountrySubsidiary(channel, secCountry, "ALL"));
 
+        //약관 CHANNEL TERMS 유형 국가 조건으로만 조회
         channelTerms = Optional.ofNullable(channelTerms)
                 .orElseGet(() -> consentRepository.selectByCoverageAndCountryAndType(channel, secCountry));
 
         if (channelTerms != null) {
             channelTermsConsentId = String.valueOf(channelTerms.getId());
             termsChannel = channelTerms.getCdcConsentId();
+            //약관 컨텐츠 조회 -> 게시된 published만 조회
             ConsentContent termsChannelContent = consentContentRepository.selectLatestByConsentIdAndLanguageIdAndStatusId(channelTerms.getId(), language, "published");
 
             if (termsChannelContent != null) {
                 channelTermsContentId = String.valueOf(termsChannelContent.getId());
                 termsChannelText = termsChannelContent.getContent();
             } else {
+                //약관 컨텐츠 미존재시 기본언어로 세팅된 언어로 조회
                 termsChannelContent = consentContentRepository.selectLatestByConsentIdPublishedId(channelTerms.getId());
                 if (termsChannelContent != null) {
                     channelTermsContentId = String.valueOf(termsChannelContent.getId());
@@ -288,7 +351,6 @@ public class CdcTraitService {
             }
         }
 
-        // Get channel privacy
         // Get channel privacy
         Consent channelPrivacy = Optional.ofNullable(
                         consentRepository.selectLatestTermsByCoverageAndCountrySubsidiaryPrivacy(channel, secCountry, subsidiary))
@@ -394,6 +456,7 @@ public class CdcTraitService {
             }
         }
 
+        //약관정보 셋팅
         Map<String, Object> returnArray = new HashMap<>();
         returnArray.put("marketingCommon", marketingCommon);
         returnArray.put("marketingCommonText", marketingCommonText);
@@ -419,57 +482,6 @@ public class CdcTraitService {
 
         return returnArray;
     }
-
-    /*public int consentResponseUpdated(Long consentId, Long contentId, String uid) {
-        try {
-            UserAgreedConsents termsAgreed = UserAgreedConsents.builder()
-                    .consentId(consentId)
-                    .consentContentId(contentId)
-                    .uid(uid)
-                    .status("agreed")
-                    .build();
-            userAgreedConsentsRepository.save(termsAgreed);
-            return 0;
-        } catch (Exception e) {
-            log.error("consent response update failed: " + e.getMessage());
-            return 1;
-        }
-    }*/
-
-
-
-
-    /*public void getApprovalFlow(String param, String uid, String approvalType) {
-        JsonNode cdcUser = getCdcUser(uid, 0);
-
-        ChannelApprovalStatuses channelApprovalStatuses = new ChannelApprovalStatuses();
-        channelApprovalStatuses.setLoginId(cdcUser.get("profile").get("username").asText());
-        channelApprovalStatuses.setLoginUid(cdcUser.get("UID").asText());
-        channelApprovalStatuses.setChannel(param);
-        //channelApprovalStatuses.setChannelApproverId((String) channelApprovalStatusesData.get("channel_approver_id"));
-        //channelApprovalStatuses.setApprovalLine((String) channelApprovalStatusesData.get("approval_line"));
-        channelApprovalStatuses.setMatchType("catchAll");
-        channelApprovalStatuses.setRequestType(approvalType);
-        //channelApprovalStatuses.setStatus("approved");
-        //2024.07.11 kimjy pending 수정
-        channelApprovalStatuses.setStatus("pending");
-        if("conversion".equals(approvalType)) {
-            channelApprovalStatuses.setApproverName("Auto Approved");
-        } else {
-            channelApprovalStatuses.setApproverName("");
-        }
-        channelApprovalStatuses.setApproverEmail("");
-        channelApprovalStatuses.setApproverUid("");
-        JsonNode profileNode = cdcUser.get("profile");
-        JsonNode dataNode = profileNode != null ? profileNode.get("data") : null;
-        String subsidiary = dataNode != null && dataNode.get("subsidiary") != null ? dataNode.get("subsidiary").asText() : null;
-
-        if (subsidiary != null) {
-            channelApprovalStatuses.setSubsidiary(subsidiary);
-        }
-        channelApprovalStatusesRepository.save(channelApprovalStatuses);
-
-    }*/
 
     public int getApprovalFlow(String param, String uid, String approvalType, String channel, boolean isSamsungEmployee) {
         String mailtemplate = ("invitation".equals(approvalType)) ? "TEMPLET-009" : "TEMPLET-002";
@@ -1194,50 +1206,6 @@ public class CdcTraitService {
 
     public void setAdminSession(HttpSession session) {
         String myRole = "General User";
-//        Boolean isCompanyAdmin = (Boolean) session.getAttribute("cdc_companyadmin");
-//        Boolean isCIAMAdmin = (Boolean) session.getAttribute("cdc_ciamadmin");
-//
-//        if (Boolean.TRUE.equals(isCompanyAdmin)) {
-//            myRole = "CompanyAdmin";
-//        } else if (!Boolean.TRUE.equals(isCIAMAdmin) && !Boolean.TRUE.equals(isCompanyAdmin)) {
-//            String cdcUid = (String) session.getAttribute("cdc_uid");
-//            JsonNode accUser = getCdcUser(cdcUid,0);
-//
-//            if (accUser != null && accUser.has("data") && accUser.get("data").has("channels")) {
-//                JsonNode channelsNode = accUser.get("data").get("channels");
-//                Iterator<Map.Entry<String, JsonNode>> fields = channelsNode.fields();
-//
-//                while (fields.hasNext()) {
-//                    Map.Entry<String, JsonNode> entry = fields.next();
-//                    String key = entry.getKey();
-//                    JsonNode channel = entry.getValue();
-//
-//                    if (channel.has("approvalStatus") && "approved".equals(channel.get("approvalStatus").asText())
-//                            && session.getAttribute("session_channel").equals(key)
-//                            && channel.has("adminType")) {
-//
-//                        int adminType = channel.get("adminType").asInt();
-//                        //session.setAttribute("cdc_channeladmin", true);
-//                        //session.setAttribute("cdc_channeladminType", true);
-//
-//                        if (adminType == 1) {
-//                            myRole = "ChannelSystemAdmin";
-//                        } else if (adminType == 2) {
-//                            myRole = "ChannelBusinessAdmin";
-//                        } else if (adminType == 2) {
-//                            myRole = "ChannelBusinessAdmin";
-//                        } else if (adminType == 2) {
-//                            myRole = "ChannelBusinessAdmin";
-//                        } else if (adminType == 2) {
-//                            myRole = "ChannelBusinessAdmin";
-//                        } else {
-//
-//                        }
-//                        break;
-//                    }
-//                }
-//            }
-//        }
 
         String cdcUid = (String) session.getAttribute("cdc_uid");
         JsonNode accUser = getCdcUser(cdcUid,0);
@@ -1245,7 +1213,6 @@ public class CdcTraitService {
         Boolean isCIAMAdmin = Optional.ofNullable(accUser.path("data").path("isCIAMAdmin").asBoolean(false))
                 .orElse(false);
 
-        //추후에 반영할떄는 session.set부분 주석해제 필요
         if(Boolean.TRUE.equals(isCIAMAdmin)) {
             myRole = "CIAM Admin";
             session.setAttribute("cdc_ciamadmin",true);
@@ -1264,10 +1231,7 @@ public class CdcTraitService {
                             && channel.has("adminType")) {
 
                         int adminType = channel.get("adminType").asInt();
-                        //session.setAttribute("cdc_channeladmin", true);
-                        //session.setAttribute("cdc_channeladminType", true);
 
-                        //추후에 반영할떄는 session.set부분 주석해제 필요
                         if (adminType == 1) {
                             myRole = "Channel Admin";
                             session.setAttribute("cdc_channeladmin",true);
@@ -1877,8 +1841,34 @@ public class CdcTraitService {
         }
     }
 
+    /*
+     * 1. 메소드명: newJavaApproveUser
+     * 2. 클래스명: CdcTraitService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    자바 승인 플로우 실행 -> 승인 요청건에 대하여 승인시 호출됨
+     * 2. 사용법
+     *    승인하려는 CDC사용자의 정보 및 가입유형을 파라미터로 전달하여 메소드 호출
+     * 3. 예시 데이터
+     *    - Input: uid = "12312" , bpId = "A123123" , channel = "sba" ,requestType = "registration" , adminType = 0
+     *    - Output: 성공여부 ("ok" , "failed")
+     * </PRE>
+     *
+     * @param uid 가입 UID
+     * @param bpid 가입 사용자의 회사코드
+     * @param channel 가입 채널
+     * @param requestType 가입 유형
+     * @param adminType 부여할 승인
+     * @return 성공여부 문자열 ("ok" , "failed")
+     */
     public String newJavaApproveUser(String uid, String bpid, String channel, String department, String requestType,int adminType) {
         ObjectMapper objectMapper = new ObjectMapper();
+        
+        //가입채널로 채널 정보 조회
         Optional<Channels> optionalChannelObj = channelRepository.selectByChannelName(channel);
         HttpServletRequest requestServlet = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
         HttpSession session = requestServlet.getSession();
@@ -1920,15 +1910,20 @@ public class CdcTraitService {
             log.error("Error processing notifyLogin response", e);
         }
 
+        //CDC 계정정보 조회
         JsonNode account = getCdcUser(uid, 0);
         log.info("user for approval: {}", account.toString());
 
         String companyVendorCode = "";
-
+        
         if (account.has("data") && account.get("data").has("accountID")) {
+            //계정에 설정된 회사코드로 회사정보 조회
             JsonNode company = getB2bOrg(bpid);
 
+            //CDC에 해당 회사코드로 회사정보 존재시
             if (company.has("errorCode") && company.get("errorCode").asInt() == 0) {
+                
+                //CUSTOMER,VENDOR 유형에 따라서 다른 필드로 설정 -> VENDOR : vendorcode, CUSTOMER : bpid
                 if(company.has("type") && !"VENDOR".equals(company.get("type").asText())) {
                     companyVendorCode = company.get("bpid").asText("");
                 } else {
@@ -1936,8 +1931,11 @@ public class CdcTraitService {
                 }
                 log.info("existing company with bpid {} no new creation required", bpid);
             } else {
+                //CDC에 회사 미존재시
                 NewCompany newCompany = null;
                 BtpAccounts btpAccount = null;
+                
+                //BTP 테이블 사용여부에 따라서 다른 회사정보 테이블 조회 -> VENDOR : btp_account테이블 조회, CUSTOMER : newCompany조회
                 if (!useBtpAccount) {
                     newCompany = newCompanyRepository.selectByBpid(account.get("data").get("accountID").asText());
                 } else {
@@ -2009,7 +2007,7 @@ public class CdcTraitService {
                         log.error("Error processing registerOrganization request", e);
                     }
                 } else {
-                    //CMDM관련 로직 X
+                    //테이블에서 회사정보 미존재시 CMDM 회사 정보 조회하여(accountSerach) 회사정보 설정
                     log.info("new company with bpid {} not found, checking in CMDM", bpid);
 
                     // CMDM에서 회사 데이터를 검색하기 위한 파라미터 설정
@@ -2054,6 +2052,7 @@ public class CdcTraitService {
                         try {
                             String organizationJson = objectMapper.writeValueAsString(organization);
 
+                            //회사 CDC 신규등록시 필요한 등록자명 설정
                             Map<String, Object> requester = new HashMap<>();
                             requester.put("firstName", account.get("profile").get("firstName").asText().toUpperCase());
                             requester.put("lastName", account.get("profile").get("lastName").asText().toUpperCase());
@@ -2067,7 +2066,7 @@ public class CdcTraitService {
                             cdcParams.put("requester", requesterJson);
                             cdcParams.put("status", "approved");
 
-                            // CDC에 조직 등록 요청
+                            // CDC에 회사 등록 요청
                             GSResponse registerOrgResponse = gigyaService.executeRequest("default", "accounts.b2b.registerOrganization", cdcParams);
                             log.info("registerOrganization: {}", registerOrgResponse.getResponseText());
 
@@ -2090,14 +2089,16 @@ public class CdcTraitService {
 
         }
 
+        //파라미터 초기화
         cdcParams.clear();
-        // Approve user in channel field
         String contactId = "";
         String accountId = "";
 
+        //CDC 계정정보및 회사정보 조회
         JsonNode accountNode = getCdcUser(uid, 0);
         JsonNode companyNode = getB2bOrg(bpid);
 
+        //채널유형이 CUSTOMER, AD가입이 아닐경우에 실행
         if("CUSTOMER".equals(channelObj.getChannelType()) && !"adRegistration".equals(requestType)) {
 
             if (companyNode.has("type") && !"VENDOR".equals(companyNode.get("type").asText()) && accountNode.path("data").has("accountID")) {
@@ -2105,24 +2106,38 @@ public class CdcTraitService {
 
                 List<Map<String, Object>> cpiResut = new ArrayList<>();
                 Map<String, Object> accountData = objectMapper.convertValue(companyNode, Map.class);
+
+                //CMDM 회사 검색을 위한 CPI URL 조회
                 String url = BeansUtil.getApplicationProperty("cpi.url") + BeansUtil.getApplicationProperty("cpi.accountSerachUrl");
+
                 Map<String,Object> dataMap = new HashMap<String,Object>();
                 dataMap.put("acctid",accountData.get("bpid"));
+
+                //CPI Response 값 설정
                 CpiResponseFieldMapping responseFieldMapping = CpiResponseFieldMapping.fromString(channel);
+
+                //CMDM 회사 검색 -> accountId로 조회
                 cpiResut = cpiApiService.accountSearch(dataMap, url, responseFieldMapping,session);
+
                 boolean isNewCompany = true;
                 isNewCompany = cpiResut.isEmpty();
 
+                //신규회사 여부 체크 -> 가입시 새로 회사 등록한 경우
                 if(isNewCompany) {
                     NewCompany newCompany = newCompanyRepository.selectByBpid(bpid);
+                    
+                    //CMDM 신규회사 등록 CPI 호출
                     Map<String, Object> createdAccount = cpiApiService.createAccount(channel, "Context1", objectMapper.convertValue(companyNode, Map.class), session,newCompany);
 
                     Map<String, Object> accountMap = (Map<String, Object>) createdAccount.get("account");
                     Map<String, Object> wfobj = (Map<String, Object>) createdAccount.get("wfobj");  // 단일 Map으로 처리
 
+                    //CMDM 회사 등록후 생성된 ACCOUNT 정보 조회
                     if (accountMap != null && !accountMap.isEmpty()) {
                         accountId = (String) accountMap.get("acctid");
                         newCompany.setBpidInCdc(accountId);
+
+                        //새로 만들어진 accountID 신규회사 관리테이블에 등록
                         newCompanyRepository.save(newCompany);
 
                         updateAccountID(uid, newCompany.getBpidInCdc());
@@ -2136,19 +2151,23 @@ public class CdcTraitService {
 //                        orgInfo.put("products", newCompany.getProducts());
 //                        orgInfo.put("channeltype", newCompany.getChannelType());
 
-                        // Update organization in CDC
+                        // CDC에 등록된 호사정보 변경
                         updateOrganization(bpid, orgInfo);
 
+                        //권한부여 테이블에 account ID 변경
                         approvalAdminRepository.updateApprovalCompanyCode(uid,accountId);
                     }
                 }
 
-                // createContact 호출하여 새로운 Contact 생성
+                // createContact 호출하여 새로운 Contact 생성 -> Contact생성은 CUSTOMER일때 신규여부 상관없이 무조건 호출
                 Map<String, Object> createdContact = cpiApiService.createContact("Context1", objectMapper.convertValue(accountNode, Map.class), session,channel);
 
                 if (createdContact != null && createdContact.get("contact") instanceof List) {
+
+                    //응답값 타입에 따른 체크 -> LIST OR MAP
                     List<Map<String, Object>> contacts = (List<Map<String, Object>>) createdContact.get("contact");
                     if (!contacts.isEmpty()) {
+                        //만들어진 contactID값 조회
                         contactId = contacts.get(contacts.size() - 1).get("contactid").toString();
                     }
                 } else if (createdContact != null && createdContact.get("contact") instanceof Map) {
@@ -2161,6 +2180,7 @@ public class CdcTraitService {
             }
         }
 
+        //CDC 정보 수정을 위한 파라미터 설정
         cdcParams.put("UID", uid);
         String approvalStatus = "request to join".equals(requestType) ? "inviteSent" : "approved";
         String userStatus = "request to join".equals(requestType) ? "inviteSent" : "active";
@@ -2168,6 +2188,8 @@ public class CdcTraitService {
         Map<String, Object> dataFields = new HashMap<>();
 
         dataFields.put("lastTenureCheck",ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        //채널정보 설정
         dataFields.put("channels", Map.of(
                 channel, Map.of(
                         "adminType", adminType,
@@ -2177,6 +2199,8 @@ public class CdcTraitService {
                 )
         ));
         dataFields.put("mLoginID", maskEmail(account.get("profile").get("email").asText()));
+
+        //채널유형(VENDOR,CUSTOMER)에 따른 값 설정
         if("VENDOR".equals(channelObj.getChannelType())) {
             dataFields.put("vendorCode", companyVendorCode);
         }
@@ -2186,6 +2210,7 @@ public class CdcTraitService {
         }
 
         try {
+            //CDC 데이터및 preferences설정
             cdcParams.put("data", objectMapper.writeValueAsString(dataFields));
             cdcParams.put("preferences", objectMapper.writeValueAsString(Map.of(
                     "internal." + channel, Map.of("isConsentGranted", true),
@@ -2195,6 +2220,7 @@ public class CdcTraitService {
             log.error("Error processing data fields", e);
         }
 
+        //CDC 정보 변경 진행
         GSResponse setAccountResponse = gigyaService.executeRequest("default", "accounts.setAccountInfo", cdcParams);
         log.info("setAccountInfo: {}", setAccountResponse.getResponseText());
 
@@ -2221,6 +2247,7 @@ public class CdcTraitService {
         removeUserRoleFromB2B(uid);
         account = getCdcUser(uid, 0);
 
+        //정보 수정 완료시에 수행->이메일 발송
         if (setAccountResponse.getErrorCode() == 0) {
 
             ChannelApprovalStatuses approverData = channelApprovalStatusesRepository
@@ -2235,6 +2262,7 @@ public class CdcTraitService {
 
             String channelDisplayName = channelRepository.selectChannelDisplayName(channel);
 
+            //전환일시 전환 안내 메일 발송
             if ("conversion".equals(requestType)) {
                 Map<String, Object> emailDataArray = new HashMap<>();
                 emailDataArray.put("template", "TEMPLET-005");
@@ -2252,6 +2280,7 @@ public class CdcTraitService {
                 try {
                     String emailDataJson = objectMapper.writeValueAsString(emailDataArray);
 
+                    //메일발송 서버 login,password설정
                     HttpHeaders headers = createHeaders(
                             BeansUtil.getApplicationProperty("email.service.login"),
                             BeansUtil.getApplicationProperty("email.service.password")
@@ -2260,6 +2289,7 @@ public class CdcTraitService {
 
                     HttpEntity<String> request = new HttpEntity<>(emailDataJson, headers);
 
+                    //메일서버 URL 조회후 API 호출하여 발송 수행
                     ResponseEntity<String> responseEntity = restTemplate.exchange(
                             BeansUtil.getApplicationProperty("email.service.url") + "/mail",
                             HttpMethod.POST,
@@ -2275,6 +2305,7 @@ public class CdcTraitService {
                 }
             }
 
+            //신규가입일 경우 신규가입 안내 메일 발송
             if (!List.of("request to join", "conversion").contains(requestType)) {
                 String approverPhoneNumber = "";
                 String approverEmail = "";
@@ -2303,6 +2334,7 @@ public class CdcTraitService {
                 try {
                     String emailDataJson = objectMapper.writeValueAsString(emailDataArray);
 
+                    //메일발송 서버 login,password설정
                     HttpHeaders headers = createHeaders(
                             BeansUtil.getApplicationProperty("email.service.login"),
                             BeansUtil.getApplicationProperty("email.service.password")
@@ -2311,6 +2343,7 @@ public class CdcTraitService {
 
                     HttpEntity<String> request = new HttpEntity<>(emailDataJson, headers);
 
+                    //메일서버 URL 조회후 API 호출하여 발송 수행
                     ResponseEntity<String> responseEntity = restTemplate.exchange(
                             BeansUtil.getApplicationProperty("email.service.url") + "/mail",
                             HttpMethod.POST,
@@ -2332,6 +2365,25 @@ public class CdcTraitService {
         }
     }
 
+    /*
+     * 1. 메소드명: setIndustryType
+     * 2. 클래스명: CdcTraitService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    회사정보 -> IndustryType 배열형식의 문자열 조회
+     * 2. 사용법
+     *    회사정보 MAP 값과 industryType 필드값을 문자열 리스트로 전달하여 메소드 호출
+     * 3. 예시 데이터
+     *    - Input: organization {"vendorcode" : "t1231" , "channeltype" : "Sales Agent" }
+     * </PRE>
+     *
+     * @param organization 회사 정보가 담긴 MAP
+     * @param industryArray industryArray 필드값이 담긴 문자열 리스트
+     */
     public static void setIndustryType(Map<String, Object> organization, List<String> industryArray) {
         String industryArrayString = industryArray.stream()
                 .map(item -> "\"" + item + "\"") // 각 요소를 따옴표로 감싸기
@@ -2341,11 +2393,26 @@ public class CdcTraitService {
         organization.put("industry_type", industryArrayString);
     }
 
-    public Boolean getUserProvisioning(Map<String, Object> configMap) {
-        return configMap != null && configMap.containsKey("java_useprovisioning")
-                ? (Boolean) configMap.get("java_useprovisioning")
-                : false;
-    }
+    /*
+     * 1. 메소드명: getOperationType
+     * 2. 클래스명: CdcTraitService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    프로비저닝 호출 전 가입 유형(신규가입,전환가입,확장가입,초대가입)에 따라서 프로비저닝 요청 유형 조회
+     * 2. 사용법
+     *    가입 유형을 파라미터로 전달하여 메소드 호출
+     * 3. 예시 데이터
+     *    - Input: requestType = "registration"
+     *    - Output: "I" -> 프로비저닝 요청 유형 "I" 조회
+     * </PRE>
+     *
+     * @param requestType 가입 유형
+     * @return 프로비저닝 요청 유형 ( I,T ) 
+     */
     public String getOperationType(String requestType) {
         switch (requestType) {
             case "conversion":
@@ -2359,6 +2426,26 @@ public class CdcTraitService {
         }
     }
 
+    /*
+     * 1. 메소드명: setAccountStatus
+     * 2. 클래스명: CdcTraitService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    CDC 계정 정보 수정 -> CDC에서 inactive된 채널 혹은 계정으로 로그인시 최근 로그인날짜,유저상태(userStatus),채널상태(approvalStatus) 변경
+     * 2. 사용법
+     *    로그인한 UID와 로그인채널을 파라미터로 전달하여 메소드 호출
+     * 3. 예시 데이터
+     *    - Input: payload = {"channel" : "sba" , "uid" : "3123123" }
+     *    - Output: 성공여부 문자열 값
+     * </PRE>
+     *
+     * @param payload 이메일,채널 정보가 담긴 MAP변수
+     * @return 성공여부 문자열 값 ( Y,N )
+     */
     public String setAccountStatus(Map<String, String> payload, HttpSession session, RedirectAttributes redirectAttributes) {
         String channel = payload.get("channel");
         String uid = payload.get("uid");
@@ -2402,6 +2489,48 @@ public class CdcTraitService {
         }
 
         return "Y";
+    }
+
+    /*
+     * 1. 메소드명: resetPassword
+     * 2. 클래스명: CdcTraitService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    CDC 패스워드 초기화 -> 로그인쪽에서 최근 로그인 90일이 지난 계정에 한해서 호출됨
+     * 2. 사용법
+     *    패스워드 초기화 하려는 이메일을 파라미터로 전달하여 메소드 호출
+     * 3. 예시 데이터
+     *    - Input: email = "jeonghwan@naver.com"
+     *    - Output: 성공여부 문자열 값
+     * </PRE>
+     *
+     * @param email 초기화할 CDC 이메일 계정
+     * @return 성공여부 문자열 값 ( Y,N )
+     */
+    public String resetPassword(String email) {
+        Map<String, Object> cdcParams = new HashMap<>();
+        String success = "N";
+        try {
+            // CDC 파라미터 설정
+            cdcParams.put("loginID", email);
+            // CDC 요청 실행
+            GSResponse response = gigyaService.executeRequest("default", "accounts.resetPassword", cdcParams);
+
+            //응답값 설정
+            if (response.getErrorCode() == 0) {
+                success = "Y";
+            }
+            
+            log.info("Account status updated to {} for email: {}. Response: {}", email,response.getResponseText());
+        } catch (Exception e) {
+            log.error("Error updating account status for email: {}", email, e);
+        }
+
+        return success;
     }
 }
 

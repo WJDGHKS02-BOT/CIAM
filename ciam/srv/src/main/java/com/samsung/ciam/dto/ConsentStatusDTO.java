@@ -2,28 +2,46 @@ package com.samsung.ciam.dto;
 
 import com.samsung.ciam.models.ConsentContent;
 
+/**
+ * 1. FileName   : ConsentStatusDTO.java
+ * 2. Package    : com.samsung.ciam.dto
+ * 3. Comments   : 사용자 동의 상태와 관련된 정보를 담는 DTO(Data Transfer Object)로, 일반 약관, 개인정보 보호, 마케팅 약관, 채널 관련 동의 정보 등을 포함.
+ * 4. Author     : 서정환
+ * 5. DateTime   : 2024. 11. 04.
+ * 6. History    :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date         | Name          | Comment
+ * <p>
+ * -------------  -------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.   | 서정환        | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 public class ConsentStatusDTO {
-    private String commonTermsId;
-    private String commonPrivacyId;
-    private String commonMarketingId;
-    private String userAgreedMarketingId;
-    private ConsentContent commonTerms;
-    private ConsentContent commonPrivacy;
-    private ConsentContent commonMarketing;
-    private ConsentContent channelTerms;
-    private ConsentContent channelPrivacy;
-    private boolean commonTermsAgreed;
-    private boolean commonPrivacyAgreed;
-    private boolean commonMarketingAgreed;
-    private String commonTermsAgreedDate;
-    private String commonPrivacyAgreedDate;
-    private String commonMarketingAgreedDate;
-    private boolean channelTermsAgreed;
-    private boolean channelPrivacyAgreed;
-    private String channelTermsAgreedDate;
-    private String channelPrivacyAgreedDate;
-    private String channelTermsAgreeId;
-    private String channelPrivacyId;
+    private String commonTermsId;                  // 일반 약관 ID
+    private String commonPrivacyId;                // 개인정보 보호 동의 ID
+    private String commonMarketingId;              // 마케팅 동의 ID
+    private String userAgreedMarketingId;          // 사용자가 동의한 마케팅 ID
+    private ConsentContent commonTerms;            // 일반 약관 동의 내용
+    private ConsentContent commonPrivacy;          // 개인정보 보호 동의 내용
+    private ConsentContent commonMarketing;        // 마케팅 동의 내용
+    private ConsentContent channelTerms;           // 채널 약관 동의 내용
+    private ConsentContent channelPrivacy;         // 채널 개인정보 보호 동의 내용
+    private boolean commonTermsAgreed;             // 일반 약관 동의 여부
+    private boolean commonPrivacyAgreed;           // 개인정보 보호 동의 여부
+    private boolean commonMarketingAgreed;         // 마케팅 동의 여부
+    private String commonTermsAgreedDate;          // 일반 약관 동의 날짜
+    private String commonPrivacyAgreedDate;        // 개인정보 보호 동의 날짜
+    private String commonMarketingAgreedDate;      // 마케팅 동의 날짜
+    private boolean channelTermsAgreed;            // 채널 약관 동의 여부
+    private boolean channelPrivacyAgreed;          // 채널 개인정보 보호 동의 여부
+    private String channelTermsAgreedDate;         // 채널 약관 동의 날짜
+    private String channelPrivacyAgreedDate;       // 채널 개인정보 보호 동의 날짜
+    private String channelTermsAgreeId;            // 채널 약관 동의 ID
+    private String channelPrivacyId;               // 채널 개인정보 보호 ID
 
     // Getters and Setters for all fields
 

@@ -16,13 +16,20 @@ async function accounts_login({email, password, captchaToken}) {
     switch (response.errorCode) {
       case ERROR_CODES.SUCCESS:
         debugger;
-        signInSession.UID = response.UID;
-        return continueSSO();
+        setItemWithExpiry('user_uid', response.UID);
+        return gigya.socialize.notifyLogin({
+          dontHandleScreenSet: true,
+          siteUID: response.UID,
+          UIDSig: response.UIDSignature,
+          UIDTimestamp: response.signatureTimestamp,
+        });
       case ERROR_CODES.accounts.PENDING:
         return location.assign(`/approval-status-error?approvalStatus=pending`);
       case ERROR_CODES.captcha.IS_REQUIRED:
         showLoginPageResponseMessages('captcha.IS_REQUIRED');
         return showCaptcha();
+      case ERROR_CODES.accounts.REQUIRED_PASSWORD_CHANGE:
+        return showLoginPageResponseMessages('accounts.REQUIRED_PASSWORD_CHANGE');
       case ERROR_CODES.captcha.IS_WRONG:
         showLoginPageResponseMessages('captcha.IS_WRONG');
         return resetCaptcha();

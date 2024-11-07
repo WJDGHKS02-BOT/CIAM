@@ -3,7 +3,6 @@ package com.samsung.ciam.controllers;
 import com.samsung.ciam.models.*;
 import com.samsung.ciam.repositories.*;
 import com.samsung.ciam.services.TempWFCreateService;
-import com.samsung.ciam.services.WFCreateService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletRequest;
@@ -18,6 +17,24 @@ import org.springframework.web.servlet.ModelAndView;
 import java.security.SecureRandom;
 import java.util.*;
 
+/**
+ * 1. 파일명   : ApprovalTestController.java
+ * 2. 패키지   : com.samsung.ciam.controllers
+ * 3. 설명     : 승인 테스트 페이지에 대한 컨트롤러로, 승인 테스트 페이지를 보여주고 워크플로우를 생성하여 승인 테스트 결과를 반환
+ * 4. 작성자   : 서정환
+ * 5. 작성일자 : 2024. 11. 04.
+ * 6. 히스토리 :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * 날짜        | 이름          | 설명
+ * <p>
+ * -------------|--------------|------------------------------------
+ * <p>
+ * 2024. 11. 04 | 서정환       | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Controller
 @Profile({"local", "dev","prod"})
 public class ApprovalTestController {
@@ -55,6 +72,27 @@ public class ApprovalTestController {
     @PersistenceContext
     private EntityManager entityManager;
 
+    /*
+     * 1. 메소드명: getApprovalTest
+     * 2. 클래스명: ApprovalTestController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    승인 테스트 페이지를 반환
+     * 2. 사용법
+     *    GET 요청으로 승인 테스트 페이지를 로드
+     * 3. 예시 데이터
+     *    - Input: /approvalTest
+     *    - Output: 승인 테스트 페이지
+     * </PRE>
+     * @param servletRequest 서블릿 요청 객체
+     * @param request HTTP 요청 객체
+     * @param model 모델 객체
+     * @return 승인 테스트 페이지를 위한 ModelAndView 객체
+     */
     @GetMapping("/approvalTest")
     public ModelAndView getApprovalTest(
             ServletRequest servletRequest,
@@ -75,6 +113,28 @@ public class ApprovalTestController {
         return modelAndView;
     }
 
+    /*
+     * 1. 메소드명: postApprovalTest
+     * 2. 클래스명: ApprovalTestController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    워크플로우를 생성하고 승인 테스트 결과 페이지를 반환
+     * 2. 사용법
+     *    POST 요청으로 워크플로우 생성
+     * 3. 예시 데이터
+     *    - Input: 승인 요청 데이터 (Map)
+     *    - Output: 승인 테스트 결과 페이지
+     * </PRE>
+     * @param servletRequest 서블릿 요청 객체
+     * @param request HTTP 요청 객체
+     * @param payload 승인 요청에 필요한 파라미터 맵
+     * @param model 모델 객체
+     * @return 승인 테스트 결과 페이지를 위한 ModelAndView 객체
+     */
     @PostMapping("/approvalTest")
     public ModelAndView postApprovalTest(
             ServletRequest servletRequest,
@@ -133,18 +193,6 @@ public class ApprovalTestController {
             String invitaion_sender_email = "";
             Object invitationIdObj = "test";
 
-//            if (invitationIdObj != null) {
-//
-//                Long invitationId = (Long) invitationIdObj;
-//                Optional<ChannelInvitation> channelInvitationOptional = channelInvitationRepository.findById(invitationId);
-//
-//                if (channelInvitationOptional.isPresent()) {
-//                    ChannelInvitation channelInvitation = channelInvitationOptional.get();
-//                    invitaion_sender_id = channelInvitation.getRequestorUid();
-//                    invitaion_sender_email = channelInvitation.getRequestorId();
-//                }
-//
-//            }
             wf_param.put("invitaion_sender_id","testUID");
             wf_param.put("invitaion_sender_email","test@yopmail.com");
         }

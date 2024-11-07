@@ -19,6 +19,8 @@ async function accounts_tfa_totp_verify({code, sctToken}) {
         return signInSession.providerAssertion = response.providerAssertion;
       case ERROR_CODES.field.ENTERED_WRONG_VERIFICATION_CODE:
         return showLoginPageResponseMessages('field.ENTERED_WRONG_VERIFICATION_CODE');
+      case ERROR_CODES.accounts.REQUIRED_PASSWORD_CHANGE:
+        return showLoginPageResponseMessages('accounts.REQUIRED_PASSWORD_CHANGE');
       default:
         return showLoginPageResponseMessages('all.INVALID_LOGIN_REQUEST');
     }

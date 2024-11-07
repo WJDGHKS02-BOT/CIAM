@@ -5,18 +5,12 @@ import com.samsung.ciam.models.*;
 import com.samsung.ciam.repositories.MenuAccessControlRepository;
 import com.samsung.ciam.services.*;
 import com.samsung.ciam.utils.BeansUtil;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.samsung.ciam.models.BtpAccounts;
 import com.samsung.ciam.repositories.BtpAccountsRepository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
-import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +23,24 @@ import java.util.*;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
+/**
+ * 1. 파일명   : UserProfileController.java
+ * 2. 패키지   : com.samsung.ciam.controllers
+ * 3. 설명     : 마이페이지 관련 컨트롤러
+ * 4. 작성자   : 서정환
+ * 5. 작성일자 : 2024. 11. 04.
+ * 6. 히스토리 :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * 날짜         | 이름         | 설명
+ * <p>
+ * -------------|--------------|------------------------------------
+ * <p>
+ * 2024. 11. 04 | 서정환       | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Controller
 @RequestMapping("/myPage")
 public class UserProfileController {
@@ -92,6 +103,7 @@ public class UserProfileController {
         // channelHeader.put("myRole",(String) session.getAttribute("btp_myrole"));         // 실제 유저의 권한
         channelHeader.put("myRole", (String) session.getAttribute("btp_myrole"));              // 개발 및 테스트를 위해 'CIAM Admin'으로 고정
         channelHeader.put("loginUserId",(String) session.getAttribute("cdc_email"));
+        channelHeader.put("samsungAdYn",(String) session.getAttribute("samsungAdYn"));
 
 //        if(session.getAttribute("isMultiChannel")!=null && "Y".equals(session.getAttribute("isMultiChannel"))) {
 //            channelHeader.put("isMultiChannel",(String) session.getAttribute("isMultiChannel"));

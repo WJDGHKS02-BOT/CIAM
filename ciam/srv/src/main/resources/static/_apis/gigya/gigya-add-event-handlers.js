@@ -7,8 +7,10 @@ function onGigyaServiceReady() {
 
   const isADLoginRequest = gig_events?.split(',').includes('socialize.login');
   if (isADLoginRequest) {
-    const isSuccessAdLogin = params.get('errorCode') === '0';
-    const isRequiredAuthentication = params.get('errorCode') === '403101' || params.get('errorCode') === '403102';
+    const errorCode = params.get('errorCode');
+    const isSuccessAdLogin = errorCode === '0';
+    const isRequiredAuthentication = errorCode === '403101' || errorCode === '403102';
+    const isPendingAccount = errorCode === '206001';
 
     // AD 로그인 성공
     if (isSuccessAdLogin) {
@@ -40,6 +42,20 @@ function onGigyaServiceReady() {
           if (IS_TFA_OTP) return location.assign(`${location.pathname}/tfa/otp?${REQUIRED_PARAMS}&adLogin=true`);
           return location.assign(`${location.pathname}/tfa/email?${REQUIRED_PARAMS}&adLogin=true`);
         })()
+      } else if (isPendingAccount) {
+        // async function getAccountInfo() {
+        //   return new Promise(() => {
+        //     return gigya.accounts.getAccountInfo({
+        //       UID: params.get('UID'),
+        //       callback: function (res) {
+        //         debugger;
+        //         if (res.data.channels.length === 0) return location.assign(`${HOST_URL.java}/login-error?apiKey=${GIGYA_API_KEY}&regToken=${params.get('regToken')}&newADLogin=true`);
+        //         else return location.href = '/approval-status-error?approvalStatus=pending';
+        //       }
+        //     })
+        //   });
+        // }
+        return gigya.fidm.saml.continueSSO();
       } else {
         if (CHANNEL === 'btp') {
           return location.href = '/approval-status-error?approvalStatus=btp';

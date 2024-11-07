@@ -30,7 +30,6 @@
           });
           gigyaScript.onload = resolve;
           gigyaScript.onerror = reject;
-          debugger;
           document.getElementsByTagName('head')[0].appendChild(gigyaScript);
         });
       }
@@ -43,11 +42,8 @@
           if (isLoggedIn) {
             await checkUserPermission();
             await isUpdateConsent({UID: getItemWithExpiry('user_uid')});
-            debugger;
           }
-          debugger;
           await loadGigya();
-          debugger;
         } catch(err) {
           console.error(err);
           await hideLoadingSpinner();
@@ -56,32 +52,42 @@
 
       async function checkUserPermission () {
         const {data: userInfo} = await axios.post("/getAccountInfo", {uid: getItemWithExpiry('user_uid')});
-        console.log(userInfo);
+        const isAdUser = userInfo.socialProviders.split(',').includes('saml-samsung-ad');
 
+        if (!isAdUser) {
+          const today = new Date();
+          const lastUpdatePassword = new Date(userInfo.password.created);
+          const isRequiredPasswordChange = (today - lastUpdatePassword) / (1000 * 60 * 60 * 24) >= 90;
+
+          if (isRequiredPasswordChange) {
+            return await axios.post("/resetPassword", { email: userInfo.profile.email }).then((res) => {
+              if (res.data === 'Y') return location.assign(`/approval-status-error?approvalStatus=pending`);
+              else alert('비밀번호 재설정 이메일 발송에 실패했습니다. 다시 시도해주세요.')
+            });
+          }
+        }
+        
         if (!userInfo) {
-          debugger;
           localStorage.removeItem('user_uid');
           return await loadGigya();
         }
-
+        debugger;
         const USER_STATUS = userInfo.data.userStatus;
         const isNotHaveChannel = !userInfo.data.channels
-        const isAdUser = userInfo.socialProviders.split(',').includes('saml-samsung-ad');
         const params = new URLSearchParams(location.search);
+
         const isAdLogin = params.get('adLogin');
         const isBtpLogin = params.get('channel') === 'btp';
 
         if (isNotHaveChannel && (isAdUser || isAdLogin)) {
-          debugger;
           return redirectNewChannel_JAVA_AD({UID: userInfo.UID});
         }
 
         const APPROVAL_STATUS = userInfo.data.channels[CHANNEL]?.approvalStatus;
 
         if (USER_STATUS === 'active' || USER_STATUS === 'inactive') {
-          debugger;
           if (isBtpLogin) return;
-          debugger;
+
           switch (APPROVAL_STATUS) {
             case 'approved':
               await axios.post('/setAccountStatus', {
@@ -96,16 +102,12 @@
               })
               return;
             case 'pending':
-              debugger;
               return location.assign(`/approval-status-error?approvalStatus=pending`);
             case 'emp-pending':
-              debugger;
               return location.assign(`/approval-status-error?approvalStatus=emp-pending`);
             case 'disabled':
-              debugger;
               return location.assign(`/approval-status-error?approvalStatus=disabled`);
             default:
-              debugger;
               const SFDC = ['e2e', 'ets', 'partnerhub', 'mmp', 'edo'];
 
               if (isAdUser) return redirectNewChannel_JAVA_AD({UID: userInfo.UID});
@@ -114,8 +116,10 @@
               return redirectExpandChannel_JAVA(userInfo.UID, CHANNEL);
           }
         }
+        else if (USER_STATUS === 'regSubmit') {
+          return location.assign(`/approval-status-error?approvalStatus=pending`);
+        }
         else {
-          debugger;
           return location.assign(`/approval-status-error?approvalStatus=disabled`);
         }
       }

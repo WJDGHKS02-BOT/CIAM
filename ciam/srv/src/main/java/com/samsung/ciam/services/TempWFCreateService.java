@@ -18,6 +18,25 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+/**
+ * 1. FileName   : WFCreateService.java
+ * 2. Package    : com.samsung.ciam.services
+ * 3. Comments   : 다양한 워크플로우 생성 및 승인 로직을 처리하는 서비스 클래스(테스트 승인페이지용)
+ * 4. Author     : 서정환
+ * 5. DateTime   : 2024. 11. 04.
+ * 6. History    :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date         | Name           | Comment
+ * <p>
+ * -------------  -----------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.       | 서정환           | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
+
 @Slf4j
 @Service
 public class TempWFCreateService {
@@ -45,6 +64,25 @@ public class TempWFCreateService {
 // W06	SSO Access 승인
 // W07	Company Domain 승인
 
+    /*
+     * 1. 메소드명: wfCreate
+     * 2. 클래스명: WFCreateService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    워크플로우 데이터를 생성하여 결재 라인을 구성하고, 승인 상태에 따라 CDC 계정 업데이트를 처리하는 메소드(테스트 승인페이지용)
+     * 2. 사용법
+     *    세션과 워크플로우 데이터 맵을 입력받아 결재 라인을 생성하며, 워크플로우 ID를 반환
+     * 3. 예시 데이터
+     *    - Input: 세션과 wfData(Map), 예) {"workflow_code": "W01", "channel": "samsung"}
+     *    - Output: 생성된 워크플로우 ID (ex: "20241104_0001")
+     * </PRE>
+     * @param wfData 워크플로우 생성에 필요한 데이터
+     * @return 생성된 워크플로우 ID
+     */
     public String wfCreate(Map<String, String> wfData){
         ObjectMapper objectMapper = new ObjectMapper();
         String wf_id = "";
@@ -411,13 +449,39 @@ public class TempWFCreateService {
         return wf_id;
     }
 
+    /**
+     * 1. 메소드명: cdcUserUpdate
+     * 2. 클래스명: WFCreateService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    지정된 UID와 채널에 대해 CDC 사용자 정보를 업데이트하며, 승인 상태와 최종 로그인 시간을 설정하는 메소드.
+     * 2. 사용법
+     *    UID와 채널명, 승인 상태를 입력받아 해당 사용자의 CDC 데이터를 업데이트하고, 성공 여부를 반환함.
+     * 3. 예시 데이터
+     *    - Input: UID = "12345", channel = "samsung", approvalStatus = "approved"
+     *    - Output: "ok" (업데이트 성공 시) 또는 "failed" (업데이트 실패 시)
+     * </PRE>
+     *
+     * @param uid CDC 사용자 고유 ID
+     * @param channel 업데이트할 채널 이름
+     * @param approvalStatus 승인 상태 (예: "approved" 또는 "pending")
+     * @return 업데이트 성공 시 "ok", 실패 시 "failed"
+     */
     private String cdcUserUpdate(String uid,  String channel, String approvalStatus){
         log.info("cdcUserUpdate -> UID: " + uid + ", approvalStatus: " + approvalStatus );
         ObjectMapper objectMapper = new ObjectMapper();
         Optional<Channels> optionalChannelObj = channelRepository.selectByChannelName(channel);
         Map<String, Object> dataFields = new HashMap<>();
         Map<String, Object> cdcParams = new HashMap<>();
+
+        // UID 설정
         cdcParams.put("UID", uid);
+
+        // 채널의 승인 상태와 날짜를 포함하여 데이터 필드 생성
         dataFields.put("channels", Map.of(
                 channel, Map.of(
                         "approvalStatus", approvalStatus,
@@ -426,12 +490,16 @@ public class TempWFCreateService {
                 )
         ));
         try {
+            // dataFields를 JSON 문자열로 변환하여 cdcParams에 추가
             cdcParams.put("data", objectMapper.writeValueAsString(dataFields));
         } catch (Exception e) {
             log.error("Error processing data fields", e);
         }
+        // CDC 계정 정보 업데이트 요청 전송
         GSResponse setAccountResponse = gigyaService.executeRequest("default", "accounts.setAccountInfo", cdcParams);
         log.info("CDCsetAccountInfo: {}", setAccountResponse.getResponseText());
+
+        // 업데이트 성공 시 "ok" 반환, 실패 시 "failed" 반환
         if (setAccountResponse.getErrorCode() == 0) {
             return "ok";
         } else {

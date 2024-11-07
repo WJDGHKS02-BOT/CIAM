@@ -3,6 +3,24 @@ package com.samsung.ciam.models;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * 1. 파일명   : WfList.java
+ * 2. 패키지   : com.samsung.ciam.models
+ * 3. 설명     : 승인 요청 상세 테이블 (JPA)
+ * 4. 작성자   : 서정환
+ * 5. 작성일자 : 2024. 11. 04.
+ * 6. 히스토리 :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * 날짜         | 이름         | 설명
+ * <p>
+ * -------------|--------------|------------------------------------
+ * <p>
+ * 2024. 11. 04 | 서정환       | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Entity
 @Table(name = "wf_list")
 public class WfList {
@@ -10,37 +28,37 @@ public class WfList {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Long id; //리스트 ID
 
     @Column(name = "wf_id", length = 20, nullable = false)
-    private String wfId;
+    private String wfId; //승인요청건 ID (FK)
 
     @Column(name = "workflow_code", length = 50, nullable = false)
-    private String workflowCode;
+    private String workflowCode; //워크플로우 유형
 
     @Column(name = "wf_level")
-    private Integer level;
+    private Integer level; //승인레벨
 
     @Column(name = "status", length = 20)
-    private String status;
+    private String status; //승인상태
 
     @Column(name = "approval_format", length = 255)
-    private String approvalFormat;
+    private String approvalFormat; //승인포맷
 
     @Column(name = "approver_id", length = 255)
-    private String approverId;
+    private String approverId; //승인/반려 처리할 사람 ID
 
     @Column(name = "approver_email", length = 255)
-    private String approverEmail;
+    private String approverEmail; //승인/반려 처리할 사람 email
 
     @Column(name = "approver_role", length = 255)
-    private String approverRole;
+    private String approverRole;  //승인부여 ROLE(권한)
 
     @Column(name = "rejected_date")
-    private LocalDateTime rejectedDate;
+    private LocalDateTime rejectedDate; //반려일시
 
     @Column(name = "approved_date")
-    private LocalDateTime approvedDate;
+    private LocalDateTime approvedDate; //승인일시
 
     // Getters and setters
 

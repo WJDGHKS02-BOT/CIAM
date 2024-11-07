@@ -3452,6 +3452,14 @@ public class RegistrationService {
                         session.setAttribute("vToken", encryptedToken);
 
                         if (otpResponse.getErrorCode() == 0) {
+                            JsonNode CDCUser = cdcTraitService.getCdcUser(uid,0);
+                            String companyId = CDCUser.path("data").path("accountID").asText("");
+                            String accountId = (String) session.getAttribute("convertAccountId");
+                            if (companyId != null && accountId != null && !companyId.isEmpty() && !accountId.isEmpty() && !Objects.equals(companyId, accountId)) {
+                                redirectAttributes.addFlashAttribute("showErrorMsg", "CIAM accountID does not match convert accountID.");
+                                return new RedirectView(request.getHeader("Referer"));
+                            }
+
                             session.setAttribute("loginId", payload.get("loginUserId"));
                             session.setAttribute("ciamConvertYn", "Y");
                             url = "/registration/signupVerify";

@@ -11,7 +11,6 @@ import com.onelogin.saml2.exception.Error;
 import com.onelogin.saml2.exception.SettingsException;
 import com.onelogin.saml2.exception.ValidationError;
 import com.samsung.ciam.saml.OneloginLoginEvent;
-import com.samsung.ciam.saml.ServletUtils;
 import com.onelogin.saml2.settings.Saml2Settings;
 import com.samsung.ciam.common.gigya.service.GigyaService;
 import com.samsung.ciam.models.Users;
@@ -21,7 +20,6 @@ import com.samsung.ciam.utils.BeansUtil;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,8 +36,26 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
+/**
+ * 1. 파일명   : OneloginController.java
+ * 2. 패키지   : com.samsung.ciam.controllers
+ * 3. 설명     : SAML 인증 관련 SP 구현 로직을 포함한 컨트롤러
+ * 4. 작성자   : 서정환
+ * 5. 작성일자 : 2024. 11. 04.
+ * 6. 참고자료 : https://github.com/SAML-Toolkits/java-saml
+ * 7. 히스토리 :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * 날짜         | 이름         | 설명
+ * <p>
+ * -------------|--------------|------------------------------------
+ * <p>
+ * 2024. 11. 04 | 서정환       | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Slf4j
 @Controller
 @RequestMapping("/sso")
@@ -54,9 +70,6 @@ public class OneloginController {
     private GigyaService gigyaService;
 
     @Autowired
-    private ResourceLoader resourceLoader;
-
-    @Autowired
     private CdcTraitService cdcTraitService;
 
     @Autowired
@@ -65,6 +78,21 @@ public class OneloginController {
     @Autowired
     private ChannelRepository channelRepository;
 
+    /*
+     * 1. 메소드명: metadata
+     * 2. 클래스명: OneloginController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    SAML 메타데이터 정보를 제공하여 SAML 인증 설정 검증
+     * 2. 사용법
+     *    '/sso/metadata' 경로로 GET 요청
+     * </PRE>
+     * @return ResponseEntity 메타데이터 XML 또는 오류 메시지
+     */
     @GetMapping("/metadata")
     @ResponseBody
     public ResponseEntity<String> metadata() throws Exception {
@@ -74,23 +102,41 @@ public class OneloginController {
         List<String> errors = new ArrayList<>();
         try {
             metaData = auth.getSettings().getSPMetadata();
-            errors = Saml2Settings.validateMetadata(metaData);
+            errors = Saml2Settings.validateMetadata(metaData); // 메타데이터 검증
         } catch (Exception e) {
             errors.add(e.getMessage());
         }
 
         if (!errors.isEmpty()) {
+            // 오류가 있을 경우, 내부 서버 오류 상태와 메시지를 반환
             String errorMessage = "Onelogin metadata errors: " + String.join(",", errors);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .contentType(MediaType.TEXT_PLAIN)
                     .body(errorMessage);
         }
 
+        // 성공 시 XML 메타데이터 반환
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_XML)
                 .body(metaData);
     }
 
+    /*
+     * 1. 메소드명: login
+     * 2. 클래스명: OneloginController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    SAML 로그인 요청을 전송하여 인증 절차 시작
+     * 2. 사용법
+     *    '/sso/login' 경로로 접근하여 호출
+     * </PRE>
+     * @param request HttpServletRequest 객체
+     * @param response HttpServletResponse 객체
+     */
     @GetMapping("/login")
     public void login(HttpServletRequest request, HttpServletResponse response) throws IOException, SettingsException, Error {
         // Auth 객체 초기화 (Auth 클래스는 사용자 정의 클래스일 수 있음)
@@ -104,23 +150,39 @@ public class OneloginController {
 
         // SAML 인증 요청을 보내기 위해 Auth 객체의 login 메소드 호출
         try {
-            auth.login(relayState, authnRequestParams);
+            auth.login(relayState, authnRequestParams); // 로그인 요청 시작
         } catch (Exception e) {
             log.error(e.getMessage());
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "SAML login error: " + e.getMessage());
         }
     }
 
-
+    /*
+     * 1. 메소드명: slo
+     * 2. 클래스명: OneloginController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    SAML Single Logout(SLO) 요청을 전송하여 로그아웃 절차 수행
+     * 2. 사용법
+     *    '/sso/slo' 경로로 GET 요청
+     * </PRE>
+     * @param request HttpServletRequest 객체
+     * @param response HttpServletResponse 객체
+     * @return RedirectView 로그아웃 이후 리다이렉트 URL
+     */
     @GetMapping("/slo")
     public RedirectView slo(HttpServletRequest request, HttpServletResponse response) throws Exception {
         // Default to routing fallback URL
         String samlConfig = BeansUtil.getApplicationProperty("onelogin.saml.config-file");
         Auth auth = new Auth(String.format("%s", samlConfig), request, response);
-        String redirectUrl = "/";
+        String redirectUrl = "/"; // 기본 리다이렉트 URL 설정
         try {
             // Process SLO setting stay parameter to true to allow flow handling
-            auth.processSLO(true, null, false);
+            auth.processSLO(true, null, false); // SLO 처리
             String error = auth.getLastErrorReason();
 
             // 오류 메시지가 있는 경우 500 상태 코드와 함께 예외를 던짐
@@ -142,37 +204,53 @@ public class OneloginController {
                     log.info("do user logout for: " + cdcUid + " | " + gigyaResponse);
                 }
             }
-            // Invalidate session
+            // 세션 삭제
             request.getSession().invalidate();
 
         } catch (Exception e) {
-            // Handle SLO or Gigya logout errors
+            // SLO 또는 Gigya 로그아웃 오류 처리
             log.error(e.getMessage());
             return new RedirectView("/error?message=A user could not be resolved by the Onelogin Controller");
         }
         return new RedirectView(redirectUrl);
     }
 
-
+    /*
+     * 1. 메소드명: logout
+     * 2. 클래스명: OneloginController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    SAML 로그아웃 요청을 전송하여 사용자의 세션을 종료하고 SAML 세션을 로그아웃 처리
+     * 2. 사용법
+     *    '/sso/logout' 경로로 GET 요청을 통해 호출
+     * </PRE>
+     * @param request HttpServletRequest 객체로 사용자 요청 정보를 포함
+     * @param response HttpServletResponse 객체로 응답 정보를 포함
+     */
     @GetMapping("/logout")
     public void logout(HttpServletRequest request, HttpServletResponse response) throws IOException, SettingsException, Error {
         // 현재 요청의 URL을 RelayState로 사용
         String samlConfig = BeansUtil.getApplicationProperty("onelogin.saml.config-file");
         Auth auth = new Auth(String.format("%s", samlConfig), request, response);
-        String relayState = request.getRequestURL().toString();
+        String relayState = request.getRequestURL().toString(); // 현재 URL을 relayState로 사용
         String returnTo = "";
 
-        // PHP 코드에서 사용된 변수들을 Java에서 세션에서 가져오기
+        // 세션에서 SAML 관련 식별자 및 세션 인덱스 가져오기
         String nameId = (String) request.getSession().getAttribute("samlNameId");
         String sessionIndex = (String) request.getSession().getAttribute("samlSessionIndex");
         String nameIdFormat = (String) request.getSession().getAttribute("samlNameIdFormat");
         String samlNameIdNameQualifier = (String) request.getSession().getAttribute("samlNameIdNameQualifier");
         String samlNameIdSPNameQualifier = (String) request.getSession().getAttribute("samlNameIdSPNameQualifier");
 
-        // PHP의 parameters 배열에 해당하는 HashMap 생성
+        // 매개변수를 HashMap으로 생성
         Map<String, String> parameters = new HashMap<>();
 
         try {
+            // 로그아웃 요청 시작
             auth.logout(returnTo, nameId, sessionIndex, false, nameIdFormat, samlNameIdNameQualifier, samlNameIdSPNameQualifier, parameters);
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -180,12 +258,29 @@ public class OneloginController {
         }
     }
 
+    /*
+     * 1. 메소드명: acs
+     * 2. 클래스명: OneloginController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    SAML ACS(Assertion Consumer Service) 요청을 처리하여 인증된 사용자 세션을 설정
+     * 2. 사용법
+     *    '/sso/acs' 경로로 POST 요청
+     * </PRE>
+     * @param request HttpServletRequest 객체
+     * @param response HttpServletResponse 객체
+     * @return RedirectView 인증 후 리다이렉트할 URL
+     */
     @PostMapping("/acs")
     public RedirectView acs(HttpServletRequest request, HttpServletResponse response) throws Exception {
         Auth auth = new Auth(request, response);
         String error = null;
         try {
-            auth.processResponse();
+            auth.processResponse(); // 응답 처리
             error = auth.getLastErrorReason();
         } catch (ValidationError | Error errorException) {
             error = errorException.getMessage();
@@ -199,13 +294,13 @@ public class OneloginController {
             return new RedirectView("/error?message=Unauthorized to use this application");
         }
 
-        Map<String, List<String>> userAttributes = auth.getAttributes();
+        Map<String, List<String>> userAttributes = auth.getAttributes(); // 인증된 사용자 속성 가져오기
 
         OneloginLoginEvent loginEvent = new OneloginLoginEvent(userAttributes);
-        Users user = findUserByEvent(loginEvent);
+        Users user = findUserByEvent(loginEvent); // 이벤트로 사용자 찾기
 
         if (user == null) {
-            user = resolveUser(userAttributes);
+            user = resolveUser(userAttributes); // 사용자 속성으로 사용자 생성
         }
 
         if (user == null) {
@@ -228,7 +323,6 @@ public class OneloginController {
 
         // 기본 리다이렉트 URL 설정
         String defaultRedirectUrl = "/myPage/personalInformation";
-        //return new RedirectView(defaultRedirectUrl);
         String relayState = request.getParameter("RelayState");
         if (relayState != null) {
             String rootUrl = request.getContextPath();
@@ -242,6 +336,25 @@ public class OneloginController {
         }
     }
 
+    /*
+     * 1. 메소드명: resolveUser
+     * 2. 클래스명: OneloginController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    주어진 사용자 속성 맵을 통해 사용자를 검색하거나 새로운 사용자를 생성하여 반환
+     * 2. 사용법
+     *    userAttributes 파라미터로 사용자 속성들을 포함하여 호출
+     * 3. 예시 데이터
+     *    - Input: 사용자 속성 맵 (예: uid, 이메일, 사용자 이름)
+     *    - Output: Users 객체
+     * </PRE>
+     * @param userAttributes 사용자 속성을 포함한 맵
+     * @return Users 객체
+     */
     private Users resolveUser(Map<String, List<String>> userAttributes) {
         String uidAttributeName = "uid"; // Adjust this to your actual attribute name
         String emailAttributeName = "User.Email";
@@ -267,13 +380,33 @@ public class OneloginController {
             usersRepository.save(user);
         } else {
             // Update existing user with the UID if necessary
-            user.setCdcUid(uid);
+            user.setCdcUid(uid); // 기존 사용자 UID 업데이트
             usersRepository.save(user);
         }
 
         return user;
     }
 
+    /*
+     * 1. 메소드명: setUserSession
+     * 2. 클래스명: OneloginController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    주어진 사용자 정보를 세션에 설정하여 사용자 인증 세션을 관리
+     * 2. 사용법
+     *    사용자가 로그인 후 호출되어 세션에 사용자 데이터를 설정
+     * 3. 예시 데이터
+     *    - Input: 사용자 요청 정보와 Users 객체
+     *    - Output: 세션에 사용자 정보 저장
+     * </PRE>
+     * @param request HttpServletRequest 객체
+     * @param user Users 객체
+     * @param uid 사용자 고유 식별자
+     */
     public void setUserSession(HttpServletRequest request, Users user,String uid) {
         Set<String> approvedChannels = new HashSet<>();
         JsonNode CDCUserProfile = cdcTraitService.getCdcUser(uid, 0);
@@ -286,6 +419,8 @@ public class OneloginController {
         String language = CDCUserProfile.path("profile").path("languages").asText(null);
         String userLocale = CDCUserProfile.path("profile").path("locale").asText(null);
         String regSource = CDCUserProfile.path("regSource").asText(null);
+        String socialProviders = CDCUserProfile.path("socialProviders").asText("");
+        String samsungAdYn = (socialProviders != null && !socialProviders.isEmpty() && socialProviders.contains("saml-samsung-ad")) ? "Y" : "N";
 
         if (userLocale != null && !userLocale.isEmpty()) {
             Locale locale;
@@ -305,38 +440,14 @@ public class OneloginController {
         // regSource 값을 변환
         regSource = channelRepository.selectChannelRegCh(regSource);
 
-//        if ("gmapvd".equalsIgnoreCase(regSource)) {
-//            regSource = "GMAP-VD";
-//        } else if ("gmapda".equalsIgnoreCase(regSource)) {
-//            regSource = "GMAP-DA";
-//        } else if ("sba".equalsIgnoreCase(regSource)) {
-//            regSource = "SBA";
-//        } else if ("tnp".equalsIgnoreCase(regSource)) {
-//            regSource = "TNP";
-//        } else if ("mmp".equalsIgnoreCase(regSource)) {
-//            regSource = "SFDC-G";
-//        } else if ("e2e".equalsIgnoreCase(regSource)) {
-//            regSource = "SFDC-G";
-//        } else if ("ets".equalsIgnoreCase(regSource)) {
-//            regSource = "SFDC-G";
-//        } else if ("toolmate".equalsIgnoreCase(regSource)) {
-//            regSource = "ToolMate";
-//        } else if ("partnerhub".equalsIgnoreCase(regSource)) {
-//            regSource = "PartnerH";
-//        } else if ("edo".equalsIgnoreCase(regSource)) {
-//            regSource = "PartnerH";
-//        }
-
-
-
+        // 사용자 세션 속성 설정
         request.getSession().setAttribute("cdc_uid", uid);
         request.getSession().setAttribute("cdc_locale", userLocale);
         request.getSession().setAttribute("cdc_language", language);
         request.getSession().setAttribute("cdc_username", CDCUserProfile.path("profile").path("username").asText());
         request.getSession().setAttribute("cdc_email", user.getEmail());
         request.getSession().setAttribute("cdc_regSource", regSource);
-//        request.getSession().setAttribute("cdc_ciamadmin", isCIAMAdmin);
-//        request.getSession().setAttribute("cdc_companyadmin", isCompanyAdmin);
+        request.getSession().setAttribute("samsungAdYn", samsungAdYn);
 
         // channels 노드가 객체인 경우 key-value 쌍을 탐색
         Iterator<String> fieldNames = channels.fieldNames();
@@ -360,30 +471,26 @@ public class OneloginController {
             cdcTraitService.setAdminSession(request.getSession());
         }
 
-        //determineChannelAdminType(request);
-
-//        String myRole = "GeneralUser";
-//        if (Boolean.TRUE.equals(request.getSession().getAttribute("cdc_companyadmin"))) {
-//            myRole = "CompanyAdmin";
-//        }
-//        if (Boolean.TRUE.equals(request.getSession().getAttribute("cdc_channeladmin"))) {
-//            Integer channelAdminType = (Integer) request.getSession().getAttribute("cdc_channeladminType");
-//            if (channelAdminType != null) {
-//                if (channelAdminType == 1) {
-//                    myRole = "ChannelSystemAdmin";
-//                } else if (channelAdminType == 2) {
-//                    myRole = "ChannelBusinessAdmin";
-//                }
-//            }
-//        }
-//        if (Boolean.TRUE.equals(request.getSession().getAttribute("cdc_ciamadmin"))) {
-//            myRole = "CIAMAdmin";
-//        }
-//
-//        request.getSession().setAttribute("btp_myrole", myRole);
     }
 
-    // Method to determine the channel admin type
+    /*
+     * 1. 메소드명: determineChannelAdminType
+     * 2. 클래스명: OneloginController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    세션에 채널 관리자 여부와 관리자 유형을 설정
+     * 2. 사용법
+     *    사용자의 관리자 권한을 결정하여 세션에 설정할 때 호출
+     * 3. 예시 데이터
+     *    - Input: 사용자 요청 정보
+     *    - Output: 세션에 관리자 권한 정보 설정
+     * </PRE>
+     * @param request HttpServletRequest 객체
+     */
     private void determineChannelAdminType(HttpServletRequest request) {
         request.getSession().setAttribute("cdc_channeladmin", false);
         request.getSession().setAttribute("cdc_channeladminType", null);
@@ -418,6 +525,25 @@ public class OneloginController {
         }
     }
 
+    /*
+     * 1. 메소드명: findUserByEvent
+     * 2. 클래스명: OneloginController
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    Onelogin 로그인 이벤트에서 제공된 이메일을 통해 사용자를 검색
+     * 2. 사용법
+     *    OneloginLoginEvent 객체로 호출하여 사용자를 검색
+     * 3. 예시 데이터
+     *    - Input: OneloginLoginEvent 객체
+     *    - Output: Users 객체
+     * </PRE>
+     * @param event Onelogin 로그인 이벤트
+     * @return Users 객체
+     */
     public Users findUserByEvent(OneloginLoginEvent event) {
         Map<String, List<String>> attributes = event.getUserAttributes();
         List<String> emails = attributes.get("User.Email");

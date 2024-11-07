@@ -3,6 +3,24 @@ package com.samsung.ciam.models;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * 1. 파일명   : AdminUser.java
+ * 2. 패키지   : com.samsung.ciam.models
+ * 3. 설명     : 사용자 관리 테이블
+ * 4. 작성자   : 서정환
+ * 5. 작성일자 : 2024. 11. 04.
+ * 6. 히스토리 :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * 날짜         | 이름         | 설명
+ * <p>
+ * -------------|--------------|------------------------------------
+ * <p>
+ * 2024. 11. 04 | 서정환       | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Entity
 @Table(name = "admin_user")
 public class AdminUser {

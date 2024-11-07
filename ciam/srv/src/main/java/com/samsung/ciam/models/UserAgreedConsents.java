@@ -1,56 +1,71 @@
 package com.samsung.ciam.models;
 
 import jakarta.persistence.*;
-import lombok.*;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+/**
+ * 1. 파일명   : UserAgreedConsents.java
+ * 2. 패키지   : com.samsung.ciam.models
+ * 3. 설명     : 사용자 약관 동의 이력 테이블 (JPA)
+ * 4. 작성자   : 서정환
+ * 5. 작성일자 : 2024. 11. 04.
+ * 6. 히스토리 :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * 날짜         | 이름         | 설명
+ * <p>
+ * -------------|--------------|------------------------------------
+ * <p>
+ * 2024. 11. 04 | 서정환       | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Entity
 @Table(name = "user_agreed_consents")
 public class UserAgreedConsents implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id;  //고유 식별자
 
     @Column(name = "consent_id", nullable = false)
-    private Long consentId;
+    private Long consentId; //약관 마스터 ID
 
     @Column(name = "consent_content_id", nullable = false)
-    private Long consentContentId;
+    private Long consentContentId; //약관 컨텐츠 마스터 ID
 
     @Column(name = "uid", nullable = false)
-    private String uid;
+    private String uid; //동의한 사용자 UID
 
     @Column(name = "status", nullable = false)
-    private String status;
+    private String status; //동의상태(동의,거부)
 
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; //등록일시
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt; //수정일시
 
     @Transient
-    private Consent consent;
+    private Consent consent; //약관 마스터 객체 , 실제 물리 컬럼 존재 X
 
     @Transient
-    private ConsentContent content;
+    private ConsentContent content; //약관 컨텐츠 객체, 실제 물리 컬럼 존재 X
 
     @Transient
-    private Double version;
+    private Double version; //약관 버전, 실제 물리 컬럼 존재 X
 
     @Transient
-    private String agreementDate;
+    private String agreementDate; //약관 동의일시, 실제 물리 컬럼 존재 X
 
     @Transient
-    private String location;
+    private String location;  //국가, 실제 물리 컬럼 존재 X
 
     @Transient
-    private UserAgreedConsents agreement;
+    private UserAgreedConsents agreement; //사용자 동의 객체, 실제 물리 컬럼 존재 X
 
     public Long getId() {
         return id;

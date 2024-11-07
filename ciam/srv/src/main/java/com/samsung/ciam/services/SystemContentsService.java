@@ -28,7 +28,24 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
-
+/**
+ * 1. FileName   : SystemContentsService.java
+ * 2. Package    : com.samsung.ciam.services
+ * 3. Comments   : 약관 관련된 데이터 관리 서비스로서, 약관 조회, 삽입, 수정, 중복 확인 등을 수행함.
+ * 4. Author     : 서정환
+ * 5. DateTime   : 2024. 11. 04.
+ * 6. History    :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * Date         | Name          | Comment
+ * <p>
+ * -------------  -------------   ------------------------------
+ * <p>
+ * 2024. 11. 04.   | 서정환        | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Slf4j
 @Service
 public class SystemContentsService {
@@ -45,10 +62,55 @@ public class SystemContentsService {
     @Autowired
     private ConsentContentRepository consentContentRepository;
 
+    /*
+     * 1. 메소드명: searchConsentManagement
+     * 2. 클래스명: SystemContentsService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    약관 관리 데이터를 조회하는 메소드로, 사용자 프로필 정보를 통해 약관 목록을 반환.
+     * 2. 사용법
+     *    payload에서 채널, 약관 정보를 전달하여 해당 동의 목록을 조회.
+     * 3. 예시 데이터
+     *    - Input: payload = { "channel": "samsung", "consentType": "general", "location": "KR" }
+     *    - Output: 해당 조건에 맞는 약관 목록
+     * </PRE>
+     *
+     * @param payload 검색에 필요한 파라미터 맵
+     * @param session 현재 HTTP 세션
+     * @return 약관 목록을 포함하는 리스트
+     */
     public List<Map<String,Object>> searchConsentManagement(Map<String, String> payload, HttpSession session) {
         return userProfileService.getConsentManagerList(payload.get("channel"), payload.get("consentType"), payload.get("location"));
     }
 
+    /*
+     * 1. 메소드명: insertConsentManagement
+     * 2. 클래스명: SystemContentsService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    약관 관리 데이터 삽입 메소드로, 약관 내용을 데이터베이스에 저장.
+     * 2. 사용법
+     *    payload로 약관 정보를 전달받아 그룹 데이터가 있을 경우 관련 그룹 데이터를 삽입하며,
+     *    그룹이 없을 경우 새로운 동의 데이터를 삽입.
+     * 3. 예시 데이터
+     *    - Input: payload = { "language": "ko", "content": "내용", "statusId": "active", ... }
+     *    - Output: 약관 목록이 포함된 ModelAndView 객체
+     * </PRE>
+     *
+     * @param payload 삽입할 약관 데이터
+     * @param session 현재 HTTP 세션
+     * @param request HTTP 요청 객체
+     * @return ModelAndView 삽입 후 이동할 페이지 정보
+     * @throws ParseException 날짜 파싱 오류 발생 시
+     */
     public ModelAndView insertConsentManagement(@RequestParam Map<String, String> payload, HttpSession session, HttpServletRequest request) throws ParseException {
         ModelAndView modelAndView = new ModelAndView("myPage");
         String language = payload.get("language");
@@ -80,6 +142,28 @@ public class SystemContentsService {
         return modelAndView;
     }
 
+    /*
+     * 1. 메소드명: updateConsentManagement
+     * 2. 클래스명: SystemContentsService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    약관 데이터를 수정하는 메소드로, 주어진 데이터에 따라 상태 및 내용 업데이트.
+     * 2. 사용법
+     *    payload에 있는 데이터를 통해 약관내용을 갱신하며, 그룹 ID가 있을 경우 그룹 관련 데이터를 모두 업데이트.
+     * 3. 예시 데이터
+     *    - Input: payload = { "language": "en", "content": "updated content", "statusId": "active", ... }
+     *    - Output: 약관 데이터 업데이트
+     * </PRE>
+     *
+     * @param payload 업데이트할 약관 데이터
+     * @param session 현재 HTTP 세션
+     * @param request HTTP 요청 객체
+     * @throws ParseException 날짜 파싱 오류 발생 시
+     */
     public void updateConsentManagement(@RequestParam Map<String, String> payload, HttpSession session, HttpServletRequest request) throws ParseException {
         // ModelAndView modelAndView = new ModelAndView("myPage");
         String language = payload.get("language");
@@ -119,6 +203,29 @@ public class SystemContentsService {
         }
     }
 
+    /*
+     * 1. 메소드명: duplicationConsentCheck
+     * 2. 클래스명: SystemContentsService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    약관 데이터의 중복 여부를 확인하여 결과를 반환하는 메소드.
+     * 2. 사용법
+     *    payload를 통해 전달된 데이터를 바탕으로 중복 체크 후, 상태 메시지를 반환.
+     * 3. 예시 데이터
+     *    - Input: payload = { "consentGroup": "group1", "consentType": "type1", ... }
+     *    - Output: { "status": "duplication" } (중복 시) 또는 { "status": "ok" } (중복 아님)
+     * </PRE>
+     *
+     * @param payload 중복 확인할 약관 데이터
+     * @param session 현재 HTTP 세션
+     * @param request HTTP 요청 객체
+     * @param redirectAttributes 리다이렉트 시 사용할 속성 객체
+     * @return 중복 여부를 나타내는 상태 메시지
+     */
     public Map<String, Object> duplicationConsentCheck(Map<String, String> payload, HttpSession session,
             HttpServletRequest request, RedirectAttributes redirectAttributes) {
         Map<String, Object> result = new HashMap<>();
@@ -162,6 +269,24 @@ public class SystemContentsService {
         return result;
     }
 
+    /*
+     * 1. 메소드명: getTimeInKorea
+     * 2. 클래스명: SystemContentsService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    현재 한국 시간 (KST)을 반환하는 메소드.
+     * 2. 사용법
+     *    한국 시간대(KST)를 기준으로 현재 시간을 가져옴.
+     * 3. 예시 데이터
+     *    - Output: ZonedDateTime.now(ZoneOffset.UTC).plus(Duration.ofHours(9))
+     * </PRE>
+     *
+     * @return 현재 한국 시간 (KST)
+     */
     private ZonedDateTime getTimeInKorea(){
         // 현재 UTC 시간 가져오기
         ZonedDateTime utcNow = ZonedDateTime.now(ZoneOffset.UTC);

@@ -13,27 +13,24 @@ async function accounts_search({query, updateUserRecord}) {
     const APPROVAL_STATUS = userInfo?.channels[CHANNEL]?.approvalStatus;
     const USER_STATUS = userInfo.userStatus;
     const isAdUser = response.data.results[0].socialProviders.split(',').includes('saml-samsung-ad');
-    debugger;
-
 
     if (USER_STATUS === 'active' || USER_STATUS === 'inactive') {
       if (isBtpLogin) return;
 
       switch (APPROVAL_STATUS) {
         case 'approved':
-          if (isAdLogin) signInSession.UID = response.data.results[0].UID;
+          if (isAdLogin) setItemWithExpiry('user_uid', response.data.results[0].UID);
+          // if (isAdLogin) signInSession.UID = response.data.results[0].UID;
           return;
         case 'inactive':
-          if (isAdLogin) signInSession.UID = response.data.results[0].UID;
+          if (isAdLogin) setItemWithExpiry('user_uid', response.data.results[0].UID);
+          // if (isAdLogin) signInSession.UID = response.data.results[0].UID;
           return;
         case 'pending':
-          debugger;
           return location.assign(`/approval-status-error?approvalStatus=pending`);
         case 'emp-pending':
-          debugger;
           return location.assign(`/approval-status-error?approvalStatus=emp-pending`);
         case 'disabled':
-          debugger;
           return location.assign(`/approval-status-error?approvalStatus=disabled`);
         default:
           const SFDC = ['e2e', 'ets', 'partnerhub', 'mmp', 'edo'];
@@ -41,6 +38,8 @@ async function accounts_search({query, updateUserRecord}) {
           if (SFDC.includes(CHANNEL)) return location.assign(`${HOST_URL.php}`);
           return ssoAccess(userInfo.UID, CHANNEL);
       }
+    } else if (USER_STATUS === 'regSubmit') {
+      return location.assign(`/approval-status-error?approvalStatus=pending`);
     } else {
       return location.assign(`/approval-status-error?approvalStatus=disabled`);
     }

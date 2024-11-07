@@ -12,6 +12,7 @@ const ERROR_CODES = {
   },
   accounts: {
     PENDING: 206001,
+    REQUIRED_PASSWORD_CHANGE: 403100,
   },
   field: {
     EMAIL_OR_PASSWORD_INCORRECT: 403042,

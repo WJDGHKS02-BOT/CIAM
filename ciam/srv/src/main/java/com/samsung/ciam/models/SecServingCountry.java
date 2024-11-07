@@ -3,61 +3,79 @@ package com.samsung.ciam.models;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * 1. 파일명   : SecServingCountry.java
+ * 2. 패키지   : com.samsung.ciam.models
+ * 3. 설명     : 특정 채널이 제공되는 국가 및 관련 지역 설정을 관리하는 테이블 (JPA)
+ * 4. 작성자   : 서정환
+ * 5. 작성일자 : 2024. 11. 04.
+ * 6. 히스토리 :
+ * <p>
+ * -----------------------------------------------------------------
+ * <p>
+ * 날짜         | 이름         | 설명
+ * <p>
+ * -------------|--------------|------------------------------------
+ * <p>
+ * 2024. 11. 04 | 서정환       | 최초작성
+ * <p>
+ * -----------------------------------------------------------------
+ */
 @Entity
 @Table(name = "sec_serving_countries")
 public class SecServingCountry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; //고유 식별자
 
     @Column(name = "channel", nullable = false)
-    private String channel;
+    private String channel; //채널명
 
     @Column(name = "country", nullable = false)
-    private String country;
+    private String country; //국가코드
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; //등록일시 
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt; //생성일시
 
     @Column(name = "sfdc_id")
-    private String sfdcId;
+    private String sfdcId; //Salesforce 고유 ID
 
     @Column(name = "headquater")
-    private String headquater;
+    private String headquater; //본사위치
 
     @Column(name = "continent")
-    private String continent;
+    private String continent; //대륙코드
 
     @Column(name = "subsidiary")
-    private String subsidiary;
+    private String subsidiary; //법인코드
 
     @Column(name = "country_code")
-    private String countryCode;
+    private String countryCode; //국가 코드
 
     @Column(name = "language")
-    private String language;
+    private String language; //언어
 
     @Column(name = "language_code")
-    private String languageCode;
+    private String languageCode; //언어 코드
 
     @Column(name = "currency_iso_code")
-    private String currencyIsoCode;
+    private String currencyIsoCode; //ISO 코드
 
     @Column(name = "language_name")
-    private String languageName;
+    private String languageName; //언어 코드
 
     @Column(name = "locale_sid_key")
-    private String localeSidKey;
+    private String localeSidKey; //로케일 SID 키
 
     @Column(name = "timezone_sid_key")
-    private String timezoneSidKey;
+    private String timezoneSidKey; //시간 SID 키
 
     @Column(name = "email_encoding_key")
-    private String emailEncodingKey;
+    private String emailEncodingKey; //이메일 인코딩 키
 
     public Long getId() {
         return id;

@@ -20,6 +20,8 @@ async function accounts_tfa_email_completeVerification({code}) {
       case ERROR_CODES.field.ENTERED_WRONG_VERIFICATION_CODE:
         showLoginPageResponseMessages('field.ENTERED_WRONG_VERIFICATION_CODE');
         break;
+      case ERROR_CODES.accounts.REQUIRED_PASSWORD_CHANGE:
+        return showLoginPageResponseMessages('accounts.REQUIRED_PASSWORD_CHANGE');
       default:
         showLoginPageResponseMessages('code.EMAIL_REQUEST_EXPIRED');
         break;

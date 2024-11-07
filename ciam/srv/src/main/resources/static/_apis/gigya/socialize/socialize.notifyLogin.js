@@ -15,6 +15,8 @@ async function socialize_notifyLogin() {
     switch (response.errorCode) {
       case ERROR_CODES.SUCCESS:
         return response;
+      case ERROR_CODES.accounts.REQUIRED_PASSWORD_CHANGE:
+        return showLoginPageResponseMessages('accounts.REQUIRED_PASSWORD_CHANGE');
       default:
         return;
     }

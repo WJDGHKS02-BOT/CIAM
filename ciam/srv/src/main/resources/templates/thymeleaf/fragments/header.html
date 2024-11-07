@@ -26,6 +26,7 @@
 <!--                    type="button">Select Channel</button>-->
           <!-- th:if="${channel != null}" -->
             <button class="btn_l voc"
+                    th:if="${channelHeader != null && channelHeader['samsungAdYn'] != null && channelHeader['samsungAdYn'] == 'Y'}"
                     onclick="window.location.href='https://itvoc.sec.samsung.net/it4u/voc/vocReg?directCode=23D03700000001'"
                     type="button">IT-VOC</button>
             <button class="btn_l logout"
