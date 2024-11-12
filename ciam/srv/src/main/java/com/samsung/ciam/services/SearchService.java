@@ -331,7 +331,7 @@ public class SearchService {
                     if (!"pending".equals(approvalStatus) &&
                             !activeChannels.contains(channel.getChannelDisplayName()) &&
                             addChannels.stream().noneMatch(map -> map.get("channelDisplayName").equals(channel.getChannelDisplayName())) &&
-                            !channelName.equalsIgnoreCase(curretnChannelDisplayName)) {
+                            !channel.getChannelDisplayName().equalsIgnoreCase(currentChannel)) {
                         addChannels.add(Map.of("channelName", channel.getChannelName(), "channelDisplayName", channel.getChannelDisplayName()));
                     }
                 }

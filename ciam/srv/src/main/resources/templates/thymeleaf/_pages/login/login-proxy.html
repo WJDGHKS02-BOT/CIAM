@@ -4,6 +4,11 @@
     <link href="/_pages/login/login-page.css" rel="stylesheet" />
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/_apis/_instance/gigya-instance.js"></script>
+    <script src="/_apis/_instance/samsung-instance.js"></script>
+    <script type="module" src="/_apis/gigya/accounts.js"></script>
+    <script src="/_apis/_instance/setupBaseURL.js"></script>
+
     <script src="/_pages/login/sign-in-session.js"></script>
     <script src="/_components/spinner/loading-spinner.js"></script>
     <script src="/_apis/localStorage.js"></script>
@@ -13,10 +18,23 @@
       const GIGYA_API_KEY = [[${apiKey}]];
       const GIGYA_PARENT_KEYS = [[${parentKeys}]];
       const gigyaInstanceURL = [[${gigyaInstanceURL}]];
+      const samsungInstanceURL = [[${samsungInstanceURL}]];
       const HOST_URL = [[${hostUrl}]];
       const CHANNEL = [[${channel}]];
       const LOGIN_URL = [[${loginURL}]];
       const LOGOUT_URL = [[${logoutURL}]];
+
+      function loadGigyaAPI() {
+        return new Promise((resolve, reject) => {
+          let gigyaScript = document.createElement('script');
+          gigyaScript.type = 'text/javascript';
+          gigyaScript.async = true;
+          gigyaScript.src = `https://cdns.gigya.com/js/gigya.js?apikey=${GIGYA_API_KEY}`;
+          gigyaScript.onload = resolve;
+          gigyaScript.onerror = reject;
+          document.getElementsByTagName('head')[0].appendChild(gigyaScript);
+        });
+      }
 
       function loadGigya() {
         return new Promise((resolve, reject) => {
@@ -34,16 +52,85 @@
         });
       }
 
+      function onGigyaServiceReady () {
+        gigya.accounts.addEventHandlers({
+          onAfterResponse: (res) => {
+            console.log(res);
+            debugger;
+          }
+        });
+
+        gigya.socialize.addEventHandlers({
+          onAfterResponse: async (res) => {
+            console.log(res);
+            debugger;
+
+            const isGetAccountInfo = res.methodName === 'accounts.getAccountInfo';
+            const isVerifyLogin = res.methodName === 'accounts.verifyLogin';
+            if (isVerifyLogin) {
+              debugger;
+              await setItemWithExpiry('user_uid', res.response.UID);
+              debugger;
+              await checkUserPermission();
+              debugger;
+              await isUpdateConsent({UID: getItemWithExpiry('user_uid')});
+              debugger;
+              await new Promise((resolve) => {
+                setTimeout(async () => {
+                  await loadGigya();
+                  resolve();
+                }, 1000);
+              });
+            }
+            if (isGetAccountInfo) {
+              debugger;
+              setItemWithExpiry('user_uid', res.response.UID);
+            }
+          },
+        });
+
+        gigya.hasSession(async (session) => {
+          if (session) {
+            debugger;
+            return await accounts.getAccountInfo();
+          } else {
+            await new Promise((resolve) => {
+              setTimeout(async () => {
+                await loadGigya();
+                resolve();
+              }, 1000);
+            });
+          }
+        })
+      }
+
       window.onload = async () => {
         try {
           await showLoadingSpinner();
+          await setupBaseURL({
+            gigyaURL: gigyaInstanceURL,
+            samsungURL: samsungInstanceURL
+          })
 
-          const isLoggedIn = getItemWithExpiry('user_uid') ?? false;
-          if (isLoggedIn) {
-            await checkUserPermission();
-            await isUpdateConsent({UID: getItemWithExpiry('user_uid')});
-          }
-          await loadGigya();
+          await loadGigyaAPI()
+              .then(async() => {
+                debugger;
+                const isLoggedIn = getItemWithExpiry('user_uid') ?? false;
+                if (isLoggedIn) {
+                  debugger;
+                  await checkUserPermission();
+                  debugger;
+                  await isUpdateConsent({UID: getItemWithExpiry('user_uid')});
+                  debugger;
+                  await new Promise((resolve) => {
+                    setTimeout(async () => {
+                      await loadGigya();
+                      resolve();
+                    }, 1000);
+                  });
+                }
+                else await loadGigya()
+          });
         } catch(err) {
           console.error(err);
           await hideLoadingSpinner();

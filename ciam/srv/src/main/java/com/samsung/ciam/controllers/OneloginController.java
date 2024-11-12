@@ -96,15 +96,18 @@ public class OneloginController {
     @GetMapping("/metadata")
     @ResponseBody
     public ResponseEntity<String> metadata() throws Exception {
+        // SAML 설정 파일 경로를 애플리케이션 설정에서 읽어옴
         String samlConfig = BeansUtil.getApplicationProperty("onelogin.saml.config-file");
         Auth auth = new Auth(String.format("%s", samlConfig));
         String metaData = "";
         List<String> errors = new ArrayList<>();
         try {
+            // SP 메타데이터 XML 생성
             metaData = auth.getSettings().getSPMetadata();
+            // 생성된 메타데이터의 유효성 검증
             errors = Saml2Settings.validateMetadata(metaData); // 메타데이터 검증
         } catch (Exception e) {
-            errors.add(e.getMessage());
+            errors.add(e.getMessage()); // 오류 발생 시 오류 메시지를 리스트에 추가
         }
 
         if (!errors.isEmpty()) {
@@ -139,19 +142,21 @@ public class OneloginController {
      */
     @GetMapping("/login")
     public void login(HttpServletRequest request, HttpServletResponse response) throws IOException, SettingsException, Error {
-        // Auth 객체 초기화 (Auth 클래스는 사용자 정의 클래스일 수 있음)
+        // SAML 설정 파일 경로를 사용하여 Auth 객체 초기화
         String samlConfig = BeansUtil.getApplicationProperty("onelogin.saml.config-file");
         Auth auth = new Auth(String.format("%s", samlConfig), request, response);
         // 현재 요청의 URL을 RelayState로 사용
         String relayState = (String) request.getSession().getAttribute("relayState");
 
-        // AuthnRequestParams 객체 생성
+        // AuthnRequestParams 객체 생성 (ForceAuthn 및 Passive 설정)
         AuthnRequestParams authnRequestParams = new AuthnRequestParams(false, false, true);
 
         // SAML 인증 요청을 보내기 위해 Auth 객체의 login 메소드 호출
         try {
+            // 로그인 요청 전송
             auth.login(relayState, authnRequestParams); // 로그인 요청 시작
         } catch (Exception e) {
+            // 오류 발생 시 내부 서버 오류 응답 전송
             log.error(e.getMessage());
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "SAML login error: " + e.getMessage());
         }
@@ -176,12 +181,12 @@ public class OneloginController {
      */
     @GetMapping("/slo")
     public RedirectView slo(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        // Default to routing fallback URL
+        // SAML 설정 파일 경로로 Auth 객체 초기화
         String samlConfig = BeansUtil.getApplicationProperty("onelogin.saml.config-file");
         Auth auth = new Auth(String.format("%s", samlConfig), request, response);
         String redirectUrl = "/"; // 기본 리다이렉트 URL 설정
         try {
-            // Process SLO setting stay parameter to true to allow flow handling
+            // SLO 처리 (stay = true 설정으로 비동기 흐름 유지)
             auth.processSLO(true, null, false); // SLO 처리
             String error = auth.getLastErrorReason();
 
@@ -250,7 +255,7 @@ public class OneloginController {
         Map<String, String> parameters = new HashMap<>();
 
         try {
-            // 로그아웃 요청 시작
+            // 로그아웃 요청 전송
             auth.logout(returnTo, nameId, sessionIndex, false, nameIdFormat, samlNameIdNameQualifier, samlNameIdSPNameQualifier, parameters);
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -277,9 +282,11 @@ public class OneloginController {
      */
     @PostMapping("/acs")
     public RedirectView acs(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        // SAML 응답을 처리하기 위한 Auth 객체 초기화
         Auth auth = new Auth(request, response);
         String error = null;
         try {
+            // IdP로부터 받은 SAML 응답 처리
             auth.processResponse(); // 응답 처리
             error = auth.getLastErrorReason();
         } catch (ValidationError | Error errorException) {
@@ -290,10 +297,12 @@ public class OneloginController {
             return new RedirectView("/error?message=Onelogin ACS validation errors: " + error);
         }
 
+        // 사용자 인증 여부 확인
         if (!auth.isAuthenticated()) {
             return new RedirectView("/error?message=Unauthorized to use this application");
         }
 
+        // 인증된 사용자 속성 가져오기
         Map<String, List<String>> userAttributes = auth.getAttributes(); // 인증된 사용자 속성 가져오기
 
         OneloginLoginEvent loginEvent = new OneloginLoginEvent(userAttributes);
@@ -307,6 +316,7 @@ public class OneloginController {
             return new RedirectView("/error?message=A user could not be resolved by the Onelogin Controller");
         }
 
+        // UID 설정 및 세션 설정
         List<String> uidList = userAttributes.get("uid");
         String uid = "";
         if (uidList != null && !uidList.isEmpty()) {
@@ -321,7 +331,7 @@ public class OneloginController {
         // 세션에 인증된 사용자 정보 저장
         request.getSession().setAttribute("authenticatedUser", user);
 
-        // 기본 리다이렉트 URL 설정
+        // RelayState를 기반으로 리다이렉션
         String defaultRedirectUrl = "/myPage/personalInformation";
         String relayState = request.getParameter("RelayState");
         if (relayState != null) {

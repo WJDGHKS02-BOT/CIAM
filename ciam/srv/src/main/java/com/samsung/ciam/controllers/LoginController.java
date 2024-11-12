@@ -40,15 +40,17 @@ public class LoginController {
    * 3. 작성자명: 서정환
    * 4. 작성일자: 2024. 09. 10.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    모델에 사용자 언어(Locale) 정보를 추가
+   * 모델에 사용자 언어(Locale) 정보를 추가
    * 2. 사용법
-   *    모든 요청에 대해 자동으로 호출되어 모델에 Locale 정보를 설정
+   * 모든 요청에 대해 자동으로 호출되어 모델에 Locale 정보를 설정
    * </PRE>
+   *
    * @param request 요청 객체로 클라이언트의 Locale 정보 포함
-   * @param model 모델 객체로, Locale 정보를 추가하는 데 사용
+   * @param model   모델 객체로, Locale 정보를 추가하는 데 사용
    */
   @ModelAttribute
   public void addLocaleToModel(HttpServletRequest request, Model model) {
@@ -67,13 +69,15 @@ public class LoginController {
    * 3. 작성자명: 서정환
    * 4. 작성일자: 2024. 09. 10.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    루트 URL 요청 시 기본 페이지로 리다이렉트
+   * 루트 URL 요청 시 기본 페이지로 리다이렉트
    * 2. 사용법
-   *    '/' 경로로 접근 시 호출되어 개인 정보 페이지로 이동
+   * '/' 경로로 접근 시 호출되어 개인 정보 페이지로 이동
    * </PRE>
+   *
    * @return 개인 정보 페이지로 리다이렉트
    */
   @GetMapping("/")
@@ -87,18 +91,20 @@ public class LoginController {
    * 3. 작성자명: 서정환
    * 4. 작성일자: 2024. 09. 10.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    로그인 실패 시 오류 페이지를 반환
+   * 로그인 실패 시 오류 페이지를 반환
    * 2. 사용법
-   *    '/login-error' 경로로 접근 시 오류 정보를 모델에 추가하고, 오류 페이지로 이동
+   * '/login-error' 경로로 접근 시 오류 정보를 모델에 추가하고, 오류 페이지로 이동
    * </PRE>
-   * @param apiKey 필수 API 키
-   * @param regToken (선택) 등록 토큰
+   *
+   * @param apiKey         필수 API 키
+   * @param regToken       (선택) 등록 토큰
    * @param convertLoginId (선택) 로그인 ID 변환 정보
-   * @param newADLogin (선택) AD 로그인 상태
-   * @param model 모델 객체
+   * @param newADLogin     (선택) AD 로그인 상태
+   * @param model          모델 객체
    * @return ModelAndView 오류 페이지로 이동
    */
   @GetMapping("/login-error")
@@ -135,16 +141,18 @@ public class LoginController {
    * 3. 작성자명: 서정환
    * 4. 작성일자: 2024. 09. 10.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    로그인 페이지를 렌더링하고 필요한 URL 정보를 설정
+   * 로그인 페이지를 렌더링하고 필요한 URL 정보를 설정
    * 2. 사용법
-   *    '/sign-in' 경로로 접근 시 로그인 페이지 렌더링
+   * '/sign-in' 경로로 접근 시 로그인 페이지 렌더링
    * </PRE>
+   *
    * @param request 요청 객체
-   * @param params 요청 파라미터
-   * @param model 모델 객체
+   * @param params  요청 파라미터
+   * @param model   모델 객체
    * @return 로그인 페이지로 이동
    */
   @GetMapping("/sign-in")
@@ -183,16 +191,18 @@ public class LoginController {
    * 3. 작성자명: 서정환
    * 4. 작성일자: 2024. 09. 10.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    비밀번호 찾기 페이지를 렌더링
+   * 비밀번호 찾기 페이지를 렌더링
    * 2. 사용법
-   *    '/sign-in/forgot-password' 경로로 접근 시 호출
+   * '/sign-in/forgot-password' 경로로 접근 시 호출
    * </PRE>
+   *
    * @param request 요청 객체
-   * @param params 요청 파라미터
-   * @param model 모델 객체
+   * @param params  요청 파라미터
+   * @param model   모델 객체
    * @return 비밀번호 찾기 페이지로 이동
    */
   @GetMapping("/sign-in/forgot-password")
@@ -232,16 +242,18 @@ public class LoginController {
    * 3. 작성자명: 서정환
    * 4. 작성일자: 2024. 09. 10.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    비밀번호 재설정 성공 페이지로 이동
+   * 비밀번호 재설정 성공 페이지로 이동
    * 2. 사용법
-   *    '/sign-in/reset-password/success' 경로로 접근 시 호출
+   * '/sign-in/reset-password/success' 경로로 접근 시 호출
    * </PRE>
+   *
    * @param request 요청 객체
-   * @param params 요청 파라미터
-   * @param model 모델 객체
+   * @param params  요청 파라미터
+   * @param model   모델 객체
    * @return 비밀번호 재설정 성공 페이지로 이동
    */
   @GetMapping("/sign-in/forgot-password/success")
@@ -280,16 +292,18 @@ public class LoginController {
    * 3. 작성자명: 서정환
    * 4. 작성일자: 2024. 11. 04.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    비밀번호 재설정 페이지로 이동
+   * 비밀번호 재설정 페이지로 이동
    * 2. 사용법
-   *    '/sign-in/reset-password' 경로로 접근 시 호출
+   * '/sign-in/reset-password' 경로로 접근 시 호출
    * </PRE>
+   *
    * @param request 요청 객체
-   * @param params 요청 파라미터
-   * @param model 모델 객체
+   * @param params  요청 파라미터
+   * @param model   모델 객체
    * @return 비밀번호 재설정 페이지로 이동
    */
   @GetMapping("/sign-in/reset-password")
@@ -328,16 +342,18 @@ public class LoginController {
    * 3. 작성자명: 서정환
    * 4. 작성일자: 2024. 11. 04.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    비밀번호 재설정 성공 페이지로 이동
+   * 비밀번호 재설정 성공 페이지로 이동
    * 2. 사용법
-   *    '/sign-in/reset-password/success' 경로로 접근 시 호출
+   * '/sign-in/reset-password/success' 경로로 접근 시 호출
    * </PRE>
+   *
    * @param request 요청 객체
-   * @param params 요청 파라미터
-   * @param model 모델 객체
+   * @param params  요청 파라미터
+   * @param model   모델 객체
    * @return 비밀번호 재설정 성공 페이지로 이동
    */
   @GetMapping("/sign-in/reset-password/success")
@@ -379,16 +395,18 @@ public class LoginController {
    * 3. 작성자명: 서정환
    * 4. 작성일자: 2024. 11. 04.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    MFA 2단계 인증 이메일 페이지로 이동
+   * MFA 2단계 인증 이메일 페이지로 이동
    * 2. 사용법
-   *    '/sign-in/tfa/email' 경로로 접근 시 호출
+   * '/sign-in/tfa/email' 경로로 접근 시 호출
    * </PRE>
+   *
    * @param request 요청 객체
-   * @param params 요청 파라미터
-   * @param model 모델 객체
+   * @param params  요청 파라미터
+   * @param model   모델 객체
    * @return 2단계 인증 이메일 페이지로 이동
    */
   @GetMapping("/sign-in/tfa/email")
@@ -427,16 +445,18 @@ public class LoginController {
    * 3. 작성자명: 서정환
    * 4. 작성일자: 2024. 11. 04.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    MFA 2단계 인증 OTP 페이지로 이동
+   * MFA 2단계 인증 OTP 페이지로 이동
    * 2. 사용법
-   *    '/sign-in/tfa/otp' 경로로 접근 시 호출
+   * '/sign-in/tfa/otp' 경로로 접근 시 호출
    * </PRE>
+   *
    * @param request 요청 객체
-   * @param params 요청 파라미터
-   * @param model 모델 객체
+   * @param params  요청 파라미터
+   * @param model   모델 객체
    * @return 2단계 인증 OTP 페이지로 이동
    */
   @GetMapping("/sign-in/tfa/otp")
@@ -475,16 +495,18 @@ public class LoginController {
    * 3. 작성자명: 임준혁
    * 4. 작성일자: 2024. 11. 04.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    로그인 프록시를 위한 페이지로 이동
+   * 로그인 프록시를 위한 페이지로 이동
    * 2. 사용법
-   *    '/login-proxy' 경로로 접근 시 호출
+   * '/login-proxy' 경로로 접근 시 호출
    * </PRE>
+   *
    * @param request 요청 객체
-   * @param params 요청 파라미터
-   * @param model 모델 객체
+   * @param params  요청 파라미터
+   * @param model   모델 객체
    * @return 프록시 로그인 페이지로 이동
    */
   @GetMapping("/login-proxy")
@@ -521,17 +543,32 @@ public class LoginController {
    * 3. 작성자명: 임준혁
    * 4. 작성일자: 2024. 11. 04.
    */
+
   /**
    * <PRE>
    * 1. 설명
-   *    승인 상태 오류 페이지로 이동
+   * 승인 상태 오류 페이지로 이동
    * 2. 사용법
-   *    '/approval-status-error' 경로로 접근 시 호출
+   * '/approval-status-error' 경로로 접근 시 호출
    * </PRE>
+   *
    * @return 승인 상태 오류 페이지로 이동
    */
   @GetMapping("/approval-status-error")
   public String approvalStatusError() {
     return "_pages/login/approval-status-error";
+  }
+
+
+  @GetMapping("/sign-in/error")
+  public String samlError(HttpServletRequest request,
+                          @RequestParam Map<String, String> params,
+                          Model model) {
+
+    model.addAttribute("channel", params.get("channel"));
+    model.addAttribute("error", params.get("error"));
+    model.addAttribute("loginPage", BeansUtil.getLoginPageForChannel(params.get("channel")));
+
+    return "_pages/login/login-error";
   }
 }

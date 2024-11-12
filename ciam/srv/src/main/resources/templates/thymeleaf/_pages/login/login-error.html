@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>Recovery Link Sent</title>
+    <meta content="width=device-width, initial-scale=1.0"
+          name="viewport">
+
+    <link href="/_styles/_index.css"
+          rel="stylesheet" />
+    <link href="/_pages/login/login-page.css"
+          rel="stylesheet" />
+
+
+    <style>
+      .main {
+        align-items: center;
+      }
+
+      .title {
+        font: var(--samsung-700-32);
+        color: var(--color-black);
+        margin-top: 200px;
+      }
+
+      .sub-title {
+        font: var(--samsung-400-16);
+        color: var(--color-gray-03);
+        margin: 10px 0 48px 0;
+        text-align: center;
+      }
+
+      .form {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 600px;
+        padding: 24px;
+        margin: 0 auto;
+        border: 1px solid var(--color-gray-04);
+        border-radius: 8px;
+        gap: 8px;
+      }
+
+      @media screen and (max-width: 768px) {
+        .title {
+          margin-top: 80px;
+        }
+
+        .form {
+          border: none;
+        }
+      }
+    </style>
+
+    <script th:inline="javascript">
+      window.onload = function () {
+        const errorCode = document.getElementById("error-code");
+        const errorMessage = document.getElementById("error-message");
+        const errorId = document.getElementById("error-id");
+
+        const params = new URLSearchParams(window.location.search);
+        const errorObjects = JSON.parse(params.get('error'));
+        console.log(errorObjects);
+
+        errorCode.innerHTML = "Code: " + errorObjects.errorCode;
+        errorId.innerHTML = "Call ID: " + errorObjects.callId;
+        errorMessage.innerHTML = errorObjects.errorDescription;
+
+        if (localStorage.getItem('user_uid')) localStorage.removeItem('user_uid');
+      }
+    </script>
+  </head>
+  <body>
+    <th:block th:replace="_components/layout/header :: header"></th:block>
+    <th:block th:replace="_components/layout/main :: main(~{::content})">
+      <th:block th:fragment="content">
+        <h2 class="title"
+            th:utext="#{error-page.title}">An Error Occurred</h2>
+        <p class="sub-title"
+           th:utext="#{error-page.subTitle}">If the problem persists, please contact us</p>
+        <form class="form">
+          <div id="error-code"
+               style="font-size: 14px;"></div>
+          <div id="error-id"
+               style="font-size: 14px;"></div>
+          <div id="error-message"
+               style="text-align: center; font-weight: 700; font-size: 16px; margin-top: 18px; line-height: 1.4; margin-bottom: 20px;"></div>
+          <button class="button button-size--m button-theme--blue"
+                  id="formSubmitButton"
+                  type="button">
+            <a style="text-decoration: none; color: inherit"
+               th:href="${loginPage}"
+               th:utext="#{loginError.back_to_home}">Go back to HomePage</a>
+          </button>
+        </form>
+      </th:block>
+    </th:block>
+
+    <th:block th:replace="_components/layout/footer :: footer"></th:block>
+    <th:block th:replace="_components/spinner/loading-spinner :: loading-spinner"></th:block>
+  </body>
+</html>
+
