@@ -4,60 +4,187 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Channel UID Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .field-container {
+            margin-bottom: 15px;
+            display: none; /* 기본적으로 모든 필드를 숨김 */
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%; /* 입력 필드 너비를 폼에 맞춤 */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script>
+        function toggleFields() {
+            const url = window.location.pathname;
+            const channel = url.split('/').pop();
+
+            // 보여줄 필드 이름 설정
+            let fieldsToShow = [];
+            if (channel === 'sba') {
+                fieldsToShow = [
+                    'firstName', 'lastName', 'loginID', 'cmdmAccountID', 'department',
+                    'userPhone', 'languages', 'countryCode', 'channelType', 'industryType',
+                    'gbm1', 'gbm2', 'gbm3', 'gbm4', 'channelUID', 'subsidiaryName', 'userType'
+                ];
+            } else if (channel === 'jcext') {
+                fieldsToShow = ['channelUID', 'loginID', 'email'];
+            } else {
+                fieldsToShow = ['channelUID'];
+            }
+
+            // 모든 필드 숨기기
+            document.querySelectorAll('.field-container').forEach(container => {
+                container.style.display = 'none';
+            });
+
+            // 필요한 필드 보이기
+            fieldsToShow.forEach(fieldName => {
+                const field = document.querySelector(`input[name="${fieldName}"]`);
+                if (field) {
+                    field.closest('.field-container').style.display = 'block';
+                }
+            });
+        }
+
+        window.onload = toggleFields;
+    </script>
 </head>
 <body>
 <form id="channelForm" method="POST" th:action="@{'/converttest/' + ${channel}}">
     <h2>CIAM Parameters (New)</h2>
-    <label for="firstName">firstName:</label><br>
-    <input type="text" id="firstName" name="firstName"><br><br>
 
-    <label for="lastName">lastName:</label><br>
-    <input type="text" id="lastName" name="lastName"><br><br>
+    <div class="field-container">
+        <label for="firstName">firstName:</label>
+        <input type="text" id="firstName" name="firstName">
+    </div>
 
-    <label for="loginID">loginID:</label><br>
-    <input type="text" id="loginID" name="loginID"><br><br>
+    <div class="field-container">
+        <label for="lastName">lastName:</label>
+        <input type="text" id="lastName" name="lastName">
+    </div>
 
-    <label for="cmdmAccountID">cmdmAccountID:</label><br>
-    <input type="text" id="cmdmAccountID" name="cmdmAccountID"><br><br>
+    <div class="field-container">
+        <label for="loginID">loginID:</label>
+        <input type="text" id="loginID" name="loginID">
+    </div>
 
-    <label for="department">department:</label><br>
-    <input type="text" id="department" name="department"><br><br>
+    <div class="field-container">
+        <label for="cmdmAccountID">cmdmAccountID:</label>
+        <input type="text" id="cmdmAccountID" name="cmdmAccountID">
+    </div>
 
-    <label for="userPhone">userPhone:</label><br>
-    <input type="text" id="userPhone" name="userPhone"><br><br>
+    <div class="field-container">
+        <label for="department">department:</label>
+        <input type="text" id="department" name="department">
+    </div>
 
-    <label for="languages">languages:</label><br>
-    <input type="text" id="languages" name="languages"><br><br>
+    <div class="field-container">
+        <label for="userPhone">userPhone:</label>
+        <input type="text" id="userPhone" name="userPhone">
+    </div>
 
-    <label for="countryCode">countryCode:</label><br>
-    <input type="text" id="countryCode" name="countryCode"><br><br>
+    <div class="field-container">
+        <label for="languages">languages:</label>
+        <input type="text" id="languages" name="languages">
+    </div>
 
-    <label for="channelType">channelType:</label><br>
-    <input type="text" id="channelType" name="channelType"><br><br>
+    <div class="field-container">
+        <label for="countryCode">countryCode:</label>
+        <input type="text" id="countryCode" name="countryCode">
+    </div>
 
-    <label for="industryType">industryType:</label><br>
-    <input type="text" id="industryType" name="industryType"><br><br>
+    <div class="field-container">
+        <label for="channelType">channelType:</label>
+        <input type="text" id="channelType" name="channelType">
+    </div>
 
-    <label for="gbm1">gbm1:</label><br>
-    <input type="text" id="gbm1" name="gbm1"><br><br>
+    <div class="field-container">
+        <label for="industryType">industryType:</label>
+        <input type="text" id="industryType" name="industryType">
+    </div>
 
-    <label for="gbm2">gbm2:</label><br>
-    <input type="text" id="gbm2" name="gbm2"><br><br>
+    <div class="field-container">
+        <label for="gbm1">gbm1:</label>
+        <input type="text" id="gbm1" name="gbm1">
+    </div>
 
-    <label for="gbm3">gbm3:</label><br>
-    <input type="text" id="gbm3" name="gbm3"><br><br>
+    <div class="field-container">
+        <label for="gbm2">gbm2:</label>
+        <input type="text" id="gbm2" name="gbm2">
+    </div>
 
-    <label for="gbm4">gbm4:</label><br>
-    <input type="text" id="gbm4" name="gbm4"><br><br>
+    <div class="field-container">
+        <label for="gbm3">gbm3:</label>
+        <input type="text" id="gbm3" name="gbm3">
+    </div>
 
-    <label for="channelUID">channelUID:</label><br>
-    <input type="text" id="channelUID" name="channelUID"><br><br>
+    <div class="field-container">
+        <label for="gbm4">gbm4:</label>
+        <input type="text" id="gbm4" name="gbm4">
+    </div>
 
-    <label for="subsidiaryName">subsidiaryName:</label><br>
-    <input type="text" id="subsidiaryName" name="subsidiaryName"><br><br>
+    <div class="field-container">
+        <label for="channelUID">channelUID:</label>
+        <input type="text" id="channelUID" name="channelUID">
+    </div>
 
-    <label for="userType">userType:</label><br>
-    <input type="text" id="userType" name="userType"><br><br>
+    <div class="field-container">
+        <label for="subsidiaryName">subsidiaryName:</label>
+        <input type="text" id="subsidiaryName" name="subsidiaryName">
+    </div>
+
+    <div class="field-container">
+        <label for="userType">userType:</label>
+        <input type="text" id="userType" name="userType">
+    </div>
+
+    <div class="field-container">
+        <label for="email">email:</label>
+        <input type="text" id="email" name="email">
+    </div>
 
     <input type="submit" value="Submit">
 </form>

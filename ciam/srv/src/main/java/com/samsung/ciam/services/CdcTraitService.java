@@ -23,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -102,6 +104,12 @@ public class CdcTraitService {
 
     @Autowired
     private ApprovalAdminRepository approvalAdminRepository;
+
+    @Autowired
+    private WfMasterRepository wfMasterRepository;
+
+    @Autowired
+    private UserAgreedConsentsRepository userAgreedConsentsRepository;
 
     /*
      * 1. 메소드명: getCdcUser
@@ -2156,6 +2164,13 @@ public class CdcTraitService {
 
                         //권한부여 테이블에 account ID 변경
                         approvalAdminRepository.updateApprovalCompanyCode(uid,accountId);
+                        List<String> uidList = wfMasterRepository.selectCompanyCodeUidList(bpid);
+                        if (!uidList.isEmpty()) {
+                            uidList.stream()
+                                    .filter(requestorId -> !requestorId.equals(uid)) // uid와 동일하지 않은 경우만 필터링
+                                    .forEach(requestorId -> updateAccountID(requestorId, newCompany.getBpidInCdc()));
+                        }
+                        wfMasterRepository.updateWfMasterCompanyCode(bpid,accountId);
                     }
                 }
 
@@ -2531,6 +2546,86 @@ public class CdcTraitService {
         }
 
         return success;
+    }
+
+    public String updateConsents(@RequestBody Map<String, Object> requestParams, HttpSession session) {
+        String uid = (String) requestParams.get("uid");
+        String channel = (String) requestParams.get("channel");
+        String language = (String) requestParams.get("language");
+        String subsidiary = (String) requestParams.get("subsidiary");
+        boolean marketingConsent = (Boolean) requestParams.getOrDefault("marketingConsent", false);
+
+        // 약관 정보 가져오기
+        Map<String, Object> consentData = consentSelector(uid, channel, language, subsidiary);
+
+        // CDC에 약관 업데이트 준비
+        Map<String, Object> preferencesFields = new HashMap<>();
+        preferencesFields.put((String) consentData.get("termsCommon"), Map.of("isConsentGranted", true));
+        preferencesFields.put((String) consentData.get("termsChannel"), Map.of("isConsentGranted", true));
+        preferencesFields.put((String) consentData.get("privacyCommon"), Map.of("isConsentGranted", true));
+        preferencesFields.put((String) consentData.get("privacyChannel"), Map.of("isConsentGranted", true));
+
+        if (marketingConsent) {
+            preferencesFields.put((String) consentData.get("marketingCommon"), Map.of("isConsentGranted", true));
+        } else {
+            preferencesFields.put((String) consentData.get("marketingCommon"), Map.of("isConsentGranted", false));
+        }
+
+        // Gigya API 호출
+        Map<String, Object> gigyaParams = new HashMap<>();
+        try {
+            gigyaParams.put("preferences", new ObjectMapper().writeValueAsString(preferencesFields));
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing preferences fields to JSON", e);
+            return "N"; // JSON 처리 실패 시 N 반환
+        }
+        gigyaParams.put("UID", uid);
+
+        GSResponse response = gigyaService.executeRequest(channel, "accounts.setAccountInfo", gigyaParams);
+
+        if (response.getErrorCode() == 0) {
+            // 동의 내용 업데이트
+            consentResponseUpdated(Long.valueOf((String) consentData.get("commonTermConsentId")),
+                    Long.valueOf((String) consentData.get("commonTermContentId")), uid);
+            consentResponseUpdated(Long.valueOf((String) consentData.get("channelTermsConsentId")),
+                    Long.valueOf((String) consentData.get("channelTermsContentId")), uid);
+            consentResponseUpdated(Long.valueOf((String) consentData.get("commonPrivacyConsentId")),
+                    Long.valueOf((String) consentData.get("commonPrivacyContentId")), uid);
+            consentResponseUpdated(Long.valueOf((String) consentData.get("channelPrivacyConsentId")),
+                    Long.valueOf((String) consentData.get("channelPrivacyContentId")), uid);
+
+            // 마케팅 동의 여부에 따라 처리
+            if (marketingConsent) {
+                consentResponseUpdated(Long.valueOf((String) consentData.get("marketingConsentid")),
+                        Long.valueOf((String) consentData.get("marketingcontentid")), uid);
+            } else {
+                saveRejectedConsent(Long.valueOf((String) consentData.get("marketingConsentid")),
+                        Long.valueOf((String) consentData.get("marketingcontentid")), uid);
+            }
+
+            return "Y"; // 성공 시 Y 반환
+        } else {
+            log.error("Consent update failed for UID: {}", uid);
+            return "N"; // 실패 시 N 반환
+        }
+    }
+
+    public void consentResponseUpdated(Long consentId, Long consentContentId, String uid) {
+        UserAgreedConsents termsAgreed = new UserAgreedConsents();
+        termsAgreed.setConsentId(consentId);
+        termsAgreed.setConsentContentId(consentContentId);
+        termsAgreed.setUid(uid);
+        termsAgreed.setStatus("agreed");
+        userAgreedConsentsRepository.save(termsAgreed);
+    }
+
+    public void saveRejectedConsent(Long consentId, Long consentContentId, String uid) {
+        UserAgreedConsents termsAgreed = new UserAgreedConsents();
+        termsAgreed.setConsentId(consentId);
+        termsAgreed.setConsentContentId(consentContentId);
+        termsAgreed.setUid(uid);
+        termsAgreed.setStatus("rejected");
+        userAgreedConsentsRepository.save(termsAgreed);
     }
 }
 

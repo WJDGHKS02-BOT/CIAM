@@ -1,4 +1,10 @@
 async function accounts_resetPassword({loginID, newPassword}) {
+  const ERROR_CODES = {
+    SUCCESS: 0,
+    INVALID_PASSWORD_PATTERN: 401030,
+    SAME_AS_CURRENT_PASSWORD: 400006,
+  };
+
   function callAPI({loginID, newPassword}) {
     const params = new URLSearchParams(location.search);
     const passwordResetToken = params.get('pwrt');
@@ -31,12 +37,12 @@ async function accounts_resetPassword({loginID, newPassword}) {
 
   function handleResponse(response) {
     switch (response.errorCode) {
-      case ERROR_CODES.password.PASSWORD_PATTERN_INVALID:
-        return showLoginPageResponseMessages('field.PASSWORD_PATTERN_INVALID');
-      case ERROR_CODES.password.SAME_AS_CURRENT_PASSWORD:
-        return showLoginPageResponseMessages('field.SAME_AS_CURRENT_PASSWORD');
       case ERROR_CODES.SUCCESS:
         return location.assign(`${location.pathname}/success${location.search}`);
+      case ERROR_CODES.PASSWORD_PATTERN_INVALID:
+        return showLoginPageResponseMessages('field.PASSWORD_PATTERN_INVALID');
+      case ERROR_CODES.SAME_AS_CURRENT_PASSWORD:
+        return showLoginPageResponseMessages('field.SAME_AS_CURRENT_PASSWORD');
       default:
         return response
     }

@@ -520,4 +520,11 @@ public interface WfMasterRepository  extends JpaRepository<WfMaster, String> {
             nativeQuery = true)
     int updateWfMasterCompanyCode(@Param("wf_id") String wf_id,@Param("accountId") String accountId,@Param("name") String name);
 
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE wf_master SET requestor_company_code = :accountID WHERE requestor_company_code = :bpId", nativeQuery = true)
+    void updateWfMasterCompanyCode(@Param("bpId") String bpId,@Param("accountID") String accountID);
+
+    @Query(value = "SELECT requestor_id FROM wf_master w WHERE requestor_company_code = :bpId" , nativeQuery = true)
+    List<String> selectCompanyCodeUidList(@Param("bpId") String bpId);
 }

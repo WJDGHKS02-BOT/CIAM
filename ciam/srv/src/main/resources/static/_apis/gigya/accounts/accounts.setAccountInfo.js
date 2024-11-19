@@ -1,4 +1,8 @@
 async function accounts_setAccountInfo({lastLogin}) {
+  const ERROR_CODES = {
+    SUCCESS: 0,
+  }
+
   function callAPI() {
     const CHANNEL = new URLSearchParams(location.search).get('channel');
     const channelData = {};

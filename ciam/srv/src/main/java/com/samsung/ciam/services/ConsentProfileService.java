@@ -603,6 +603,10 @@ public class ConsentProfileService {
                 Channels channelObj = optionalChannelObj.get();
                 Map<String, Object> configMap = channelObj.getConfigMap();
 
+                if("CUSTOMER".equals(channelType)) {
+                    cpiApiService.updateCpiContact("U",uid);
+                }
+
                 Boolean userProvisioning = configMap != null && configMap.containsKey("java_useprovisioning")
                         ? (Boolean) configMap.get("java_useprovisioning")
                         : false;

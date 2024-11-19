@@ -27,4 +27,10 @@ public interface UserAgreedConsentsRepository extends JpaRepository<UserAgreedCo
 
     @Query(value = "SELECT * FROM user_agreed_consents WHERE consent_id = :id", nativeQuery = true)
     Optional<UserAgreedConsents> selectConsentId(@Param("id") Long id);
+
+    @Query(value = "SELECT DISTINCT uid FROM user_agreed_consents WHERE consent_content_id = :consentContentId", nativeQuery = true)
+    List<String> selectDistinctUidsByConsentContentId(@Param("consentContentId") Long consentContentId);
+
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM UserAgreedConsents u WHERE u.uid = :uid AND u.consentContentId = :consentContentId")
+    boolean existsByUidAndConsentContentId(@Param("uid") String uid, @Param("consentContentId") Long consentContentId);
 }

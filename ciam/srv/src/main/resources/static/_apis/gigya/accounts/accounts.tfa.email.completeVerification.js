@@ -1,4 +1,10 @@
 async function accounts_tfa_email_completeVerification({code}) {
+  const ERROR_CODES = {
+    SUCCESS: 0,
+    WRONG_VERIFICATION_CODE: 400042,
+    REQUIRED_CHANGE_PASSWORD: 403042,
+  };
+
   function callAPI({code}) {
     return new Promise((resolve, reject) => {
       gigya.accounts.tfa.email.completeVerification({
@@ -17,10 +23,10 @@ async function accounts_tfa_email_completeVerification({code}) {
       case ERROR_CODES.SUCCESS:
         signInSession.providerAssertion = response.providerAssertion;
         return response;
-      case ERROR_CODES.field.ENTERED_WRONG_VERIFICATION_CODE:
+      case ERROR_CODES.WRONG_VERIFICATION_CODE:
         showLoginPageResponseMessages('field.ENTERED_WRONG_VERIFICATION_CODE');
         break;
-      case ERROR_CODES.accounts.REQUIRED_PASSWORD_CHANGE:
+      case ERROR_CODES.REQUIRED_PASSWORD_CHANGE:
         return showLoginPageResponseMessages('accounts.REQUIRED_PASSWORD_CHANGE');
       default:
         showLoginPageResponseMessages('code.EMAIL_REQUEST_EXPIRED');

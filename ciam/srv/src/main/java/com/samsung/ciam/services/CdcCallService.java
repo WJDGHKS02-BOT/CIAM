@@ -43,6 +43,18 @@ public class CdcCallService {
 
     @Autowired
     private ConsentContentRepository consentContentRepository;
+
+    @Autowired
+    private UserAgreedConsentsRepository userAgreedConsentsRepository;
+
+    @Autowired
+    private CdcTraitService cdcTraitService;
+
+    @Autowired
+    private ConsentRepository consentRepository;
+
+    @Autowired
+    private MailService mailService;
     
     @Value("${server}")
     private String serverName;
@@ -64,6 +76,63 @@ public class CdcCallService {
                 // 1. 오늘 날짜에 (배포대기 상태인) scheduled 데이터 개수만큼 반복
                 consentContentList = consentContentRepository.listConsentContentStatusIdPublished();
             }
+
+            // 1. consent_id 기반으로 published 상태의 id 조회
+            List<Long> consentContentIds = consentContentList.stream()
+                    .map(ConsentContent::getConsentId)  // consent_id 추출
+                    .distinct()                         // 중복 제거
+                    .map(consentId -> consentRepository.selectPublishedConsentContentId(consentId))  // published 상태의 id 조회
+                    .filter(Objects::nonNull)           // null 값 필터링
+                    .collect(Collectors.toList());
+
+            // 2. consentContentIds를 기반으로 UID-ConsentId 매핑 및 메일 발송
+            consentContentIds.stream()
+                    .flatMap(id -> userAgreedConsentsRepository.selectDistinctUidsByConsentContentId(id)
+                            .stream()
+                            .filter(uid -> consentContentList.stream()
+                                    .noneMatch(consentContent ->
+                                            consentContent.getConsentId().equals(consentRepository.selectConsentIdByConsentContentId(id)) &&
+                                                    userAgreedConsentsRepository.existsByUidAndConsentContentId(uid, consentContent.getId())
+                                    )
+                            )
+                            .map(uid -> new AbstractMap.SimpleEntry<>(uid, id))  // UID와 ConsentId 매핑
+                    )
+                    .collect(Collectors.toMap(
+                            AbstractMap.SimpleEntry::getKey,     // UID를 key로
+                            AbstractMap.SimpleEntry::getValue,   // ConsentId를 value로
+                            (existing, replacement) -> existing  // 중복된 UID는 첫 번째 값 유지
+                    ))
+                    .forEach((uid, consentId) -> {
+                        try {
+                            // 3. 메일 채널 정보 가져오기
+                            String mailChannel = consentRepository.selectCoverageById(consentId);
+
+                            // 4. CDC User 정보 가져오기
+                            JsonNode cdcUser = cdcTraitService.getCdcUser(uid, 0);
+
+                            // 5. errorCode가 0일 때만 메일 발송
+                            if (cdcUser.has("errorCode") && cdcUser.get("errorCode").asInt() == 0) {
+                                Map<String, Object> paramArr = new HashMap<>();
+                                paramArr.put("template", "TEMPLET-NEW-006");
+                                paramArr.put("cdc_uid", uid);
+                                paramArr.put("channel", mailChannel);
+                                paramArr.put("firstName", cdcUser.get("profile").get("firstName") != null
+                                        ? cdcUser.get("profile").get("firstName").asText()
+                                        : "");
+                                paramArr.put("lastName", cdcUser.get("profile").get("lastName") != null
+                                        ? cdcUser.get("profile").get("lastName").asText()
+                                        : "");
+
+                                // 메일 발송
+                                //mailService.sendMail(paramArr);
+                                log.info("Mail Sent to UID: {} via channel: {}", uid, mailChannel);
+                            } else {
+                                log.warn("Skipping mail for UID: {} due to errorCode: {}", uid, cdcUser.get("errorCode").asInt());
+                            }
+                        } catch (Exception e) {
+                            log.error("Failed to send mail for UID: {}", uid, e);
+                        }
+                    });
             
             int cnt = consentContentList.size();
             for (int i=0;i<consentContentList.size();i++) {
@@ -101,7 +170,7 @@ public class CdcCallService {
                 } else {
                     log.warn("cdc don't call");
                 }
-            }     
+            }
             
             if (cnt > 0) {
                 msg = "published count : "+cnt;

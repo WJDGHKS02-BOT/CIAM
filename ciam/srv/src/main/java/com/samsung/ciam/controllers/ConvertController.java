@@ -111,6 +111,39 @@ public class ConvertController {
                 localeResolver.setLocale(request, null, locale); // 새로운 로케일 설정
             }
         }
+        else if ("jcext".equalsIgnoreCase(channel)) {
+            // 필수값 체크: countryCode, loginID, channelUID가 없거나 빈 값일 경우 에러 페이지로 이동
+            if (    isNullOrEmpty(payload.get("loginID")) ||
+                    isNullOrEmpty(payload.get("channelUID"))) {
+                return new RedirectView("/error/mandatoryfields"); // 필수 값 누락 시 에러 페이지로 리다이렉트
+            }
+
+            // 미리 tcpp_language(약관 언어) 값을 세팅
+            if (!isNullOrEmpty(payload.get("languages"))) {
+                String language = extractLanguageCode(payload.get("languages"));
+                language = "en_US".equals(language) ? "en" : "ko_KR".equals(language) ? "ko" : language;
+                session.setAttribute("tcpp_language", language);
+            }
+
+            // 필요한 채널전환 필드 key 리스트
+            List<String> keys = Arrays.asList(
+                    "loginID", "channelUID"
+            );
+
+            // key가 없으면 빈 문자열로 설정
+            keys.forEach(key -> payload.putIfAbsent(key, ""));
+
+            // session에 값 설정
+            session.setAttribute("convertYn", "Y");
+            session.setAttribute("convertData", payload);
+            session.setAttribute("channelUID", payload.get("channelUID"));
+
+            // langLocale 파라미터가 있을 경우 로케일 설정
+            if (langLocale != null && !langLocale.isEmpty()) {
+                Locale locale = Locale.forLanguageTag(langLocale);
+                localeResolver.setLocale(request, null, locale); // 새로운 로케일 설정
+            }
+        }
         // sba가 아닌 다른 채널일 경우 channelUID만 설정
         else {
             List<String> keys = Arrays.asList(

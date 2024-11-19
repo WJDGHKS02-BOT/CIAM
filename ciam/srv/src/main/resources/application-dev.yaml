@@ -5,6 +5,7 @@ spring:
         secure: true
         http-only: true
       tracking-modes: cookie
+      timeout: 60m
   main:
     allow-bean-definition-overriding: true
   web:
@@ -169,7 +170,7 @@ cpi:
   createContactUrl: /http/restapi/extension/sec/contact/simpleuse
   createAccountUrl: /http/restapi/extension/sec/account/create
   provisioningUrl: /http/restapi/extension/sec/channel/v2/userprovisioning
-  updateContactUrl: /http/restapi/extension/sec/contact/simpleuse
+  updateContactUrl: /http/restapi/extension/sec/contact/update
 
 encrypt:
   appKey: kOpHl0VGrA1LZtcIgx02dtZtynl7RPO7dKZ17G/90cg

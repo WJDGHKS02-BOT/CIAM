@@ -486,6 +486,7 @@ public class RegistrationService {
             session.setAttribute("usingDefaultSubsidiary", "1");
             session.setAttribute("toolmateOtherCountry", "1");
             session.setAttribute("countryCodeId", country);
+            session.setAttribute("secCountry", "other");
         } else {
             Long countryCode = Long.parseLong(country);
             Optional<SecServingCountry> secCountryOpt = secServingCountryRepository.findByCountryCode(countryCode);
@@ -521,7 +522,7 @@ public class RegistrationService {
         } catch (JsonProcessingException e) {
             log.error("Error serializing registration data", e);
         }
-        String email =  payload.get("loginUserId");
+        String email = payload.get("loginUserId");
         String[] emailSplit = email.split("@");
         String emailId = emailSplit[0];
         String domain = emailSplit[1];
@@ -2143,7 +2144,12 @@ public class RegistrationService {
             if (!phoneArray.isEmpty()) {
                 profileFields.put("phones", phoneArray);
             }
-            profileFields.put("country", session.getAttribute("secCountry"));
+            if(session.getAttribute("secCountry") != null && "other".equals(session.getAttribute("secCountry"))) {
+                profileFields.put("country", requestParams.get("country"));
+                session.setAttribute("secCountry",requestParams.get("country"));
+            } else {
+                profileFields.put("country", session.getAttribute("secCountry"));
+            }
 
             String companyName = (String) session.getAttribute("company_name");
             if (StringUtils.hasText(companyName)) {
@@ -3525,8 +3531,14 @@ public class RegistrationService {
         profileFields.put("lastName",convertData.getOrDefault("lastName",""));
         //profileFields.put("username",payload.getOrDefault("loginID",""));
         profileFields.put("languages",convertData.getOrDefault("languages",""));
-        profileFields.put("country",convertData.getOrDefault("countryCode",""));
-
+        String countryCode = convertData.getOrDefault("countryCode", "");
+        if (countryCode.isEmpty()) {
+            // countryCode가 비어있을 경우 secCountry 사용
+            profileFields.put("country", (String) session.getAttribute("secCountry"));
+        } else {
+            // countryCode가 비어있지 않으면 그대로 사용
+            profileFields.put("country", countryCode);
+        }
         List<Map<String, String>> phoneArray = new ArrayList<>();
         Map<String, String> phoneMap = new HashMap<>();
 

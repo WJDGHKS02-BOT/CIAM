@@ -394,6 +394,10 @@ public class UserProfileService {
             Channels channelObj = optionalChannelObj.get();
             Map<String, Object> configMap = channelObj.getConfigMap();
 
+            if("CUSTOMER".equals(channelObj.getChannelType())) {
+                cpiApiService.updateCpiContact("U",payload.get("cdc_uid"));
+            }
+
             Boolean userProvisioning = configMap != null && configMap.containsKey("java_useprovisioning")
                     ? (Boolean) configMap.get("java_useprovisioning")
                     : false;
@@ -508,6 +512,10 @@ public class UserProfileService {
                 Optional<Channels> optionalChannelObj = channelRepository.selectByChannelName(channelName);
                 Channels channelObj = optionalChannelObj.get();
                 Map<String, Object> configMap = channelObj.getConfigMap();
+
+                if("CUSTOMER".equals(channelType)) {
+                    cpiApiService.updateCpiContact("D",(String) session.getAttribute("cdc_uid"));
+                }
 
                 Boolean userProvisioning = configMap != null && configMap.containsKey("java_useprovisioning")
                         ? (Boolean) configMap.get("java_useprovisioning")

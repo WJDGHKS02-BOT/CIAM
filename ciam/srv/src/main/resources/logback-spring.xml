@@ -34,19 +34,17 @@
 <!--    </appender>-->
 
     <!-- 운영 환경에서만 Slack Webhook Appender 적용 -->
-    <if condition='property("spring.profiles.active").contains("prod")'>
-        <then>
+    <springProfile name="prod">
             <!-- 커스텀 Slack Webhook Appender -->
             <appender name="SLACK" class="com.samsung.ciam.common.core.component.SlackAppender">
-                <webhookUrl>https://hooks.slack.com/services/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</webhookUrl>
+                <webhookUrl>${SLACK_WEBHOOK_URI}</webhookUrl>
             </appender>
 
             <!-- ERROR 로그만 Slack으로 전송 -->
             <logger name="com.samsung.ciam" level="ERROR" additivity="false">
                 <appender-ref ref="SLACK" />
             </logger>
-        </then>
-    </if>
+    </springProfile>
 
     <!-- INFO 레벨 이상의 로그는 콘솔에 기록 -->
     <root level="INFO">

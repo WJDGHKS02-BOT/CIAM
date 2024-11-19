@@ -91,4 +91,14 @@ public class DemoController {
     return new ModelAndView("testgetAccountInfo");
   }
 
+  @GetMapping("/testError")
+  public ModelAndView testError() {
+    throw new RuntimeException("Slack 테스트용 RuntimeException 발생");
+  }
+
+  @GetMapping("/testUpdateUserRecord")
+  public ModelAndView testUpdateUserRecord() {
+    return new ModelAndView("testUpdateUserRecord");
+  }
+
 }

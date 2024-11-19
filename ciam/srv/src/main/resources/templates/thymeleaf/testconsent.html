@@ -18,26 +18,51 @@
 </form>
 
 <script>
-    document.getElementById("consentForm").addEventListener("submit", function(event) {
+    document.getElementById("consentForm").addEventListener("submit", async function(event) {
         event.preventDefault(); // 기본 제출 동작을 막음
 
         var key = document.getElementById("key").value;
         var uid = document.getElementById("uid").value;
 
-        // POST 요청을 생성하여 key는 URL로, uid는 폼 데이터로 보냄
-        var form = document.createElement("form");
-        form.method = "POST";
-        form.action = `/consent-update/${key}`;
+        // payload 생성
+        var payload = {
+            uid: uid,
+            channel: key
+        };
 
-        // uid 값을 POST 폼 데이터로 추가
-        var inputUid = document.createElement("input");
-        inputUid.type = "hidden";
-        inputUid.name = "uid";
-        inputUid.value = uid;
+        try {
+            // 서버로 POST 요청 보내기
+            var response = await fetch('/new-consent/consentVersionCheck', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            debugger;
+            var result = await response.text(); // 서버 응답 텍스트
 
-        form.appendChild(inputUid);
-        document.body.appendChild(form);
-        form.submit(); // 폼 제출
+            if (result.trim() === "Y") {
+                // 결과가 "Y"일 경우만 폼 제출
+                var form = document.createElement("form");
+                form.method = "POST";
+                form.action = `/consent-update/${key}`;
+
+                var inputUid = document.createElement("input");
+                inputUid.type = "hidden";
+                inputUid.name = "uid";
+                inputUid.value = uid;
+
+                form.appendChild(inputUid);
+                document.body.appendChild(form);
+                form.submit();
+            } else {
+                alert("Consent version check failed or is not valid.");
+            }
+        } catch (error) {
+            console.error("Error during consent version check:", error);
+            alert("An error occurred. Please try again.");
+        }
     });
 </script>
 </body>

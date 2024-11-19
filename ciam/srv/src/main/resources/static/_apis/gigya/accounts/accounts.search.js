@@ -20,11 +20,9 @@ async function accounts_search({query, updateUserRecord}) {
       switch (APPROVAL_STATUS) {
         case 'approved':
           if (isAdLogin) setItemWithExpiry('user_uid', response.data.results[0].UID);
-          // if (isAdLogin) signInSession.UID = response.data.results[0].UID;
           return;
         case 'inactive':
           if (isAdLogin) setItemWithExpiry('user_uid', response.data.results[0].UID);
-          // if (isAdLogin) signInSession.UID = response.data.results[0].UID;
           return;
         case 'pending':
           return location.assign(`/approval-status-error?approvalStatus=pending`);

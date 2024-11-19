@@ -20,15 +20,14 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/_apis/_instance/gigya-instance.js"></script>
     <script src="/_apis/_instance/samsung-instance.js"></script>
+    <script src="/_pages/login/login-proxy/sign-in-redirect.js"></script>
 
     <script type="module" src="/_apis/gigya/accounts.js"></script>
     <script type="module" src="/_apis/gigya/socialize.js"></script>
     <script src="/_apis/samsung/samsung.js"></script>
-    <script src="/_apis/gigya/ERROR_CODES.js"></script>
     <script src="/_apis/gigya/continueSSO.js"></script>
     <script src="/_apis/localStorage.js"></script>
     <script src="/_apis/_instance/setupBaseURL.js"></script>
-
 
     <script src="/_pages/login/sign-in-session.js"></script>
     <script src="/_pages/login/components/show-login-page-response-messages.js"></script>
@@ -50,28 +49,12 @@
           const email = document.querySelector('input[name="field-email"]').value;
           const password = document.querySelector('input[name="field-password"]').value;
 
-          const loginResponse = await accounts.login({email, password, captchaToken});
-
-          if (loginResponse === 'REQUIRED_AUTHENTICATION') {
-            const {data: userTfaSettings} = await samsung.getUserTfaSettings();
-            const IS_TFA_OTP = userTfaSettings.tfaMethods.gigyaTotp;
-
-            if (IS_TFA_OTP) return location.assign(`${location.pathname}/tfa/otp${location.search}`);
-            return location.assign(`${location.pathname}/tfa/email${location.search}`);
-          }
+          await accounts.login({email, password, captchaToken});
         } catch(err) {
           console.error(err);
         } finally {
           hideLoadingSpinner();
         }
-      }
-
-      function redirectSamsungEmployeeLogin () {
-        return accounts.socialLogin({provider: 'saml-samsung-ad'});
-      }
-
-      function redirectForgotPasswordPage () {
-        return location.assign(`${location.pathname}/forgot-password${location.search}`);
       }
 
       document.addEventListener('DOMContentLoaded', function () {
@@ -221,7 +204,7 @@
           ></th:block>
           <button
             class="forget-password-button"
-            onclick="redirectForgotPasswordPage()"
+            onclick="SignInRedirect.forgotPassword()"
             th:utext="#{login-page.form.link.forgotPassword}"
             type="button"
           >
@@ -247,8 +230,8 @@
 
           <button
             type="button"
-            class="samsung-employee-login-link"
-            onclick="redirectSamsungEmployeeLogin()"
+            class="samsung-employee-login-link button button-size--m button-theme--lined-blue"
+            onclick="SignInRedirect.samsungEmployeeLogin()"
             th:utext="#{login-page.form.link.samsungEmployeeLogin}"
           >
             Samsung Employee Login

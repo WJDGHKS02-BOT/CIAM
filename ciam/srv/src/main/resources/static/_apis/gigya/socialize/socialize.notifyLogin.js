@@ -1,4 +1,9 @@
 async function socialize_notifyLogin() {
+  const ERROR_CODES = {
+    SUCCESS: 0,
+    REQUIRED_PASSWORD_CHANGE: 403100,
+  };
+
   function callAPI() {
     return new Promise((resolve) => {
       gigya.socialize.notifyLogin({
@@ -15,7 +20,7 @@ async function socialize_notifyLogin() {
     switch (response.errorCode) {
       case ERROR_CODES.SUCCESS:
         return response;
-      case ERROR_CODES.accounts.REQUIRED_PASSWORD_CHANGE:
+      case ERROR_CODES.REQUIRED_PASSWORD_CHANGE:
         return showLoginPageResponseMessages('accounts.REQUIRED_PASSWORD_CHANGE');
       default:
         return;

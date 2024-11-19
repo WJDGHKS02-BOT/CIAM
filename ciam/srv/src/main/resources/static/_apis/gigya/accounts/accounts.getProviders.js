@@ -1,4 +1,8 @@
 async function accounts_getProviders() {
+  const ERROR_CODES = {
+    SUCCESS: 0,
+  }
+
   function callAPI() {
     return new Promise((resolve) => {
       gigya.accounts.tfa.getProviders({

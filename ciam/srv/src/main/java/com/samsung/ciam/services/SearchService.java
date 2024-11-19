@@ -77,8 +77,10 @@ public class SearchService {
         // 특정 조건: vendorcode 값이 있으면 country 조건을 무시한다.
         // vendorcode가 있으면 country 조건을 무시
         BooleanExpression vendorcodeCondition = this.getColumnExpression(qBtpAccounts, columnNameList[5], param.get(columnNameList[5]));
-        BooleanExpression countryCondition = vendorcodeCondition == null ? this.getColumnExpression(qBtpAccounts, columnNameList[1], param.get(columnNameList[1])) : null;
-
+        String countryParam = param.get(columnNameList[1]);
+        BooleanExpression countryCondition = vendorcodeCondition == null && !"other".equalsIgnoreCase(countryParam)
+                ? this.getColumnExpression(qBtpAccounts, columnNameList[1], countryParam)
+                : null;
         // BooleanExpression을 다중 조건으로 묶음
         BooleanExpression conditions = qBtpAccounts.isNotNull();  // 항상 true로 시작 (조건을 붙이기 위한 베이스)
 

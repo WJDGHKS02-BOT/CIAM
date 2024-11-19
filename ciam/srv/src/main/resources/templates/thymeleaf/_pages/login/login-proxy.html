@@ -4,260 +4,86 @@
     <link href="/_pages/login/login-page.css" rel="stylesheet" />
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="/_apis/_instance/gigya-instance.js"></script>
-    <script src="/_apis/_instance/samsung-instance.js"></script>
+    <script src="/_apis/_instance/instance-manager.js"></script>
+    <script src="/_apis/gigya/gigya-script-loader.js"></script>
+    <script src="/_apis/gigya/ERROR_CODES.js"></script>
+
+    <script src="/_pages/login/login-proxy/user-validator.js"></script>
+    <script src="/_pages/login/login-proxy/channel-manager.js"></script>
+    <script src="/_pages/login/login-proxy/sign-in-redirect.js"></script>
+    <script src="/_pages/login/login-proxy/authenticator-manager.js"></script>
+
     <script type="module" src="/_apis/gigya/accounts.js"></script>
-    <script src="/_apis/_instance/setupBaseURL.js"></script>
 
     <script src="/_pages/login/sign-in-session.js"></script>
-    <script src="/_components/spinner/loading-spinner.js"></script>
     <script src="/_apis/localStorage.js"></script>
     <script src="/_apis/is-update-consent.js"></script>
+
+    <script src="/_components/spinner/loading-spinner.js"></script>
 
     <script th:inline="javascript">
       const GIGYA_API_KEY = [[${apiKey}]];
       const GIGYA_PARENT_KEYS = [[${parentKeys}]];
-      const gigyaInstanceURL = [[${gigyaInstanceURL}]];
-      const samsungInstanceURL = [[${samsungInstanceURL}]];
-      const HOST_URL = [[${hostUrl}]];
-      const CHANNEL = [[${channel}]];
+      const GIGYA_INSTANCE_URL = [[${gigyaInstanceURL}]];
+      const SAMSUNG_INSTANCE_URL = [[${samsungInstanceURL}]];
       const LOGIN_URL = [[${loginURL}]];
       const LOGOUT_URL = [[${logoutURL}]];
+      const HOST_URL = [[${hostUrl}]];
+      const CHANNEL = [[${channel}]];
 
-      function loadGigyaAPI() {
-        return new Promise((resolve, reject) => {
-          let gigyaScript = document.createElement('script');
-          gigyaScript.type = 'text/javascript';
-          gigyaScript.async = true;
-          gigyaScript.src = `https://cdns.gigya.com/js/gigya.js?apikey=${GIGYA_API_KEY}`;
-          gigyaScript.onload = resolve;
-          gigyaScript.onerror = reject;
-          document.getElementsByTagName('head')[0].appendChild(gigyaScript);
-        });
-      }
+      let gigyaLoader;
+      let instanceManager;
 
-      function loadGigya() {
-        return new Promise((resolve, reject) => {
-          let gigyaScript = document.createElement('script');
-          gigyaScript.type = 'text/javascript';
-          gigyaScript.async = true;
-          gigyaScript.src = `https://cdns.gigya.com/js/gigya.saml.js?apiKey=${GIGYA_API_KEY}`;
-          gigyaScript.innerHTML = JSON.stringify({
+      // 초기 세팅 로직
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('Starting initialization...');
+
+        try {
+          // 1. Gigya 스크립트 로더 초기화
+          console.log('Initializing gigya script loader...');
+          gigyaLoader = new GigyaScriptLoader({
+            apiKey: GIGYA_API_KEY,
             loginURL: LOGIN_URL,
             logoutURL: LOGOUT_URL,
           });
-          gigyaScript.onload = resolve;
-          gigyaScript.onerror = reject;
-          document.getElementsByTagName('head')[0].appendChild(gigyaScript);
-        });
-      }
 
-      function onGigyaServiceReady () {
-        gigya.accounts.addEventHandlers({
-          onAfterResponse: (res) => {
-            console.log(res);
-            debugger;
-          }
-        });
+          // 2. 인스턴스 매니저 초기화
+          console.log('Initializing instance manager...');
+          instanceManager = new InstanceManager(GIGYA_API_KEY);
+          // 3. 인스턴스 설정
+          const instanceURLs = {
+            gigyaURL: GIGYA_INSTANCE_URL,
+            samsungURL: SAMSUNG_INSTANCE_URL,
+          };
+          instanceManager.setUpInstanceSettings(instanceURLs);
 
-        gigya.socialize.addEventHandlers({
-          onAfterResponse: async (res) => {
-            console.log(res);
-            debugger;
+          console.log('Initialization completed');
+        } catch (error) {
+          console.error('Initialization failed:', error);
+        }
+      });
+    </script>
 
-            const isGetAccountInfo = res.methodName === 'accounts.getAccountInfo';
-            const isVerifyLogin = res.methodName === 'accounts.verifyLogin';
-            if (isVerifyLogin) {
-              debugger;
-              await setItemWithExpiry('user_uid', res.response.UID);
-              debugger;
-              await checkUserPermission();
-              debugger;
-              await isUpdateConsent({UID: getItemWithExpiry('user_uid')});
-              debugger;
-              await new Promise((resolve) => {
-                setTimeout(async () => {
-                  await loadGigya();
-                  resolve();
-                }, 1000);
-              });
-            }
-            if (isGetAccountInfo) {
-              debugger;
-              setItemWithExpiry('user_uid', res.response.UID);
-            }
-          },
-        });
-
-        gigya.hasSession(async (session) => {
-          if (session) {
-            debugger;
-            return await accounts.getAccountInfo();
-          } else {
-            await new Promise((resolve) => {
-              setTimeout(async () => {
-                await loadGigya();
-                resolve();
-              }, 1000);
-            });
-          }
-        })
-      }
-
-      window.onload = async () => {
+    <script>
+      window.addEventListener('load', async () => {
         try {
-          await showLoadingSpinner();
-          await setupBaseURL({
-            gigyaURL: gigyaInstanceURL,
-            samsungURL: samsungInstanceURL
-          })
+          showLoadingSpinner();
 
-          await loadGigyaAPI()
-              .then(async() => {
-                debugger;
-                const isLoggedIn = getItemWithExpiry('user_uid') ?? false;
-                if (isLoggedIn) {
-                  debugger;
-                  await checkUserPermission();
-                  debugger;
-                  await isUpdateConsent({UID: getItemWithExpiry('user_uid')});
-                  debugger;
-                  await new Promise((resolve) => {
-                    setTimeout(async () => {
-                      await loadGigya();
-                      resolve();
-                    }, 1000);
-                  });
-                }
-                else await loadGigya()
-          });
-        } catch(err) {
+          const authManager = new AuthenticationManager();
+          const isInitialized = await authManager.checkInitialization();
+          // 초기 세팅이 완료되지 않았다면, 초기화를 진행합니다.
+          if (!isInitialized) {
+            return;
+          }
+          // Gigya 스크립트를 로드하여, onGigyaServiceReady 콜백을 실행합니다.
+          // 파일 경로 : /_pages/login/authenticator-manager.js
+          // 내부 함수 : setupGigyaServiceReady / setupGigyaEventListeners 실행
+          await gigyaLoader.loadGigyaJS();
+        } catch (err) {
           console.error(err);
-          await hideLoadingSpinner();
+          hideLoadingSpinner();
         }
-      }
-
-      async function checkUserPermission () {
-        const {data: userInfo} = await axios.post("/getAccountInfo", {uid: getItemWithExpiry('user_uid')});
-        const isAdUser = userInfo.socialProviders.split(',').includes('saml-samsung-ad');
-
-        if (!isAdUser) {
-          const today = new Date();
-          const lastUpdatePassword = new Date(userInfo.password.created);
-          const isRequiredPasswordChange = (today - lastUpdatePassword) / (1000 * 60 * 60 * 24) >= 90;
-
-          if (isRequiredPasswordChange) {
-            return await axios.post("/resetPassword", { email: userInfo.profile.email }).then((res) => {
-              if (res.data === 'Y') return location.assign(`/approval-status-error?approvalStatus=pending`);
-              else alert('비밀번호 재설정 이메일 발송에 실패했습니다. 다시 시도해주세요.')
-            });
-          }
-        }
-        
-        if (!userInfo) {
-          localStorage.removeItem('user_uid');
-          return await loadGigya();
-        }
-        debugger;
-        const USER_STATUS = userInfo.data.userStatus;
-        const isNotHaveChannel = !userInfo.data.channels
-        const params = new URLSearchParams(location.search);
-
-        const isAdLogin = params.get('adLogin');
-        const isBtpLogin = params.get('channel') === 'btp';
-
-        if (isNotHaveChannel && (isAdUser || isAdLogin)) {
-          return redirectNewChannel_JAVA_AD({UID: userInfo.UID});
-        }
-
-        const APPROVAL_STATUS = userInfo.data.channels[CHANNEL]?.approvalStatus;
-
-        if (USER_STATUS === 'active' || USER_STATUS === 'inactive') {
-          if (isBtpLogin) return;
-
-          switch (APPROVAL_STATUS) {
-            case 'approved':
-              await axios.post('/setAccountStatus', {
-                uid: getItemWithExpiry('user_uid'),
-                channel: new URLSearchParams(location.search).get('channel'),
-              })
-              return;
-            case 'inactive':
-              await axios.post('/setAccountStatus', {
-                uid: getItemWithExpiry('user_uid'),
-                channel: new URLSearchParams(location.search).get('channel'),
-              })
-              return;
-            case 'pending':
-              return location.assign(`/approval-status-error?approvalStatus=pending`);
-            case 'emp-pending':
-              return location.assign(`/approval-status-error?approvalStatus=emp-pending`);
-            case 'disabled':
-              return location.assign(`/approval-status-error?approvalStatus=disabled`);
-            default:
-              const SFDC = ['e2e', 'ets', 'partnerhub', 'mmp', 'edo'];
-
-              if (isAdUser) return redirectNewChannel_JAVA_AD({UID: userInfo.UID});
-
-              if (SFDC.includes(CHANNEL)) return location.assign(`${HOST_URL.php}`);
-              return redirectExpandChannel_JAVA(userInfo.UID, CHANNEL);
-          }
-        }
-        else if (USER_STATUS === 'regSubmit') {
-          return location.assign(`/approval-status-error?approvalStatus=pending`);
-        }
-        else {
-          return location.assign(`/approval-status-error?approvalStatus=disabled`);
-        }
-      }
-
-      function redirectExpandChannel_JAVA(uid, channel) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `${HOST_URL.java}/new-channel/ssoAccess`;
-
-        const uidInput = document.createElement('input');
-        const channelInput = document.createElement('input');
-
-        uidInput.type = 'hidden';
-        uidInput.name = 'cdc_uid';
-        uidInput.value = uid;
-        channelInput.type = 'hidden';
-        channelInput.name = 'targetChannel';
-        channelInput.value = channel;
-
-        form.appendChild(uidInput);
-        form.appendChild(channelInput);
-
-        document.body.appendChild(form);
-
-        return form.submit();
-      }
-
-      function redirectNewChannel_JAVA_AD({UID}) {
-        // const regToken = new URLSearchParams(location.search).get('regToken') ?? false;
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `${HOST_URL.java}/new-channel/register/${CHANNEL}`;
-
-        const regTokenInput = document.createElement('input');
-        const adCdcUidInput = document.createElement('input');
-
-        regTokenInput.type = 'hidden';
-        regTokenInput.name = 'regToken';
-        // if (regToken) regTokenInput.value = regToken;
-
-        adCdcUidInput.type = 'hidden';
-        adCdcUidInput.name = 'adCdcUid';
-        adCdcUidInput.value = UID;
-
-        form.appendChild(regTokenInput);
-        form.appendChild(adCdcUidInput);
-
-        document.body.appendChild(form);
-
-        return form.submit();
-      }
+      });
     </script>
   </head>
   <body>

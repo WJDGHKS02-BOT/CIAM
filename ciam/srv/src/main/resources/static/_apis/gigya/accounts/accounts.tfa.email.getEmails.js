@@ -1,4 +1,8 @@
 async function accounts_tfa_email_getEmails() {
+  const ERROR_CODES = {
+    SUCCESS: 0,
+  }
+
   function callAPI() {
     return new Promise((resolve) => {
       gigya.accounts.tfa.email.getEmails({

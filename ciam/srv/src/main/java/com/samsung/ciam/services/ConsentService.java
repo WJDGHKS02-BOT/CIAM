@@ -132,7 +132,7 @@ public class ConsentService {
      * @return 약관 타입 목록을 포함한 리스트
      */
     public List<Map<String, Object>> getConsentTypeList(Map<String, String> payload) {
-        String query = "select distinct c.type_id, (select name_en from consent_types where id = c.type_id) as name from consents c inner join consent_contents cc on c.id = cc.consent_id where cc.id < 2000 and c.coverage = :coverage and c.type_id is not null";
+        String query = "select distinct c.type_id, (select name_en from consent_types where id = c.type_id) as name from consents c inner join consent_contents cc on c.id = cc.consent_id where cc.id < 2000 and c.coverage = :coverage and c.type_id is not null and cc.status_id ='published'";
 
         List<Object[]> results = entityManager.createNativeQuery(query)
                                 .setParameter("coverage", payload.get("coverage"))
@@ -247,7 +247,7 @@ public class ConsentService {
      */
     public List<Map<String, Object>> getVersionList(Map<String, String> payload) {
         String query = "select distinct cc.version, cc.id from consents c inner join consent_contents cc on c.id = cc.consent_id where cc.id < 2000 " +
-                       "and c.type_id = :typeId and c.coverage = :coverage and c.countries LIKE '%'||:countries||'%' and cc.language_id = :language ORDER BY cc.version";
+                       "and c.type_id = :typeId and c.coverage = :coverage and c.countries LIKE '%'||:countries||'%' and cc.language_id = :language and cc.status_id ='published' ORDER BY cc.version";
 
         List<Object[]> results = entityManager.createNativeQuery(query)
                                 .setParameter("typeId", payload.get("typeId"))

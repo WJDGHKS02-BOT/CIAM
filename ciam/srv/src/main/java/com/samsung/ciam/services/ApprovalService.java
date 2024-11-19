@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.samsung.ciam.common.gigya.service.GigyaService;
 
 import com.samsung.ciam.utils.StringUtil;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -700,6 +701,74 @@ public class ApprovalService {
                 // no action
         }
         return nextApproverRole;
+    }
+
+    public String processWorkflow(@RequestBody Map<String, String> wfParams, HttpSession session) {
+        String wf_code = wfParams.get("workflow_code"); // wf_code를 파라미터로 직접 받음
+        if (wf_code == null || wf_code.isEmpty()) {
+            log.error("Invalid workflow_code");
+            return "N"; // wf_code가 없는 경우 실패 반환
+        }
+
+        try {
+            // wfCreate 호출
+            String wf_id = wfCreateService.wfCreate(session, wfParams);
+
+            // wfMaster 및 wfList 조회
+            WfMaster wmaster = wfMasterRepository.selectWfMaster(wf_id);
+            List<WfList> wfList = wfListRepository.selectWfList(wf_id);
+
+            if (wmaster != null) {
+                if ("approved".equals(wmaster.getStatus())) {
+                    cdcTraitService.newJavaApproveUser(
+                            wfParams.get("requestor_uid"),
+                            wfParams.get("bpid"),
+                            wfParams.get("channel"),
+                            "",
+                            wfParams.get("approvalType"), // approvalType도 파라미터에서 가져옴
+                            0
+                    );
+                } else if ("pending".equals(wmaster.getStatus())) {
+                    if (!wfList.isEmpty()) {
+                        for (WfList wf : wfList) {
+                            try {
+                                Map<String, Object> paramArr = new HashMap<>();
+                                JsonNode adminUser = cdcTraitService.getCdcUser(wf.getApproverId(), 0);
+                                JsonNode requestUser = cdcTraitService.getCdcUser(wmaster.getRequestorId(), 0);
+
+                                String firstName = adminUser.path("profile").path("firstName").asText("");
+                                String lastName = adminUser.path("profile").path("lastName").asText("");
+                                String approverName = firstName + " " + lastName;
+
+                                paramArr.put("template", "TEMPLET-NEW-002");
+                                paramArr.put("cdc_uid", wf.getApproverId());
+                                paramArr.put("channel", wfParams.getOrDefault("channel", ""));
+                                paramArr.put("firstName", firstName);
+                                paramArr.put("lastName", lastName);
+                                paramArr.put("approverName", approverName);
+                                paramArr.put("approvalRequestEmail", requestUser.path("profile").path("email").asText(""));
+
+                                mailService.sendMail(paramArr);
+                            } catch (Exception e) {
+                                log.error("Error sending mail for approver: {}", wf.getApproverId(), e);
+                                return "N"; // 메일 전송 실패 시 N 반환
+                            }
+                        }
+                    } else {
+                        log.warn("No approvers found for workflow: {}", wf_id);
+                        return "N"; // 승인자 목록이 비어 있는 경우 실패 반환
+                    }
+                }
+            } else {
+                log.error("Workflow master not found for ID: {}", wf_id);
+                return "N"; // wfMaster가 없는 경우 실패 반환
+            }
+
+            return "Y"; // 모든 작업 성공 시 Y 반환
+        } catch (Exception e) {
+            log.error("Error processing workflow", e);
+            return "N"; // 예외 발생 시 실패 반환
+        }
     }
 
 }

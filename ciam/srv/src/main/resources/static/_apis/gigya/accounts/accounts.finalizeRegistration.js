@@ -1,4 +1,10 @@
 async function accounts_finalizeRegistration() {
+  const ERROR_CODES = {
+    SUCCESS: 0,
+    PENDING_REGISTRATION: 200601,
+    REQUIRED_PASSWORD_CHANGE: 403100,
+  };
+
   function callAPI() {
     return new Promise((resolve) => {
       gigya.accounts.finalizeRegistration({
@@ -14,9 +20,9 @@ async function accounts_finalizeRegistration() {
     switch (response.errorCode) {
       case ERROR_CODES.SUCCESS:
         return response;
-      case ERROR_CODES.accounts.PENDING:
+      case ERROR_CODES.PENDING_REGISTRATION:
         return location.assign(`/approval-status-error?approvalStatus=pending`);
-      case ERROR_CODES.accounts.REQUIRED_PASSWORD_CHANGE:
+      case ERROR_CODES.REQUIRED_PASSWORD_CHANGE:
         return showLoginPageResponseMessages('accounts.REQUIRED_PASSWORD_CHANGE');
       default:
         return showLoginPageResponseMessages('all.INVALID_LOGIN_REQUEST');

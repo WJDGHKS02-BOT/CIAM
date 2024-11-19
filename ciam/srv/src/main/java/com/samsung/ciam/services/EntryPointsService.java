@@ -1020,9 +1020,8 @@ public class EntryPointsService {
     }
 
     public String consentVersionCheck(Map<String, String> payload, HttpSession session, RedirectAttributes redirectAttributes) {
-          return "N";
-
-//        String uid = payload.get("uid"); // uid는 payload에서 가져옴
+        return "N";
+        //        String uid = payload.get("uid"); // uid는 payload에서 가져옴
 //        String channel = payload.get("channel");
 //
 //        JsonNode CDCUserProfile = cdcTraitService.getCdcUser(uid, 0);
@@ -1110,9 +1109,10 @@ public class EntryPointsService {
 //
 //        boolean isValid = false;
 //        isValid = userConsentAgreedData.stream()
-//                .anyMatch(userConsent -> "historic".equals(userConsent.get("statusId")));
+//                .filter(userConsent -> !"b2b.common.all".equals(userConsent.get("cdcConsentId"))) // "b2b.common.all" 제외
+//                .anyMatch(userConsent -> "historic".equals(userConsent.get("statusId"))); // "historic" 상태 체크
 //
-//        userConsentAgreedData.stream()
+//                       userConsentAgreedData.stream()
 //                .filter(consent -> channel.equals(consent.get("coverage")) && "privacy".equals(consent.get("type")))
 //                .findFirst()
 //                .ifPresentOrElse(

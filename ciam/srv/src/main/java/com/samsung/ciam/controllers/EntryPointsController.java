@@ -81,7 +81,7 @@ public class EntryPointsController {
      */
     @PostMapping("/register/{key}")
     public String newChannelEntryPointSubmit(@PathVariable("key") String param,
-                                             @RequestParam("regToken") String regToken,
+                                             @RequestParam(value = "regToken", required = false) String regToken,
                                              @RequestParam(value = "convertLoginId", required = false) String convertLoginId,
                                              @RequestParam(value = "adCdcUid", required = false) String adCdcUid,
                                              @RequestParam(value = "convertUid", required = false) String convertUid,

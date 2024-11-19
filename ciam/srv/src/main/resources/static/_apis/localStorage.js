@@ -1,6 +1,6 @@
 // 데이터 저장 함수
 function setItemWithExpiry(key, value) {
-  const expiryTime = new Date().getTime() + (30 * 60 * 1000); // 현재시간 + 30분
+  const expiryTime = new Date().getTime() + (60 * 60 * 1000); // 현재시간 + 60분
   const item = {
     value: value,
     expiry: expiryTime

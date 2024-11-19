@@ -537,6 +537,34 @@ public class LoginController {
     return "_pages/login/login-proxy";
   }
 
+  @GetMapping("/login-proxy-legacy")
+  public String loginProxyTest(HttpServletRequest request,
+                               @RequestParam Map<String, String> params,
+                               Model model
+  ) {
+    String scheme = request.getScheme(); // http 또는 https
+    String serverName = request.getServerName(); // localhost 또는 도메인명
+    int serverPort = request.getServerPort(); // 8080 같은 포트 번호
+    String hostURL = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
+
+    String channel = params.get("channel");
+    String spName = params.get("spName");
+
+    String loginURL = hostURL + "/sign-in?channel=" + channel + "&spName=" + spName;
+    String logoutURL = hostURL + "/signin/" + channel + "/logout?spName=" + spName;
+
+    model.addAttribute("channel", channel);
+    model.addAttribute("loginURL", loginURL);
+    model.addAttribute("logoutURL", logoutURL);
+    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
+    model.addAttribute("parentKeys", BeansUtil.getAllApiKeyForChannel("btp"));
+    model.addAttribute("hostUrl", BeansUtil.getHostURL());
+    model.addAttribute("samsungInstanceURL", BeansUtil.getSamsungInstanceURL());
+    model.addAttribute("gigyaInstanceURL", BeansUtil.getGigyaInstanceURL());
+
+    return "_pages/login/login-proxy-legacy";
+  }
+
   /*
    * 1. 메소드명: approvalStatusError
    * 2. 클래스명: LoginController

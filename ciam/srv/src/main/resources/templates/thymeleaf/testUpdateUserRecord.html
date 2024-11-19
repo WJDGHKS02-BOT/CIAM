@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Update User Record</title>
+</head>
+<body>
+<h1>Test Update User Record</h1>
+<form id="testForm">
+    <label for="apiKey">API Key:</label><br>
+    <input type="text" id="apiKey" name="apiKey" required><br><br>
+
+    <label for="regToken">Reg Token:</label><br>
+    <input type="text" id="regToken" name="regToken" required><br><br>
+
+    <label for="gigyaAssertion">Gigya Assertion:</label><br>
+    <input type="text" id="gigyaAssertion" name="gigyaAssertion" required><br><br>
+
+    <label for="providerAssertion">Provider Assertion:</label><br>
+    <input type="text" id="providerAssertion" name="providerAssertion" required><br><br>
+
+    <button type="button" id="submitBtn">Test API</button>
+</form>
+
+<h2>Response</h2>
+<pre id="responseOutput"></pre>
+
+<script>
+    document.getElementById('submitBtn').addEventListener('click', function() {
+        const apiKey = document.getElementById('apiKey').value;
+        const regToken = document.getElementById('regToken').value;
+        const gigyaAssertion = document.getElementById('gigyaAssertion').value;
+        const providerAssertion = document.getElementById('providerAssertion').value;
+
+        const payload = {
+            apiKey: apiKey,
+            regToken: regToken,
+            gigyaAssertion: gigyaAssertion,
+            providerAssertion: providerAssertion
+        };
+
+        fetch('https://your-base-url/update-user-record', { // 실제 URL로 교체
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('responseOutput').textContent = JSON.stringify(data, null, 2);
+                console.log("Error Code:", data.errorCode);
+            })
+            .catch(error => {
+                document.getElementById('responseOutput').textContent = `Error: ${error}`;
+                console.error("Fetch Error:", error);
+            });
+    });
+</script>
+</body>
+</html>

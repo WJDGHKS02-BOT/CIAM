@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/_apis/_instance/gigya-instance.js"></script>
     <script src="/_apis/_instance/samsung-instance.js"></script>
+    <script src="/_pages/login/login-proxy/sign-in-redirect.js"></script>
 
     <script type="module" src="/_apis/gigya/accounts.js"></script>
     <script type="module" src="/_apis/gigya/socialize.js"></script>
     <script src="/_apis/samsung/samsung.js"></script>
-    <script src="/_apis/gigya/ERROR_CODES.js"></script>
     <script src="/_apis/gigya/continueSSO.js"></script>
     <script src="/_apis/localStorage.js"></script>
     <script src="/_apis/_instance/setupBaseURL.js"></script>
@@ -80,12 +80,11 @@
       }
 
       async function handleSubmitForm() {
-        showLoadingSpinner();
-
         const verificationCode = document.querySelector('input[name="field-verification-code"]').value;
 
-        try{
+        try {
           showLoadingSpinner();
+
           await accounts.tfa.email.completeVerification({code: verificationCode});
           await samsung.updateUserRecord();
           await socialize.notifyLogin();

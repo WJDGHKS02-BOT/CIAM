@@ -17,13 +17,17 @@
                     <dl class="mem_form_list1">
                         <dt class="requ" th:utext="#{selfregisteration.businessLocation}"></dt>
                         <dd>
-                            <select name="country" id="country" class="select" required th:disabled="${!#strings.isEmpty(sfdcPresetCountry)} or ${ssoAccessYn == 'Y'} or ${convertYn == 'Y'}">
+                            <select name="country" id="country" class="select" required
+                                    th:disabled="${(!#strings.isEmpty(sfdcPresetCountry) or ssoAccessYn == 'Y' or convertYn == 'Y')
+                                    and (country != null and !#strings.isEmpty(country))}">
                                 <option value="" th:text="#{selfregisteration.selectOption}"></option>
-                                <option th:each="location: ${secCountries}" th:if="${#bools.isTrue(location)}"
-                                    th:value="${location.id}" th:utext="${location.country}"
-                                    th:selected="${#strings.toString(location.id) == country}">
-                                    <!-- th:selected="${(location.country == sfdcPresetCountry and location.subsidiary == subsidiary)} or '"> -->
+                                <option th:each="location : ${secCountries}"
+                                        th:if="${#bools.isTrue(location)}"
+                                        th:value="${location.id}"
+                                        th:utext="${location.country}"
+                                        th:selected="${#strings.toString(location.id) == country}">
                                 </option>
+                                <option th:if="${channel == 'toolmate'}" value="other">Other</option>
                             </select>
                             <input id="countryHidden" name="country" type="hidden">
                         </dd>

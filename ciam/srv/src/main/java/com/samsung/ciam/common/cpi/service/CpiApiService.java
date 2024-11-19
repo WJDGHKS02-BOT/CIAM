@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.sql.Timestamp;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Future;
@@ -401,6 +402,10 @@ public class CpiApiService {
     public Map<String, Object> createContact(String context, Map<String, Object> userData, HttpSession session,String channelName) {
         // 필드 초기화 및 데이터 추출
         ObjectMapper objectMapper = new ObjectMapper();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        ZonedDateTime seoulTime = ZonedDateTime.now(java.time.ZoneId.of("Asia/Seoul"));
+
         String apiUrl = BeansUtil.getApplicationProperty("cpi.url") + BeansUtil.getApplicationProperty("cpi.createContactUrl");
 
         Map<String, Object> queryParams = Map.of("context", context);
@@ -436,7 +441,7 @@ public class CpiApiService {
         String userCountry = getProfileValue(userData, "country");
         Map<String, Object> marketingConsent = getMarketingConsent(userData);
 
-        String Mktg_gbValue = "";
+        String Mktg_gbValue = "ALL";
         String optIn = "N";
         String optOut = "Y";
 
@@ -463,38 +468,39 @@ public class CpiApiService {
         String CMDMDepartment = SFDC_TO_CMDM_DEPT_MAP.getOrDefault(getDataValue(userData, "userDepartment"), "");
 
         Map<String, Object> bodyParams = new HashMap<>();
-        // 기본 정보 매핑
+        // 기본 정보 매핑 -> 2024.11.12 다시 정의된 필드로 수정
         bodyParams.put("lastname_lo", getProfileValue(userData, "lastName"));
         bodyParams.put("firstname_lo", getProfileValue(userData, "firstName"));
-        bodyParams.put("acctid", getDataValue(userData, "accountID"));
-        bodyParams.put("regch", "CIAM");
-        bodyParams.put("origin", origin); // 하드코딩
-        bodyParams.put("email", getProfileValue(userData, "email"));
-        bodyParams.put("opt_in", optIn);
-        bodyParams.put("opt_indate", java.time.LocalDate.now().toString());
-        bodyParams.put("middlename_lo", getDataValue(userData, "middleName"));
-        bodyParams.put("title", getDataValue(userData, "salutation"));
         bodyParams.put("jobtitle", getDataValue(userData, "jobtitle"));
         bodyParams.put("deptname", CMDMDepartment);
         bodyParams.put("telno", CMDMWorkPhoneString);
-        bodyParams.put("mobileno", CMDMMobilePhoneString);
-        bodyParams.put("faxno", CMDMFaxPhoneString);
+        bodyParams.put("email", getProfileValue(userData, "email"));
         bodyParams.put("countrycode", userCountry);
-        bodyParams.put("street_lo", getProfileValue(userData, "address"));
-        bodyParams.put("city_lo", getProfileValue(userData, "city"));
-        bodyParams.put("district_lo", getProfileValue(userData, "state"));
-        bodyParams.put("postalcode", getProfileValue(userData, "zip"));
+        bodyParams.put("regch", "CIAM");
+        bodyParams.put("origin", origin); // 하드코딩
+        bodyParams.put("acctid", getDataValue(userData, "accountID"));
         bodyParams.put("userid", getProfileValue(userData, "username"));
         bodyParams.put("companycode", companyCode);
-        bodyParams.put("contactowner", getDataValue(userData, "ownerEmployeeID"));
         bodyParams.put("mktggb", Mktg_gbValue);
+        bodyParams.put("opt_in", optIn);
+        bodyParams.put("opt_indate", seoulTime.format(formatter));
         bodyParams.put("opt_out", optOut);
-        bodyParams.put("opt_outdate", java.time.LocalDate.now().toString());
+        bodyParams.put("opt_outdate", seoulTime.format(formatter));
         bodyParams.put("creatorid", "CIAM");
-        bodyParams.put("partner_accountid", "");
         bodyParams.put("privateconsent_yn", "Y");
-        bodyParams.put("thirdpartyuse_yn", "");
-        bodyParams.put("contactid", getDataValue(userData, "contactID"));
+
+//        bodyParams.put("middlename_lo", getDataValue(userData, "middleName"));
+//        bodyParams.put("title", getDataValue(userData, "salutation"));
+//        bodyParams.put("mobileno", CMDMMobilePhoneString);
+//        bodyParams.put("faxno", CMDMFaxPhoneString);
+//        bodyParams.put("street_lo", getProfileValue(userData, "address"));
+//        bodyParams.put("city_lo", getProfileValue(userData, "city"));
+//        bodyParams.put("district_lo", getProfileValue(userData, "state"));
+//        bodyParams.put("postalcode", getProfileValue(userData, "zip"));
+//        bodyParams.put("contactowner", getDataValue(userData, "ownerEmployeeID"));
+//        bodyParams.put("partner_accountid", "");
+//        bodyParams.put("thirdpartyuse_yn", "");
+//        bodyParams.put("contactid", getDataValue(userData, "contactID"));
 
         log.info("Contact body params: {}", bodyParams);
 
@@ -1299,4 +1305,58 @@ public class CpiApiService {
             throw new RuntimeException("Error creating contact", e);
         }
     }
+
+    /*
+     * 1. 메소드명: updateCpiContact
+     * 2. 클래스명: CpiApiService
+     * 3. 작성자명: 서정환
+     * 4. 작성일자: 2024. 11. 04.
+     */
+    /**
+     * <PRE>
+     * 1. 설명
+     *    CONTACT 수정을 CPI로 호출하여 실행
+     * 2. 사용법
+     *    파라미터로 요청 타입, UID를 받아서 UID CONTACT업데이트를 수행
+     * 3. 예시 데이터
+     *    - Input: requestType = "I", uid = "12345"
+     *    - Output: Future<ResponseEntity<String>> 객체
+     * </PRE>
+     *
+     * @param requestType 요청 타입
+     * @param uid 사용자 UID
+     * @return 비동기 응답 객체
+     */
+    public Future<ResponseEntity<String>> updateCpiContact(String requestType, String uid) {
+        Map<String, Object> bodyParams = new HashMap<>();
+        String url = BeansUtil.getApplicationProperty("cpi.url") + BeansUtil.getApplicationProperty("cpi.updateContactUrl");
+
+        bodyParams.put("requestType", requestType);
+        bodyParams.put("UID", uid);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic UDIwMDc2MTUxNDY6MXFhelhTV0AjRQ==");
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(bodyParams, headers);
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                // 성공 로직
+                return new AsyncResult<>(responseEntity);
+            } else {
+                // 실패 시 에러 처리
+                log.error("update Contact요청 실패:" + responseEntity);
+            }
+        } catch (Exception e) {
+            // 예외 발생 시 처리
+            log.error("API 요청 실패", e);
+            //return new AsyncResult<>(new ResponseEntity<>("API 요청 실패", HttpStatus.INTERNAL_SERVER_ERROR));
+        }
+
+        return null; // 실패 시 null 반환 또는 적절한 처리
+    }
+
 }

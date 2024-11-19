@@ -1,6 +1,5 @@
-const GIGYA_API_URL = "";
 const gigyaInstance = axios.create({
-  baseURL: GIGYA_API_URL,
+  baseURL: '',
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded'
   },

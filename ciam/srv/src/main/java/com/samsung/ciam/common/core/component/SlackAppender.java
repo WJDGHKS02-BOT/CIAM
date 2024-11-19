@@ -2,6 +2,8 @@ package com.samsung.ciam.common.core.component;
 
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import lombok.extern.slf4j.Slf4j;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -25,6 +27,7 @@ import java.net.http.HttpResponse;
  * <p>
  * -----------------------------------------------------------------
  */
+@Slf4j
 public class SlackAppender extends AppenderBase<ILoggingEvent> {
 
     private String webhookUrl;

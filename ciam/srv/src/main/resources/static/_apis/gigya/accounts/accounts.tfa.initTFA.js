@@ -1,4 +1,9 @@
 async function accounts_tfa_initTfa({provider, isSetGigyaAssertion}) {
+  const ERROR_CODES = {
+    SUCCESS: 0,
+    PENDING_TFA: 400006,
+  }
+
   function callAPI() {
     return new Promise((resolve) => {
       gigya.accounts.tfa.initTFA({
@@ -16,8 +21,9 @@ async function accounts_tfa_initTfa({provider, isSetGigyaAssertion}) {
     switch (response.errorCode) {
       case ERROR_CODES.SUCCESS:
         return isSetGigyaAssertion ? signInSession.gigyaAssertion = response.gigyaAssertion : null;
-      case ERROR_CODES.tfa.init.PENDING:
-        throw new Error('Pending Registration')
+      case ERROR_CODES.PENDING_TFA:
+        return;
+        // return throw new Error('Pending Registration')
       default:
         return showLoginPageResponseMessages('all.INVALID_LOGIN_REQUEST');
     }

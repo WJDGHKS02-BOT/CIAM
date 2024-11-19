@@ -1,6 +1,7 @@
 package com.samsung.ciam.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.samsung.ciam.services.ApprovalService;
 import com.samsung.ciam.services.CdcTraitService;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,9 @@ public class CdcApiController {
 
     @Autowired
     private CdcTraitService cdcTraitService;
+
+    @Autowired
+    private ApprovalService approvalService;
 
     /*
      * 1. 메소드명: getAccountInfo
@@ -117,4 +121,19 @@ public class CdcApiController {
     public String resetPassword(@RequestBody Map<String, String> payload) {
         return cdcTraitService.resetPassword(payload.get("email"));
     }
+
+    @PostMapping("/updateConsents")
+    @ResponseBody
+    public String updateConsents(
+            @RequestBody Map<String, Object> requestParams,
+            HttpSession session) {
+        return cdcTraitService.updateConsents(requestParams,session);
+    }
+
+    @PostMapping("/processWorkflow")
+    @ResponseBody
+    public String processWorkflow(@RequestBody Map<String, String> wfParams, HttpSession session) {
+        return approvalService.processWorkflow(wfParams,session);
+    }
+
 }
