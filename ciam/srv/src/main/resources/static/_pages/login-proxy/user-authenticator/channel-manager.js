@@ -1,4 +1,6 @@
-class ChannelManager {
+import {Redirect} from '../../redirect.js';
+
+export class ChannelManager {
   constructor(userInfo, isAdUser) {
     this.userInfo = userInfo;
     this.isAdUser = isAdUser;
@@ -50,17 +52,19 @@ class ChannelManager {
       case 'pending':
       case 'emp-pending':
       case 'disabled':
-        return SignInRedirect.approvalStatusError(approvalStatus);
+        return Redirect.approvalStatusError(approvalStatus);
       default:
         if (this.isAdUser) {
-          return SignInRedirect.javaNewChannelAD(this.userInfo.UID, CHANNEL);
+          return Redirect.javaNewChannelAD(this.userInfo.UID, CHANNEL);
         }
 
         if (this.isSFDCChannel()) {
-          return SignInRedirect.phpMyPage();
+          return Redirect.phpMyPage();
         }
 
-        return SignInRedirect.javaChannelExpand(this.userInfo.UID, CHANNEL);
+        return Redirect.javaChannelExpand(this.userInfo.UID, CHANNEL);
     }
   }
 }
+
+export default ChannelManager;

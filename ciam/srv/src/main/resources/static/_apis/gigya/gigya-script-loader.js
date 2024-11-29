@@ -1,4 +1,4 @@
-class GigyaScriptLoader {
+export class GigyaScriptLoader {
   constructor({apiKey, loginURL = '', logoutURL = ''}) {
     this.apiKey = apiKey;
     this.loginURL = loginURL;
@@ -19,12 +19,10 @@ class GigyaScriptLoader {
 
       script.onload = () => {
         console.log("Gigya Script Success...")
-        debugger;
         resolve();
       }
       script.onerror = (error) => {
         console.log("Gigya Script Error...")
-        debugger;
         reject(error);
       }
       document.getElementsByTagName('head')[0].appendChild(script);
@@ -32,14 +30,12 @@ class GigyaScriptLoader {
   }
 
   async loadGigyaJS() {
-    console.log('load gigya js');
     return this.loadGigyaScript({
       src: `https://cdns.gigya.com/js/gigya.js?apikey=${this.apiKey}`,
     });
   }
 
   async loadGigyaSamlJS() {
-    console.log('load gigya saml js');
     return setTimeout(() => {
       this.loadGigyaScript({
         src: `https://cdns.gigya.com/js/gigya.saml.js?apiKey=${this.apiKey}`,

@@ -4,12 +4,24 @@
     <title>Recovery Link Sent</title>
     <meta content="width=device-width, initial-scale=1.0"
           name="viewport">
+    <meta content="no-cache, no-store, must-revalidate"
+          http-equiv="Cache-Control" />
+    <meta content="no-cache"
+          http-equiv="Pragma" />
+    <meta content="0"
+          http-equiv="Expires" />
 
     <link href="/_styles/_index.css"
           rel="stylesheet" />
     <link href="/_pages/login/login-page.css"
           rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script th:src="|https://cdns.gigya.com/js/gigya.js?apikey=${apiKey}|"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/accounts.js?(${scriptVersion})}"></script>
+    <script src="/_apis/_instance/gigya-instance.js"></script>
+    <script src="/_apis/_instance/samsung-instance.js"></script>
+    <script src="/_apis/_instance/setupBaseURL.js"></script>
 
     <style>
       .main {
@@ -41,6 +53,20 @@
         gap: 8px;
       }
 
+      .error {
+        font-size: 14px;
+        color: var(--color-gray-03);
+      }
+
+      #firefoxGuideLink {
+        display: none;
+        font: var(--samsung-700-16);
+        color: var(--color-error);
+        padding: 4px;
+        margin-top: 8px;
+        text-decoration: underline;
+      }
+
       @media screen and (max-width: 768px) {
         .title {
           margin-top: 80px;
@@ -53,6 +79,17 @@
     </style>
 
     <script th:inline="javascript">
+      const acsURL = [[${acsUrl}]];
+      const samsungInstanceURL = [[${samsungInstanceURL}]];
+      const gigyaInstanceURL = [[${gigyaInstanceURL}]];
+
+      window.addEventListener('DOMContentLoaded', () => {
+        setupBaseURL({
+          gigyaURL: gigyaInstanceURL,
+          samsungURL: samsungInstanceURL
+        })
+      })
+
       window.addEventListener('load', async () => {
         const errorCode = document.getElementById("error-code");
         const errorMessage = document.getElementById("error-message");
@@ -60,32 +97,61 @@
 
         const params = new URLSearchParams(window.location.search);
         const errorObjects = JSON.parse(params.get('error'));
-        console.log(errorObjects);
 
         errorCode.innerHTML = "Code: " + errorObjects.errorCode;
         errorId.innerHTML = "Call ID: " + errorObjects.callId;
-        errorMessage.innerHTML = errorObjects.errorDescription;
+        errorMessage.innerHTML = "Message: " + errorObjects.errorDescription;
 
-        if (localStorage.getItem('user_uid')) localStorage.removeItem('user_uid');
+        if (isBrowserFirefox()) {
+          const firefoxGuideLink = document.getElementById('firefoxGuideLink');
+          firefoxGuideLink.style.display = 'block';
+        }
       });
-    </script>
-    <!--    <script th:inline="javascript">-->
-    <!--      const loginPageURL = [[${loginPage}]];-->
 
-    <!--      window.addEventListener('load', () => {-->
-    <!--        gigya.accounts.logout({-->
-    <!--          callback: (res) => {-->
-    <!--            console.log(res);-->
-    <!--            if (res.errorCode === 0) {-->
-    <!--              return window.location.href = loginPageURL-->
-    <!--            } else {-->
-    <!--              alert('Error :' + res.errorMessage);-->
-    <!--              return location.reload();-->
-    <!--            }-->
-    <!--          }-->
-    <!--        })-->
-    <!--      });-->
-    <!--    </script>-->
+
+      async function retryLogin () {
+        async function auditLogSave() {
+          const params = new URLSearchParams(window.location.search);
+          let [channel, error] = [params.get('channel'), params.get('error')];
+          error = JSON.parse(error);
+          error['browser'] = navigator.userAgent;
+          error = JSON.stringify(error);
+
+          const reqParams = {
+            items: error,
+            channel: channel,
+            type: 'login',
+            action: 'login-error',
+            condition: JSON.parse(error).callId,
+          }
+
+          return await axios.post('/auditlog/create', reqParams);
+        }
+
+        async function handleDeleteServerSession() {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/registration/delete-session', true);
+          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          return xhr.send();
+        }
+        async function redirect () {
+          return window.location = acsURL;
+        }
+
+        await handleDeleteServerSession();
+        await accounts.logout();
+        await auditLogSave();
+        await redirect();
+      }
+
+      function isBrowserFirefox () {
+        return navigator.userAgent.includes('Firefox');
+      }
+
+      function openGuidePDF () {
+        window.open('/_files/firefox-guide.pdf', '_blank');
+      }
+    </script>
   </head>
   <body>
     <th:block th:replace="_components/layout/header :: header"></th:block>
@@ -96,19 +162,17 @@
         <p class="sub-title"
            th:utext="#{error-page.subTitle}">If the problem persists, please contact us</p>
         <form class="form">
-          <div id="error-code"
-               style="font-size: 14px;"></div>
-          <div id="error-id"
-               style="font-size: 14px;"></div>
-          <div id="error-message"
-               style="text-align: center; font-weight: 700; font-size: 16px; margin-top: 18px; line-height: 1.4; margin-bottom: 20px;"></div>
-          <button class="button button-size--m button-theme--blue"
+          <button style="margin-bottom: 20px;"
+                  class="button button-size--m button-theme--blue"
                   id="formSubmitButton"
-                  type="button">
-            <a style="text-decoration: none; color: inherit"
-               th:href="${loginPage}"
-               th:utext="#{loginError.back_to_home}">Go back to HomePage</a>
+                  type="button" onclick="retryLogin()"
+                  th:utext="#{error-page.form.submitButton}">
+            Log Out and Retry Login
           </button>
+          <div id="error-code" class="error"></div>
+          <div id="error-id" class="error"></div>
+          <div id="error-message" class="error"></div>
+          <button type="button" onclick="openGuidePDF()" id="firefoxGuideLink" th:text="#{error-page.button.firefox}">Click here if you are using FireFox</button>
         </form>
       </th:block>
     </th:block>

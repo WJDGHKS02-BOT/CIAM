@@ -106,8 +106,8 @@ public interface ConsentRepository extends JpaRepository<Consent, Long> {
     @Query(value = "select count(*) from consents c inner join consent_contents cc on c.id = cc.consent_id where cc.id < 2000 and c.coverage = :coverage", nativeQuery = true)
     int getContentCntByChannel(@Param("coverage") String coverage);
 
-    @Query(value = "SELECT coverage FROM consents WHERE id = :id LIMIT 1", nativeQuery = true)
-    String selectCoverageById(@Param("id") Long id);
+    @Query(value = "SELECT * FROM consents WHERE id = :id LIMIT 1", nativeQuery = true)
+    Consent selectCoverageById(@Param("id") Long id);
 
     @Query(value = "SELECT id FROM consent_contents WHERE consent_id = :consentId AND status_id = 'published' LIMIT 1", nativeQuery = true)
     Long selectPublishedConsentContentId(@Param("consentId") Long consentId);

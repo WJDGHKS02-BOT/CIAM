@@ -139,8 +139,10 @@ public class SamlInterceptor implements HandlerInterceptor {
         // 채널 선택 페이지로 리다이렉트
         request.getSession().setAttribute("channels", matchedChannels);
         request.getSession().setAttribute("isMultiChannel", "Y");//페이지 새로고침 X
+        //request.getSession().setAttribute("session_channel", "");//페이지 새로고침 X
         request.getSession().setAttribute("selectedChannelRedirectUrl", request.getRequestURI());//페이지 새로고침 X
         response.sendRedirect("/myPage/selectChannel");
+        //request.getRequestDispatcher("/myPage/selectChannel").forward(request, response);
         return false;
       }
 
@@ -182,4 +184,5 @@ public class SamlInterceptor implements HandlerInterceptor {
     return true;
   }
 }
+
 

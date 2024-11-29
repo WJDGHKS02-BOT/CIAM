@@ -717,20 +717,31 @@ public class ApprovalListService {
         Map<String, Object> dataFields = new HashMap<>();
         Map<String, Object> profileFields = new HashMap<>();
         Map<String, Object> cdcParams = new HashMap<>();
-        Map<String, Object> loginIDs = new HashMap<>();
 
-        String[] emailSplit = email.split("@");
-        String emailId = emailSplit[0];
-        String domain = emailSplit[1];
+        // 현재 CDC 사용자의 데이터 가져오기
+        JsonNode accUser = cdcTraitService.getCdcUser(uid, 0);
+        JsonNode channels = accUser.path("data").path("channels");
 
-        long timestamp = System.currentTimeMillis();
-        String newEmail = emailId + "-" + timestamp + "@" + domain;
+        if (channels != null && channels.size() == 1) {
+            // 채널이 하나일 경우 email 및 username 업데이트 가능
+            String[] emailSplit = email.split("@");
+            String emailId = emailSplit[0];
+            String domain = emailSplit[1];
 
-        profileFields.put("email",newEmail);
-        profileFields.put("username",newEmail);
+            long timestamp = System.currentTimeMillis();
+            String newEmail = emailId + "-" + timestamp + "@" + domain;
+
+            profileFields.put("email", newEmail);
+            profileFields.put("username", newEmail);
+        } else {
+            // 채널이 두 개 이상일 경우 email 및 username 업데이트 금지
+            profileFields.put("email", accUser.path("profile").path("email").asText());
+            profileFields.put("username", accUser.path("profile").path("username").asText());
+        }
+
 
         cdcParams.put("UID", uid);
-        cdcParams.put("username", newEmail);
+        cdcParams.put("username", profileFields.get("username"));
         cdcParams.put("isActive", "false");
         dataFields.put("channels", Map.of(
             channel, Map.of(

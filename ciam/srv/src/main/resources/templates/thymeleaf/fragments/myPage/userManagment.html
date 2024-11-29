@@ -219,12 +219,12 @@
             oSearchUserManagmentResultGrid.setGridOption("loading", true);
     
             let params = {
-                channel: document.getElementById('channel').value,
-                companyName: document.getElementById('companyName').value,
-                userId: document.getElementById('userId').value,
-                companyId: document.getElementById('companyId').value,
-                firstName: document.getElementById('firstName').value,
-                lastName: document.getElementById('lastName').value
+                channel: document.getElementById('channel').value.trim(),
+                companyName: document.getElementById('companyName').value.trim(),
+                userId: document.getElementById('userId').value.trim(),
+                companyId: document.getElementById('companyId').value.trim(),
+                firstName: document.getElementById('firstName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim()
                 // domain: document.getElementById('domain').value
             };
     

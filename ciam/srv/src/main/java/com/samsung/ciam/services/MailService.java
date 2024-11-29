@@ -296,6 +296,22 @@ public class MailService {
                     fields.put("$RoleManagerRejector", paramArray.get("RoleManagerRejector"));
                     fields.put("$RoleManagerRejectReason", paramArray.get("RoleManagerRejectReason"));
                 break;
+                case "TEMPLET-013": // Added for privacy template
+                    fields.put("$Channel", channel.getChannelDisplayName());
+                    fields.put("$CIAM Admin", ((List<Map<String, String>>) emailDataArray.get("to"))
+                            .stream()
+                            .findFirst() // 첫 번째 항목 가져오기
+                            .map(map -> map.get("name")) // "name" 값 가져오기
+                            .orElse("Default Name"));
+                    break;
+                case "TEMPLET-014": // Added for terms template
+                    fields.put("$Channel", channel.getChannelDisplayName());
+                    fields.put("$CIAM Admin", ((List<Map<String, String>>) emailDataArray.get("to"))
+                            .stream()
+                            .findFirst() // 첫 번째 항목 가져오기
+                            .map(map -> map.get("name")) // "name" 값 가져오기
+                            .orElse("Default Name"));
+                    break;
                 default:
                     log.error("Invalid template type: {}", paramArray.get("template").toString());
             }

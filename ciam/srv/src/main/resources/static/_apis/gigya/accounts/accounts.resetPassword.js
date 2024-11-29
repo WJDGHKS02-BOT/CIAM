@@ -1,7 +1,7 @@
 async function accounts_resetPassword({loginID, newPassword}) {
   const ERROR_CODES = {
     SUCCESS: 0,
-    INVALID_PASSWORD_PATTERN: 401030,
+    PASSWORD_PATTERN_INVALID: 401030,
     SAME_AS_CURRENT_PASSWORD: 400006,
   };
 

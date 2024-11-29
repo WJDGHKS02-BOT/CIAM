@@ -220,7 +220,7 @@ public class SearchService {
 
         // Fetch all channels with channelDisplayName
         String channelType = channelRepository.selectChannelType(regSource);
-        List<String> excludedChannels = Arrays.asList("partnerhub", "edo", "eBiz", "toolmate", "e2e", "ets", "mmp");
+        List<String> excludedChannels = Arrays.asList("partnerhub", "edo", "eBiz", "e2e", "ets", "mmp");
 
         List<Channels> filteredChannels = channelRepository.selectChannelTypeList(channelType);
 

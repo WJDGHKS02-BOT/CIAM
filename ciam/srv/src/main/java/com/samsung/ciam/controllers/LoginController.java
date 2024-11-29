@@ -2,6 +2,7 @@ package com.samsung.ciam.controllers;
 
 import com.samsung.ciam.utils.BeansUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -33,6 +35,15 @@ import java.util.Map;
  */
 @Controller
 public class LoginController {
+
+  @ModelAttribute("scriptVersion")
+  public Map<String, String> scriptVersion(HttpSession session) {
+    Map<String, String> scriptVersion = new HashMap<String, String>();
+    scriptVersion.put("version", "1.0.0");
+
+
+    return scriptVersion;
+  }
 
   /*
    * 1. 메소드명: addLocaleToModel
@@ -123,6 +134,9 @@ public class LoginController {
     // 모델에 값 추가
     model.addAttribute("apiKey", apiKey);
     model.addAttribute("regToken", regToken);
+    model.addAttribute("samsungInstanceURL", BeansUtil.getSamsungInstanceURL());
+    model.addAttribute("gigyaInstanceURL", BeansUtil.getGigyaInstanceURL());
+
 
     if (convertLoginId != null) {
       model.addAttribute("convertLoginId", convertLoginId);
@@ -592,10 +606,16 @@ public class LoginController {
   public String samlError(HttpServletRequest request,
                           @RequestParam Map<String, String> params,
                           Model model) {
+    String channel = params.get("channel");
+    String acsUrl = BeansUtil.getApplicationProperty("acsUrl.channels." + channel + ".url");
 
+    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
     model.addAttribute("channel", params.get("channel"));
     model.addAttribute("error", params.get("error"));
     model.addAttribute("loginPage", BeansUtil.getLoginPageForChannel(params.get("channel")));
+    model.addAttribute("samsungInstanceURL", BeansUtil.getSamsungInstanceURL());
+    model.addAttribute("gigyaInstanceURL", BeansUtil.getGigyaInstanceURL());
+    model.addAttribute("acsUrl", acsUrl);
 
     return "_pages/login/login-error";
   }

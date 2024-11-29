@@ -5,4 +5,4 @@
 @import url("../../_components/layout/footer.css");
 @import url("../../_components/spinner/loading-spinner.css");
 
-@import url("components/login-page-response-messages.css");
+@import url("../../_components/message/login-response-messages/login-page-response-messages.css");

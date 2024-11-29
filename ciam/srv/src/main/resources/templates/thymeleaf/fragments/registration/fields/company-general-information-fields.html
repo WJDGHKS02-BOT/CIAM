@@ -59,7 +59,7 @@
                   'country',
                   ${companyObject.countries},
                   ${companyObject.registerCompany['country'] != null ? companyObject.registerCompany['country'] : ''},
-                  true,
+                  ${channel == 'toolmate' ? false : true},
                   true,
                   true
                   )"></th:block>

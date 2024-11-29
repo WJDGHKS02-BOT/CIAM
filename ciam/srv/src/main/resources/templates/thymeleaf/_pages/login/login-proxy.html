@@ -1,24 +1,16 @@
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <link href="/_styles/_index.css" rel="stylesheet" />
     <link href="/_pages/login/login-page.css" rel="stylesheet" />
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="/_apis/_instance/instance-manager.js"></script>
-    <script src="/_apis/gigya/gigya-script-loader.js"></script>
-    <script src="/_apis/gigya/ERROR_CODES.js"></script>
-
-    <script src="/_pages/login/login-proxy/user-validator.js"></script>
-    <script src="/_pages/login/login-proxy/channel-manager.js"></script>
-    <script src="/_pages/login/login-proxy/sign-in-redirect.js"></script>
-    <script src="/_pages/login/login-proxy/authenticator-manager.js"></script>
-
-    <script type="module" src="/_apis/gigya/accounts.js"></script>
 
     <script src="/_pages/login/sign-in-session.js"></script>
-    <script src="/_apis/localStorage.js"></script>
     <script src="/_apis/is-update-consent.js"></script>
-
     <script src="/_components/spinner/loading-spinner.js"></script>
 
     <script th:inline="javascript">
@@ -30,60 +22,38 @@
       const LOGOUT_URL = [[${logoutURL}]];
       const HOST_URL = [[${hostUrl}]];
       const CHANNEL = [[${channel}]];
-
-      let gigyaLoader;
-      let instanceManager;
-
-      // 초기 세팅 로직
-      document.addEventListener('DOMContentLoaded', () => {
-        console.log('Starting initialization...');
-
-        try {
-          // 1. Gigya 스크립트 로더 초기화
-          console.log('Initializing gigya script loader...');
-          gigyaLoader = new GigyaScriptLoader({
-            apiKey: GIGYA_API_KEY,
-            loginURL: LOGIN_URL,
-            logoutURL: LOGOUT_URL,
-          });
-
-          // 2. 인스턴스 매니저 초기화
-          console.log('Initializing instance manager...');
-          instanceManager = new InstanceManager(GIGYA_API_KEY);
-          // 3. 인스턴스 설정
-          const instanceURLs = {
-            gigyaURL: GIGYA_INSTANCE_URL,
-            samsungURL: SAMSUNG_INSTANCE_URL,
-          };
-          instanceManager.setUpInstanceSettings(instanceURLs);
-
-          console.log('Initialization completed');
-        } catch (error) {
-          console.error('Initialization failed:', error);
-        }
-      });
     </script>
 
+    <script type="module" src="/_pages/login-proxy/user-authenticator/authenticator-manager.js?v=1.0.0"></script>
+    <script type="module" src="/_pages/login-proxy/login-proxy-config.js?v=1.0.0"></script>
+    <script type="module" src="/_pages/login-proxy/login-proxy-loader.js?v=1.0.0"></script>
+    <script type="module" src="/_scripts/states/process-manager/process-manager.js?v=1.0.0"></script>
+    <script type="module" src="/_apis/gigya/accounts.js?v=1.0.0"></script>
     <script>
-      window.addEventListener('load', async () => {
+      document.addEventListener('DOMContentLoaded', async () => {
         try {
-          showLoadingSpinner();
+          processManager.loading();
 
-          const authManager = new AuthenticationManager();
-          const isInitialized = await authManager.checkInitialization();
-          // 초기 세팅이 완료되지 않았다면, 초기화를 진행합니다.
-          if (!isInitialized) {
-            return;
-          }
-          // Gigya 스크립트를 로드하여, onGigyaServiceReady 콜백을 실행합니다.
-          // 파일 경로 : /_pages/login/authenticator-manager.js
-          // 내부 함수 : setupGigyaServiceReady / setupGigyaEventListeners 실행
+          const config = new LoginProxyConfig({
+            GIGYA_API_KEY,
+            GIGYA_PARENT_KEYS,
+            GIGYA_INSTANCE_URL,
+            SAMSUNG_INSTANCE_URL,
+            LOGIN_URL,
+            LOGOUT_URL
+          })
+          const {gigyaLoader, instanceManager} = new LoginProxyLoader(config);
+
+          new AuthenticationManager(gigyaLoader);
+          /*
+            Gigya 스크립트를 로드하여, onGigyaServiceReady 콜백을 실행합니다.
+            이벤트 파일 경로 : /_pages/login-proxy/login-proxy-service-ready.js
+          */
           await gigyaLoader.loadGigyaJS();
         } catch (err) {
           console.error(err);
-          hideLoadingSpinner();
         }
-      });
+      })
     </script>
   </head>
   <body>

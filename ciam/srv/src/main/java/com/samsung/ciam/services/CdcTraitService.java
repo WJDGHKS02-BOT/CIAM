@@ -2561,9 +2561,9 @@ public class CdcTraitService {
         // CDC에 약관 업데이트 준비
         Map<String, Object> preferencesFields = new HashMap<>();
         preferencesFields.put((String) consentData.get("termsCommon"), Map.of("isConsentGranted", true));
-        preferencesFields.put((String) consentData.get("termsChannel"), Map.of("isConsentGranted", true));
+        //preferencesFields.put((String) consentData.get("termsChannel"), Map.of("isConsentGranted", true));
         preferencesFields.put((String) consentData.get("privacyCommon"), Map.of("isConsentGranted", true));
-        preferencesFields.put((String) consentData.get("privacyChannel"), Map.of("isConsentGranted", true));
+        //preferencesFields.put((String) consentData.get("privacyChannel"), Map.of("isConsentGranted", true));
 
         if (marketingConsent) {
             preferencesFields.put((String) consentData.get("marketingCommon"), Map.of("isConsentGranted", true));
@@ -2587,12 +2587,12 @@ public class CdcTraitService {
             // 동의 내용 업데이트
             consentResponseUpdated(Long.valueOf((String) consentData.get("commonTermConsentId")),
                     Long.valueOf((String) consentData.get("commonTermContentId")), uid);
-            consentResponseUpdated(Long.valueOf((String) consentData.get("channelTermsConsentId")),
-                    Long.valueOf((String) consentData.get("channelTermsContentId")), uid);
+//            consentResponseUpdated(Long.valueOf((String) consentData.get("channelTermsConsentId")),
+//                    Long.valueOf((String) consentData.get("channelTermsContentId")), uid);
             consentResponseUpdated(Long.valueOf((String) consentData.get("commonPrivacyConsentId")),
                     Long.valueOf((String) consentData.get("commonPrivacyContentId")), uid);
-            consentResponseUpdated(Long.valueOf((String) consentData.get("channelPrivacyConsentId")),
-                    Long.valueOf((String) consentData.get("channelPrivacyContentId")), uid);
+//            consentResponseUpdated(Long.valueOf((String) consentData.get("channelPrivacyConsentId")),
+//                    Long.valueOf((String) consentData.get("channelPrivacyContentId")), uid);
 
             // 마케팅 동의 여부에 따라 처리
             if (marketingConsent) {

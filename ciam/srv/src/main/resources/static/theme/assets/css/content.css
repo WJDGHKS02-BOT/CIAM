@@ -524,6 +524,22 @@ body, html {height:100%; background-color: #F7F7F7;}
 .form_list7 li .check {display:block; margin:0;}
 .form_list7 li .check + .check {margin-top:10px;}
 
+.form_list8 .tit { font-weight: 700; padding: 0 0 10px; }
+.form_list8 .tit.requ:after { content: '*'; display: inline-block; color: #C81E1E; font-size: 12px; margin: 0 0 2px 2px; }
+.form_list8 li + li { margin-top: 10px; }
+.form_list8 .col_wrap1, .form_list8 .col_wrap2, .form_list8 .col_wrap3, .form_list8 .col_wrap4, .form_list8 .col_wrap5 { display: flex; }
+.form_list8 .col_wrap1 > div { flex: 1 1 50%; }
+.form_list8 .col_wrap1 > div + div, .form_list8 .col_wrap2 .inp_sec + .bt_sec, .form_list8 .col_wrap4 .select + .input, .form_list8 .col_wrap5 .select + button { margin-left: 10px; }
+.form_list8 .col_wrap2 .inp_sec { width: calc(100% - 210px); }
+.form_list8 .col_wrap2 .bt_sec { width: 210px; display: flex; }
+.form_list8 .col_wrap2 .btn_gray { width: 70px; }
+.form_list8 .col_wrap2 button:last-child { width: 137px; }
+.form_list8 .col_wrap4 .select { width: 30%; }
+.form_list8 .col_wrap4 .input { width: 70%; }
+.form_list8 .col_wrap5 button { width: 18%; }
+.form_list8 .col_wrap5 .select { width: 82%; }
+.form_list8 + h3 { margin-top: 60px; }
+
 /* text */
 .txt_ty1 {margin-top:10px; text-align:right; font-weight:400; line-height:1.4;}
 .txt_ty2 {font-size:16px;  color: #757575; font-weight:700; padding:0 0 0 20px;}

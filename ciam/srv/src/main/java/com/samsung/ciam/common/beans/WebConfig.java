@@ -1,9 +1,11 @@
 package com.samsung.ciam.common.beans;
 
+import com.samsung.ciam.common.interceptor.NoCacheInterceptor;
 import com.samsung.ciam.common.interceptor.SamlInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
@@ -11,6 +13,7 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.LocaleResolver;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 1. FileName	: WebConfig.java
@@ -73,7 +76,12 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:/static/")
-                .setCachePeriod(60 * 60 * 24 * 365);  // Cache period of 1 year
+                .setCacheControl(CacheControl.noCache());
+
+        // 이미지 파일은 1년 캐싱 유지
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("classpath:/static/images/")
+                .setCacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic());
     }
 
     /*
@@ -138,6 +146,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(localeChangeInterceptor());
+
+        registry.addInterceptor(new NoCacheInterceptor());
 
         //인터셉터 제외 URL 등록및 MYPAGE URL 엔드포인트 설정
         registry.addInterceptor(samlInterceptor)

@@ -1,17 +1,22 @@
 package com.samsung.ciam.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.samsung.ciam.common.cpi.service.CpiApiService;
 import com.samsung.ciam.services.ApprovalService;
 import com.samsung.ciam.services.CdcTraitService;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,6 +46,9 @@ public class CdcApiController {
 
     @Autowired
     private ApprovalService approvalService;
+
+    @Autowired
+    private CpiApiService cpiApiService;
 
     /*
      * 1. 메소드명: getAccountInfo
@@ -134,6 +142,49 @@ public class CdcApiController {
     @ResponseBody
     public String processWorkflow(@RequestBody Map<String, String> wfParams, HttpSession session) {
         return approvalService.processWorkflow(wfParams,session);
+    }
+
+    @PostMapping("/createContact")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createContact(@RequestBody Map<String, String> payload, HttpSession session) {
+        String contactId = "";
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode accountNode = cdcTraitService.getCdcUser(payload.get("uid"), 0);
+
+            Map<String, Object> createdContact = cpiApiService.createContact("Context1", objectMapper.convertValue(accountNode, Map.class), session, "");
+
+            if (createdContact != null && createdContact.get("contact") instanceof List) {
+                // 응답값 타입에 따른 체크 -> LIST OR MAP
+                List<Map<String, Object>> contacts = (List<Map<String, Object>>) createdContact.get("contact");
+                if (!contacts.isEmpty()) {
+                    // 만들어진 contactID값 조회
+                    contactId = contacts.get(contacts.size() - 1).get("contactid").toString();
+                }
+            } else if (createdContact != null && createdContact.get("contact") instanceof Map) {
+                Map<String, Object> cmdmContact = (Map<String, Object>) createdContact.get("contact");
+                contactId = cmdmContact.getOrDefault("contactid", "").toString();
+            }
+
+            log.info("Creating new contact in CMDM done, new contactID: {}", contactId);
+
+            // 성공: contactId를 반환
+            return ResponseEntity.ok(Map.of(
+                    "result", "success",
+                    "contactId", contactId,
+                    "errorCode", 200
+            ));
+        } catch (Exception e) {
+            log.error("Error while creating contact: {}", e.getMessage(), e);
+
+            // 에러: 에러 메시지를 반환
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "result", "fail",
+                            "msg", e.getCause() != null ? e.getCause().getMessage() : e.getMessage(),
+                            "errorCode", 500
+                    ));
+        }
     }
 
 }

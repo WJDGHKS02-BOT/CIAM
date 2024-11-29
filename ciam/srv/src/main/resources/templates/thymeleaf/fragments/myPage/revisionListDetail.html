@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="revisionListDetail">
+  <h2>Revision List Detail</h2>
+
+  <form method="POST" class="content_ty4" id="revisionListDetailForm" >
+
+    <h3>Revision Detail</h3>
+
+    <ul class="form_list1">
+      <li>
+        <p class="tit">Revision Title</p>
+        <input
+                type="text"
+                id="revisionTitle"
+                name="revisionTitle"
+                class="input"
+                th:value="${revisionData[0].revision_title}"
+                readonly>
+      </li>
+    </ul>
+
+    <br>
+
+    <div class="list_wrap1">
+      <div>
+        <dl class="form_list6">
+          <dt>Upload Date</dt>
+          <dd>
+            <input
+                    type="text"
+                    id="uploadDate"
+                    name="uploadDate"
+                    class="input wid_ty4"
+                    th:value="${revisionData[0].created_at}"
+                    readonly
+            >
+          </dd>
+          <dt>Apply Date</dt>
+          <dd>
+            <input
+                    type="text"
+                    id="applyDate"
+                    name="applyDate"
+                    class="input wid_ty4"
+                    th:value="${revisionData[0].apply_at}"
+                    readonly
+            >
+          </dd>
+          <dt th:if="${revisionData[0].updated_at != null}">Edit Date</dt>
+          <dd th:if="${revisionData[0].updated_at != null}">
+            <input
+                    type="text"
+                    id="editDate"
+                    name="editDate"
+                    class="input wid_ty4"
+                    th:value="${revisionData[0].updated_at}"
+                    readonly>
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <br>
+
+    <div class="list_wrap1">
+      <div>
+        <dl class="form_list6">
+          <dt>Contents Language</dt>
+          <dd>
+            <input
+                    type="text"
+                    id="language"
+                    name="language"
+                    class="input wid_ty4"
+                    th:value="${revisionData[0].language_id}"
+                    readonly
+            >
+          </dd>
+          <dt>Status</dt>
+          <dd>
+            <input
+                    type="text"
+                    id="status"
+                    name="status"
+                    class="input wid_ty4"
+                    th:value="${revisionData[0].status}"
+                    readonly
+            >
+          </dd>
+          <dt>About</dt>
+          <dd>
+            <input
+                    type="text"
+                    id="kind"
+                    name="kind"
+                    class="input wid_ty4"
+                    th:value="${revisionData[0].kind}"
+                    readonly
+            >
+          </dd>
+        </dl>
+      </div>
+    </div>
+    <br>
+    <div class="list_wrap1">
+      <div>
+        <dl class="form_list6">
+          <dt>Coverage Channel</dt>
+          <dd>
+            <input
+                    type="text"
+                    id="coverage"
+                    name="coverage"
+                    class="input wid_ty4"
+                    th:value="${revisionData[0].coverage}"
+                    readonly
+            >
+          </dd>
+          <dt>Coverage Location</dt>
+          <dd>
+            <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    class="input wid_ty4"
+                    th:value="${revisionData[0].location}"
+                    readonly
+            >
+          </dd>
+          <dt>Coverage Subsidiary</dt>
+          <dd>
+            <input
+                    type="text"
+                    id="subsidiary"
+                    name="subsidiary"
+                    class="input wid_ty4"
+                    th:value="${revisionData[0].subsidiary}"
+                    readonly
+            >
+          </dd>
+        </dl>
+      </div>
+    </div>
+    <br> <br>
+    <ul class="form_list8">
+      <li>
+    <textarea
+            id="revisionContents"
+            name="revisionContents"
+            class="input"
+            rows="30"
+            readonly
+            th:text="${revisionData[0].revision_contents}"></textarea>
+      </li>
+    </ul>
+
+    <br> <br>
+    <ul class="form_list8">
+      <li>
+        <button type="button" class="btn_l back" onclick="backButton()">Back to Revision List</button>
+    </ul>
+
+  </form>
+
+</th:block>
+
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script th:inline="javascript">
+  function backButton() {
+    window.location.href = "/myPage/revisionList";
+  }
+</script>
+
+
+</html>

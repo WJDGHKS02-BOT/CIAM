@@ -59,10 +59,10 @@ function onGigyaServiceReady() {
   // 세션 체크 로직
   else {
     gigya.hasSession().then(async hasSession => {
-      debugger;
-      if (hasSession) {
-        return await socialize.notifyLogin();
-      }
+      // if (hasSession) {
+      //   debugger;
+      //   return await socialize.notifyLogin();
+      // }
     });
   }
 }

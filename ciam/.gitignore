@@ -20,6 +20,9 @@ default-env.json
 
 *.log
 !accounts.login.js
+!accounts.logout.js
+!accounts.auth.fido.login.js
+!socialize.logout.js
 gc_history*
 hs_err*
 *.tgz

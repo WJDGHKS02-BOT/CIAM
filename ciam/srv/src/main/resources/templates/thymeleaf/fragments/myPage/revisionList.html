@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<th:block th:fragment="revisionList">
+    <div th:unless="${channelHeader['myRole'] == 'General User'}">
+        <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <h2>Revision List</h2>
+        <div class="content_ty4">
+
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Start Date</dt>
+                        <dd>
+                            <input type="text" id="startDate" name="startDate" class="input wid_ty4" placeholder="MM/DD/YYYY">
+                        </dd>
+                        <dt>End Date</dt>
+                        <dd>
+                            <input type="text" id="endDate" name="endDate" class="input wid_ty4" placeholder="MM/DD/YYYY">
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Status</dt>
+                        <dd>
+                            <select name="status" id="status" class="select wid_ty4">
+                                <option value="all">ALL</option>
+                                <option value="applying">Applying</option>
+                                <option value="scheduled">Scheduled</option>
+                            </select>
+                        </dd>
+                        <dt>About</dt>
+                        <dd>
+                            <select name="kind" id="kind" class="select wid_ty4">
+                                <option value="all">ALL</option>
+                                <option value="Channel Updating">Channel Updating</option>
+                                <option value="New Function">New Function</option>
+                                <option value="Functional Improvement">Functional Improvement</option>
+                                <option value="Error Improvement">Error Improvement</option>
+                            </select>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="list_wrap1">
+                <div>
+                    <dl class="form_list6">
+                        <dt>Channel</dt>
+                        <dd>
+                            <select name="coverage" id="coverage" class="select wid_ty4">
+                                <option value="all">ALL</option>
+                                <option th:each="curChannel: ${channels}"
+                                        th:if="${curChannel != null}"
+                                        th:value="${curChannel.channelName}"
+                                        th:utext="${curChannel.channelDisplayName}"
+                                        th:selected="${curChannel.channelName == session_channel}">
+                                </option>
+                            </select>
+                        </dd>
+                        <dt>Revision</dt>
+                        <dd>
+                            <input type="text" id="revisionsearch" name="revisionsearch" class="input wid_ty4" placeholder="Search for a title or content of a revision">
+                        </dd>
+                        <dt class="form_list6">
+                            <button type="button" class="btn_s search wid_ty5" onclick="searchRevisionList()">Search</button>
+                        </dt>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="mar_ty1">
+                <!-- 그리드 영역 -->
+                <div id="revisionListResult" class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center" style="height: auto;">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script th:inline="javascript">
+        const revisionListResultElement = document.querySelector('#revisionListResult');
+
+        let oRevisionListResultGrid = null;
+        let aHeader, aResultsData, mobileDisplaySize = 4;
+        let startIdx = 0, endIdx = mobileDisplaySize;
+        let columnDefs = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGrid();
+
+            flatpickr("#startDate", {
+                dateFormat: "Y-m-d",  // 날짜 형식을 YYYY-MM-DD로 설정
+                allowInput: true,     // 사용자가 직접 입력 가능
+                placeholder: "Select Start Date"
+            });
+
+            flatpickr("#endDate", {
+                dateFormat: "Y-m-d",  // 날짜 형식을 YYYY-MM-DD로 설정
+                allowInput: true,     // 사용자가 직접 입력 가능
+                placeholder: "Select End Date"
+            });
+        });
+
+        const initailGridOptions = {
+            loading: true,
+            columnDefs: [],
+            rowData: [],
+            rowSelection: 'single',
+            pagination : true,
+            paginationPageSize: 10, // 한 페이지에 표시할 행 수
+            suppressHorizontalScroll: false, // 수평 스크롤을 억제
+            domLayout: 'autoHeight', // 자동 높이 조정
+            localeText: {
+                noRowsToShow: ""  // 'No Rows To Show' 메시지를 'No Match Found'로 변경
+            },
+            overlayLoadingTemplate: `<img style="width: 100px;" src="/theme/assets/image/common/loading.svg" alt="loading">`
+        }
+
+        // clear grid data
+        function initializeGrid(){
+            startIdx = 0;
+            endIdx = mobileDisplaySize;
+
+            // for PC
+            if(!!oRevisionListResultGrid){
+                oRevisionListResultGrid.destroy();
+            }
+
+            oRevisionListResultGrid = agGrid.createGrid(revisionListResultElement, initailGridOptions);
+
+            searchRevisionList();
+        }
+
+        function searchRevisionList() {
+            let params = {
+                startDate: document.getElementById('startDate').value || null,
+                endDate: document.getElementById('endDate').value || null,
+                status: document.getElementById('status').value,
+                kind: document.getElementById('kind').value,
+                coverage: document.getElementById('coverage').value,
+                revisionsearch: document.getElementById('revisionsearch').value
+            };
+
+            $.ajax({
+                url: "/myPage/revisionListSearch",
+                type: "POST",
+                data: JSON.stringify(params),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(oResult){
+                    console.log(oResult);
+                    renderResultTable(oResult);
+                },
+                error: function(e){
+                    console.log(e);
+                    const message = "데이터 통신중 에러발생";
+                }
+            });
+        }
+
+        function createHiddenInput(name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            return input;
+        }
+
+        function onViewClick(data) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/myPage/revisionListDetail';
+
+            // 데이터를 form의 hidden 필드로 추가
+            form.appendChild(createHiddenInput('id', data.id));
+
+            document.body.appendChild(form);
+            form.submit();  // 폼 제출로 서버에 POST 요청
+        }
+
+        function renderResultTable(oResult) {
+            aResultsData = oResult ? oResult.result : [];
+
+            const columnDefs = [
+                {
+                    headerName: 'Coverage',
+                    field: 'coverage',  // revisions[11]에 해당
+                    width: 100,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'ID',
+                    field: 'id',  // 숨김 필드로 id 추가 // revisions[0]에 해당
+                    hide: true  // 필드를 숨김
+                },
+                {
+                    headerName: 'Language Id',
+                    field: 'language_id',  // 숨김 필드로 languaga_id 추가 // revisions[3]에 해당
+                    hide: true  // 필드를 숨김
+                },
+                {
+                    headerName: 'Upload Date',
+                    field: 'created_at',  // revisions[6]에 해당
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'Apply Date',
+                    field: 'apply_at',  // revisions[7]에 해당
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'About',
+                    field: 'kind',  // revisions[5]에 해당
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'Revision',
+                    field: 'revision_title',  // revisions[1]에 해당
+                    width: 350,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'Revision Contents',
+                    field: 'revision_contents',  // 숨김 필드로 revision_contents 추가 // revisions[2]에 해당
+                    hide: true  // 필드를 숨김
+                },
+                {
+                    headerName: 'Edit Date',
+                    field: 'updated_at',  // 숨김 필드로 updated_at 추가 // revisions[8]에 해당
+                    hide: true  // 필드를 숨김
+                },
+                {
+                    headerName: 'Location',
+                    field: 'location',  // 숨김 필드로 location 추가// revisions[9]에 해당
+                    hide: true  // 필드를 숨김
+                },
+                {
+                    headerName: 'Subsidiary',
+                    field: 'subsidiary',  // 숨김 필드로 subsidiary 추가 // revisions[10]에 해당
+                    hide: true  // 필드를 숨김
+                },
+                {
+                    headerName: 'Status',
+                    field: 'status',  // revisions[4]에 해당
+                    width: 120,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center'
+                },
+                {
+                    headerName: 'Detail',
+                    field: 'detail',
+                    width: 100,
+                    cellRenderer: function(params) {
+                        const button = document.createElement('button');
+                        button.className = 'btn_table_s blue';
+                        button.textContent = 'View';  // 기본 텍스트를 View로 설정
+
+                        // 버튼 클릭 시 특정 작업 실행
+                        button.addEventListener('click', function() {
+                            onViewClick(params.data);  // onViewClick 함수 실행
+                        });
+
+                        return button;
+                    },
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center'
+                }
+            ];
+
+            oRevisionListResultGrid.setGridOption("columnDefs", columnDefs);
+            oRevisionListResultGrid.setGridOption("rowData", aResultsData);
+            oRevisionListResultGrid.sizeColumnsToFit();
+            oRevisionListResultGrid.setGridOption("loading", false);
+        }
+    </script>
+
+
+
+</th:block>
+</html>

@@ -2135,7 +2135,7 @@ public class RegistrationService {
                     }
                 }
                 if ((key.equals("firstName") || key.equals("lastName")) && StringUtils.hasText(currentValue)) {
-                    profileFields.put(key, currentValue.toUpperCase());
+                    profileFields.put(key, currentValue);
                 }
             });
 
@@ -2534,6 +2534,10 @@ public class RegistrationService {
     }
 
     public RedirectView consentSubmit(Map<String, String> requestParams, String param, HttpSession session, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        if("ecims".equals(param)) { //하드코딩
+            return new RedirectView("/registration/mfa"+ "?param=" + param);
+        }
+
         String uid = (String) session.getAttribute("uid");
         if (uid == null) {
             redirectAttributes.addFlashAttribute("showErrorMsg", "session expired, please restart registration process");
@@ -3222,7 +3226,7 @@ public class RegistrationService {
                     }
                 }
                 if ((key.equals("firstName") || key.equals("lastName")) && StringUtils.hasText(currentValue)) {
-                    profileFields.put(key, currentValue.toUpperCase());
+                    profileFields.put(key, currentValue);
                 }
             });
 

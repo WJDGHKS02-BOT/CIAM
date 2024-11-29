@@ -386,12 +386,14 @@
     "password_confirmation"
   ];
 
+  const channel = /*[[${channel}]]*/ ''; // 타임리프 변수를 삽입
+
   const companyValidationFields = {
     // "phonenumber1": false,
     // "fax": false,
     // "email": false,
     "name": false,
-    "country": false,
+    "country": channel === 'toolmate', // toolmate일 때만 true로 설정
     "companySearch": false,
     "vendorcode": false,
   };
@@ -826,8 +828,23 @@
       const currentValue = oCompanyInfo[key];
       const matachedComponent = document.getElementById(key);
       if (!!matachedComponent && !notIncludeCompanySelectFields.includes(key)) {
-        matachedComponent.dispatchEvent(new Event('input', {bubbles: true}));
-        matachedComponent.value = currentValue || '';
+        if (key === 'country') {
+          debugger;
+          const countryField = $('#country'); // country select element
+          const countryValue = currentValue;
+
+          // Country가 드롭다운 목록에 없으면 추가
+          if (countryField.find(`option[value="${countryValue}"]`).length === 0 && countryValue) {
+            countryField.append(new Option(countryValue, countryValue));
+          }
+
+          // Country 선택
+          countryField.val(countryValue);
+        } else {
+          // 일반 필드 업데이트
+          matachedComponent.dispatchEvent(new Event('input', {bubbles: true}));
+          matachedComponent.value = currentValue || '';
+        }
       }
     }
   }

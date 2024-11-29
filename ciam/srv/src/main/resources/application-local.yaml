@@ -120,6 +120,10 @@ gigya:
       apiKey: "4_NkvZGj4SBaoMDFU8NDYcqA"
       secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
       userKey: "ADfHBAQvhUZR"
+    ecims:
+      apiKey: "4_dsKzFhoOPCwQCSVElV5CEg"
+      secretKey: "ayXDsmTkT+mnrCm5tqiUWtrjVrXZKaVh"
+      userKey: "ADfHBAQvhUZR"
 
 loginPage:
   channels:
@@ -149,6 +153,8 @@ loginPage:
       landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
     jcext:
       landing-page: https://jira-stg.secext.samsung.net/login.jsp
+    ecims:
+      landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
 
 acsUrl:
   channels:

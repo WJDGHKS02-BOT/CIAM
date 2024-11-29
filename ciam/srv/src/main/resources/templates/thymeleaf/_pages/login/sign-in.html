@@ -2,6 +2,9 @@
   <head>
     <title>Sign-In to CIAM</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
     <link href="/_styles/_index.css" rel="stylesheet" />
     <link href="/_pages/login/login-page.css" rel="stylesheet" />
@@ -10,7 +13,7 @@
       th:inline="javascript"
       th:src="|https://cdns.gigya.com/js/gigya.js?apikey=${apiKey}|"
     ></script>
-    <script src="/_apis/gigya/gigya-add-event-handlers.js"></script>
+
 
     <script src="/_components/input/field-input-box.js"></script>
     <script src="/_components/spinner/loading-spinner.js"></script>
@@ -20,19 +23,25 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/_apis/_instance/gigya-instance.js"></script>
     <script src="/_apis/_instance/samsung-instance.js"></script>
-    <script src="/_pages/login/login-proxy/sign-in-redirect.js"></script>
+    <script type="module" src="/_pages/redirect.js"></script>
 
-    <script type="module" src="/_apis/gigya/accounts.js"></script>
-    <script type="module" src="/_apis/gigya/socialize.js"></script>
-    <script src="/_apis/samsung/samsung.js"></script>
+    <script th:inline="javascript" th:src="@{/_apis/gigya/gigya-add-event-handlers.js?(${scriptVersion})}"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/accounts.js?(${scriptVersion})}"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/socialize.js?(${scriptVersion})}"></script>
+
     <script src="/_apis/gigya/continueSSO.js"></script>
+    <script src="/_apis/samsung/samsung.js"></script>
     <script src="/_apis/localStorage.js"></script>
     <script src="/_apis/_instance/setupBaseURL.js"></script>
 
     <script src="/_pages/login/sign-in-session.js"></script>
-    <script src="/_pages/login/components/show-login-page-response-messages.js"></script>
-    <script src="/_pages/login/components/add-login-form-event.js"></script>
+    <script src="/_components/message/login-response-messages/login-page-response-messages.js"></script>
+    <script src="/_components/form/login-form/add-login-form-event.js"></script>
     <script src="/_apis/is-update-consent.js"></script>
+
+<!--    <script src="/_apis/gigya/gigya-add-event-handlers.js?v=1.0.0"></script>-->
+<!--    <script type="module" src="/_apis/gigya/accounts.js?v=1.0.0" ></script>-->
+<!--    <script type="module" src="/_apis/gigya/socialize.js?v=1.0.0" ></script>-->
 
     <script th:inline="javascript">
       const samsungInstanceURL = [[${samsungInstanceURL}]];
@@ -128,6 +137,23 @@
 
         samsungEmployeeLoginButton.style.display = channelsToHideButton.includes(currentChannel) ? 'none' : 'block';
       }
+
+      // TODO: FIDO 수정 예정
+      // async function fidoLogin() {
+      //   const email = document.querySelector('input[name="field-email"]').value;
+      //
+      //   await accounts.isAvailableLoginID(email);
+      //
+      //   const createTokenRes = await accounts.identifier.createToken(email);
+      //   const getMethodsRes = await accounts.auth.getMethods(createTokenRes.aToken, email);
+      //
+      //   if (getMethodsRes.methods.includes('passkeyRegister')) {
+      //     // await accounts.auth.fido.initRegisterCredentials();
+      //     await accounts.auth.fido.register(createTokenRes.aToken);
+      //   } else {
+      //     await accounts.auth.fido.login();
+      //   }
+      // }
     </script>
 
     <style>
@@ -204,7 +230,7 @@
           ></th:block>
           <button
             class="forget-password-button"
-            onclick="SignInRedirect.forgotPassword()"
+            onclick="Redirect.forgotPassword()"
             th:utext="#{login-page.form.link.forgotPassword}"
             type="button"
           >
@@ -231,11 +257,20 @@
           <button
             type="button"
             class="samsung-employee-login-link button button-size--m button-theme--lined-blue"
-            onclick="SignInRedirect.samsungEmployeeLogin()"
+            onclick="Redirect.samsungEmployeeLogin()"
             th:utext="#{login-page.form.link.samsungEmployeeLogin}"
           >
             Samsung Employee Login
           </button>
+
+<!--          <button-->
+<!--              type="button"-->
+<!--              class="samsung-employee-login-link button button-size&#45;&#45;m button-theme&#45;&#45;lined-blue"-->
+<!--              onclick="fidoLogin()"-->
+<!--              th:utext="#{login-page.form.link.fido}"-->
+<!--          >-->
+<!--            Samsung Employee Login-->
+<!--          </button>-->
         </form>
       </th:block>
     </th:block>

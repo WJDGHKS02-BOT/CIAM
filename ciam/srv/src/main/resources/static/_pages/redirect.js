@@ -1,4 +1,4 @@
-class SignInRedirect {
+export class Redirect {
   static submit(action, params) {
     const form = document.createElement('form');
     form.method = 'POST';
@@ -61,3 +61,7 @@ class SignInRedirect {
     return accounts.socialLogin({provider: 'saml-samsung-ad'});
   }
 }
+
+window.Redirect = Redirect;
+
+export default Redirect;

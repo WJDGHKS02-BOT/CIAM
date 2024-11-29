@@ -427,7 +427,7 @@ public class CpiApiService {
 
         Optional<Channels> channelInfo = channelRepository.findByChannelName(regSource);
 
-        Channels channel = channelRepository.findByChannelName(channelName)
+        Channels channel = channelRepository.findByChannelName(regSource)
                 .orElseGet(() -> channelRepository.findByRegSouce(regSource).orElse(null));
 
         if (channel != null) {

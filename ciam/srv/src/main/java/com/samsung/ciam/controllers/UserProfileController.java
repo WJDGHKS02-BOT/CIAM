@@ -78,6 +78,9 @@ public class UserProfileController {
     @Autowired
     private MenuAccessControlRepository menuAccessControlRepository;
 
+    @Autowired
+    private RevisionListService revisionListService;
+
 
     /*
      * 1. 메소드명: channelHeader
@@ -1580,5 +1583,26 @@ public class UserProfileController {
     @PostMapping("/CiamApprovalDetailListSerach")
     public Map<String, Object> CiamApprovalDetailListSerach(@RequestBody Map<String, String> allParams, HttpSession session) {
         return approvalListService.getApprovalDetailList(allParams,session);
+    }
+
+    @GetMapping("/revisionList")
+    public ModelAndView revisionList(HttpServletRequest request, HttpSession session) {
+        return revisionListService.revisionList(request,session);
+    }
+    @ResponseBody
+    @PostMapping("/revisionListSearch")
+    public Map<String, Object> revisionListSearch(@RequestBody Map<String, String> allParams, HttpSession session) {
+        return revisionListService.getRevisionList(allParams, session);
+    }
+
+    @PostMapping("/revisionListDetail")
+    public RedirectView revisionListDetail(@RequestParam Map<String, String> allParams, HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
+        return revisionListService.revisionListDetail(allParams, request, session, redirectAttributes);
+    }
+    @GetMapping("/revisionListDetail")
+    public ModelAndView revisionListDetail(HttpServletRequest request, HttpSession session, Model model) {
+        Map<String, Object> payload = (Map<String, Object>) session.getAttribute("revisionListDetail");
+
+        return revisionListService.revisionListDetail(payload, request, session, model);
     }
 }

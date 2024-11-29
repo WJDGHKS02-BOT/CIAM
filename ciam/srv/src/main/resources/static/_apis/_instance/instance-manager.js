@@ -1,4 +1,4 @@
-class SamsungAPI {
+export class SamsungAPI {
   constructor(apiKey) {
     this.apiKey = apiKey;
     this.instance = axios.create({
@@ -21,7 +21,7 @@ class SamsungAPI {
   }
 }
 
-class InstanceManager {
+export class InstanceManager {
   constructor(apiKey) {
     this.gigyaInstance = axios.create({
       baseURL: '',

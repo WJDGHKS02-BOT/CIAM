@@ -1,4 +1,4 @@
-class UserValidator {
+export class UserValidator {
   constructor(userInfo) {
     this.userInfo = userInfo;
   }
@@ -37,3 +37,5 @@ class UserValidator {
     return status === 'active' || status === 'inactive';
   }
 }
+
+export default UserValidator;

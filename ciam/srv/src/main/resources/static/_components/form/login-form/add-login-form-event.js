@@ -1,4 +1,10 @@
-function addLoginFormEvent({form, submitButton, validity, enterKeyFunc, inputFunc}) {
+function addLoginFormEvent({
+  form,
+  submitButton,
+  validity,
+  enterKeyFunc,
+  inputFunc
+}) {
   const checkValidity = ({validity, submitButton}) => {
     const isAllValid = Object.values(validity).every(Boolean);
 

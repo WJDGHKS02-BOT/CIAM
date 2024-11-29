@@ -4,6 +4,12 @@
     <title>Approval Under Review</title>
     <meta content="width=device-width, initial-scale=1.0"
           name="viewport">
+    <meta content="no-cache, no-store, must-revalidate"
+          http-equiv="Cache-Control" />
+    <meta content="no-cache"
+          http-equiv="Pragma" />
+    <meta content="0"
+          http-equiv="Expires" />
 
     <link href="/_styles/_index.css"
           rel="stylesheet" />
@@ -29,6 +35,9 @@
         const titleBtp = document.querySelector('#title--btp');
         const subTitleBtp = document.querySelector('#sub-title--btp');
 
+        const titleEmailVerified = document.querySelector('#title--email-verified');
+        const subTitleEmailVerified = document.querySelector('#sub-title--email-verified');
+
         switch (APPROVAL_STATUS) {
           case 'pending':
             document.title = 'Approval Under Review';
@@ -53,6 +62,12 @@
             disabledImage.style.display = 'block';
             titleBtp.style.display = 'block';
             subTitleBtp.style.display = 'block';
+            break;
+          case 'emailVerified':
+            document.title = 'Incomplete Registration';
+            pendingImage.style.display = 'block';
+            titleEmailVerified.style.display = 'block';
+            subTitleEmailVerified.style.display = 'block';
             break;
         }
       }
@@ -108,6 +123,17 @@
              style="display: none"
              th:utext="#{approval-status-error-pending-page.subTitle}">
           Your registration request is assigned to the deisgnated admin member for approval.<br>You will be able to sign-in as soon as you are approved.<br>Thank you for you patience
+        </div>
+
+        <h2 class="title"
+            id="title--email-verified"
+            style="display: none"
+            th:utext="#{approval-status-error-email-verified-page.title}">This account is not fully registered</h2>
+        <div class="sub-title"
+             id="sub-title--email-verified"
+             style="display: none"
+             th:utext="#{approval-status-error-email-verified-page.subTitle}">
+          If you have any questions, please contact us
         </div>
 
         <h2 class="title"
