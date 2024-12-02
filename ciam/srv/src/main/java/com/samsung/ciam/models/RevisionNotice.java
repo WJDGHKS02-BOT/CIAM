@@ -1,7 +1,6 @@
 package com.samsung.ciam.models;
 
 import java.sql.*;
-import java.io.Serializable;
 
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
@@ -25,8 +24,8 @@ import lombok.ToString;
 @Setter
 @Getter
 @Entity
-@Table(name = "revision_list")
-public class RevisionList {
+@Table(name = "revision_notice")
+public class RevisionNotice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,8 +43,8 @@ public class RevisionList {
     @Column(name = "status")
     private String Status;
 
-    @Column(name = "kind")
-    private String Kind;
+    @Column(name = "type")
+    private String type;
 
     @Column(name = "apply_at")
     private Timestamp applyAt;
@@ -56,11 +55,8 @@ public class RevisionList {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
-    @Column(name = "coverage")
-    private String Coverage;
-
-    @Column(name = "location")
-    private String Location;
+    @Column(name = "channel")
+    private String Channel;
 
     @Column(name = "subsidiary")
     private String Subsidiary;
@@ -69,92 +65,84 @@ public class RevisionList {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getRevisionTitle() {
         return revisionTitle;
-    }
-
-    public void setRevisionTitle(String revisionTitle) {
-        this.revisionTitle = revisionTitle;
     }
 
     public String getRevisionContents() {
         return revisionContents;
     }
 
-    public void setRevisionContents(String revisionContents) {
-        this.revisionContents = revisionContents;
-    }
-
     public String getLanguageId() {
         return languageId;
-    }
-
-    public void setLanguageId(String languageId) {
-        this.languageId = languageId;
     }
 
     public String getStatus() {
         return Status;
     }
 
-    public void setStatus(String status) {
-        Status = status;
-    }
-
-    public String getKind() {
-        return Kind;
-    }
-
-    public void setKind(String kind) {
-        Kind = kind;
+    public String getType() {
+        return type;
     }
 
     public Timestamp getApplyAt() {
         return applyAt;
     }
 
-    public void setApplyAt(Timestamp applyAt) {
-        this.applyAt = applyAt;
-    }
-
     public Timestamp getCreatedAt() {
         return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
     }
 
     public Timestamp getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getCoverage() {
-        return Coverage;
-    }
-
-    public void setCoverage(String coverage) {
-        Coverage = coverage;
-    }
-
-    public String getLocation() {
-        return Location;
-    }
-
-    public void setLocation(String location) {
-        Location = location;
+    public String getChannel() {
+        return Channel;
     }
 
     public String getSubsidiary() {
         return Subsidiary;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setRevisionTitle(String revisionTitle) {
+        this.revisionTitle = revisionTitle;
+    }
+
+    public void setRevisionContents(String revisionContents) {
+        this.revisionContents = revisionContents;
+    }
+
+    public void setLanguageId(String languageId) {
+        this.languageId = languageId;
+    }
+
+    public void setStatus(String status) {
+        Status = status;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setApplyAt(Timestamp applyAt) {
+        this.applyAt = applyAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setChannel(String channel) {
+        Channel = channel;
     }
 
     public void setSubsidiary(String subsidiary) {

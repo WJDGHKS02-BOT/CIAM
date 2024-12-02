@@ -79,7 +79,7 @@ public class UserProfileController {
     private MenuAccessControlRepository menuAccessControlRepository;
 
     @Autowired
-    private RevisionListService revisionListService;
+    private RevisionNoticeService revisionNoticeService;
 
 
     /*
@@ -1585,24 +1585,25 @@ public class UserProfileController {
         return approvalListService.getApprovalDetailList(allParams,session);
     }
 
-    @GetMapping("/revisionList")
-    public ModelAndView revisionList(HttpServletRequest request, HttpSession session) {
-        return revisionListService.revisionList(request,session);
+    //정지수 테스트 메뉴 Revision List => Revision Notice로 변경 (24.11.29)
+    @GetMapping("/revisionNotice")
+    public ModelAndView revisionNotice(HttpServletRequest request, HttpSession session) {
+        return revisionNoticeService.revisionNotice(request,session);
     }
     @ResponseBody
-    @PostMapping("/revisionListSearch")
-    public Map<String, Object> revisionListSearch(@RequestBody Map<String, String> allParams, HttpSession session) {
-        return revisionListService.getRevisionList(allParams, session);
+    @PostMapping("/revisionNoticeSearch")
+    public Map<String, Object> revisionNoticeSearch(@RequestBody Map<String, String> allParams, HttpSession session) {
+        return revisionNoticeService.getRevisionNotice(allParams, session);
     }
 
-    @PostMapping("/revisionListDetail")
-    public RedirectView revisionListDetail(@RequestParam Map<String, String> allParams, HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
-        return revisionListService.revisionListDetail(allParams, request, session, redirectAttributes);
+    @PostMapping("/revisionNoticeDetail")
+    public RedirectView revisionNoticeDetail(@RequestParam Map<String, String> allParams, HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
+        return revisionNoticeService.revisionNoticeDetail(allParams, request, session, redirectAttributes);
     }
-    @GetMapping("/revisionListDetail")
-    public ModelAndView revisionListDetail(HttpServletRequest request, HttpSession session, Model model) {
-        Map<String, Object> payload = (Map<String, Object>) session.getAttribute("revisionListDetail");
+    @GetMapping("/revisionNoticeDetail")
+    public ModelAndView revisionNoticeDetail(HttpServletRequest request, HttpSession session, Model model) {
+        Map<String, Object> payload = (Map<String, Object>) session.getAttribute("revisionNoticeDetail");
 
-        return revisionListService.revisionListDetail(payload, request, session, model);
+        return revisionNoticeService.revisionNoticeDetail(payload, request, session, model);
     }
 }

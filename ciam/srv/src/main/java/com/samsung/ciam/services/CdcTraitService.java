@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,6 +41,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -2626,6 +2628,78 @@ public class CdcTraitService {
         termsAgreed.setUid(uid);
         termsAgreed.setStatus("rejected");
         userAgreedConsentsRepository.save(termsAgreed);
+    }
+
+    @Async
+    public void sendMailsAsync(
+            List<Long> consentContentIds,
+            List<ConsentContent> consentContentList,
+            ConsentRepository consentRepository,
+            UserAgreedConsentsRepository userAgreedConsentsRepository,
+            MailService mailService,
+            CdcTraitService cdcTraitService) {
+
+        //AtomicInteger counter = new AtomicInteger(0); // 카운트 변수 초기화
+        //AtomicInteger counter2 = new AtomicInteger(0); // 카운트 변수 초기화
+
+        for (Long consentContentId : consentContentIds) {
+            // 사용자 동의 정보 조회
+            List<String> userUids = userAgreedConsentsRepository.selectDistinctUidsByConsentContentId(consentContentId);
+
+            for (String uid : userUids) {
+                // consentContentList에서 일치하는 항목을 찾기
+                Optional<ConsentContent> matchedConsentContent = consentContentList.stream()
+                        .filter(consentContent -> consentContent.getConsentId().equals(consentRepository.selectConsentIdByConsentContentId(consentContentId)))
+                        .findFirst();
+
+                // 일치하는 consentContent가 없으면 건너뛰기
+                if (matchedConsentContent.isEmpty()) continue;
+
+                ConsentContent consentContent = matchedConsentContent.get();
+
+                boolean consentAlreadyAgreed = userAgreedConsentsRepository.existsByUidAndConsentContentId(uid, consentContent.getId());
+                if (consentAlreadyAgreed) continue; // 이미 동의한 사용자 제외
+
+                try {
+                    //int currentCount = counter.incrementAndGet();
+                    Consent consent = consentRepository.selectCoverageById(consentContent.getConsentId());
+                    JsonNode cdcUser = cdcTraitService.getCdcUser(uid, 0);
+
+                    // 사용자 상태 확인 (유효한 사용자)
+                    boolean isValidUser = cdcUser.has("errorCode")
+                            && cdcUser.get("errorCode").asInt() == 0
+                            && "active".equals(cdcUser.path("data").path("userStatus").asText(""));
+
+                    if (isValidUser) {
+                        //System.out.println("UID : " + uid);
+                        //int currentCount2 = counter2.incrementAndGet();
+
+                        Map<String, Object> paramArr = new HashMap<>();
+                        if ("privacy".equals(consent.getTypeId())) {
+                            paramArr.put("template", "TEMPLET-013");
+                            paramArr.put("channel", consent.getCoverage());
+                            paramArr.put("CIAM Admin", consent.getCoverage());
+                        } else if ("terms".equals(consent.getTypeId())) {
+                            paramArr.put("template", "TEMPLET-014");
+                            paramArr.put("channel", consent.getCoverage());
+                            paramArr.put("CIAM Admin", consent.getCoverage());
+                        } else {
+                            log.warn("Unknown consent type for UID: {}, type: {}", uid, consent.getTypeId());
+                            continue; // 알 수 없는 consent type에 대해서는 건너뛰기
+                        }
+
+                        paramArr.put("cdc_uid", uid);
+
+                        mailService.sendMail(paramArr);
+                        log.info("Mail Sent to UID: {} via template: {}", uid, paramArr.get("template"));
+                    } else {
+                        log.warn("Skipping mail for UID: {} due to invalid user status or errorCode.", uid);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to send mail for UID: {}", uid, e);
+                }
+            }
+        }
     }
 }
 

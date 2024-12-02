@@ -3404,6 +3404,7 @@ public class RegistrationService {
         session.setAttribute("country",payload.get("country"));
 
         Map<String, Object> checkUserIdResult  = checkUserId(payload);
+        //CIAM에 계정이 없을경우 전환프로세스 진행
         if (isUserIdAvailable(checkUserIdResult)) {
             setupSessionAttributesBasedOnCountry(payload.get("country"), session);
 
@@ -3412,7 +3413,7 @@ public class RegistrationService {
 
             url =  handleRegistrationResponse(param, payload, response, session, redirectAttributes);
 
-        } else {
+        } else { //CIAM 계정이 있을경우 전환확장 진행
             setupSessionAttributesBasedOnCountry(payload.get("country"), session);
 
             try {
@@ -3468,6 +3469,17 @@ public class RegistrationService {
                             if (companyId != null && accountId != null && !companyId.isEmpty() && !accountId.isEmpty() && !Objects.equals(companyId, accountId)) {
                                 redirectAttributes.addFlashAttribute("showErrorMsg", "CIAM accountID does not match convert accountID.");
                                 return new RedirectView(request.getHeader("Referer"));
+                            } else if (companyId != null && !companyId.isEmpty() && (accountId == null || accountId.isEmpty())) {
+                                // accountId가 비어있고 companyId는 비어있지 않을 경우 처리
+                                session.setAttribute("convertAccountId", companyId);  // convertAccountId를 companyId로 설정
+
+                                // convertData 세션에서 cmdmAccountID 값을 변경
+                                Map<String, String> convertDataMap = (Map<String, String>) session.getAttribute("convertData");
+                                if (convertDataMap != null) {
+                                    convertDataMap.put("cmdmAccountID", companyId);  // cmdmAccountID 값을 companyId로 변경
+                                    session.setAttribute("convertData", convertDataMap);  // 변경된 convertData 다시 세션에 설정
+                                }
+                                convertData.put("cmdmAccountID", companyId);
                             }
 
                             session.setAttribute("loginId", payload.get("loginUserId"));

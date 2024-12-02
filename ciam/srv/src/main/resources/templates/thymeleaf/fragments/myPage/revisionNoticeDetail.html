@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="https://www.thymeleaf.org">
-<th:block th:fragment="revisionListDetail">
-  <h2>Revision List Detail</h2>
+<th:block th:fragment="revisionNoticeDetail">
+  <h2>Revision Notice Detail</h2>
 
-  <form method="POST" class="content_ty4" id="revisionListDetailForm" >
+  <form method="POST" class="content_ty4" id="revisionNoticeDetailForm" >
 
     <h3>Revision Detail</h3>
 
@@ -20,17 +20,17 @@
       </li>
     </ul>
 
-    <br>
+    <br><br>
 
     <div class="list_wrap1">
       <div>
         <dl class="form_list6">
-          <dt>Upload Date</dt>
+          <dt>Created Date</dt>
           <dd>
             <input
                     type="text"
-                    id="uploadDate"
-                    name="uploadDate"
+                    id="createdDate"
+                    name="createdDate"
                     class="input wid_ty4"
                     th:value="${revisionData[0].created_at}"
                     readonly
@@ -88,54 +88,14 @@
                     readonly
             >
           </dd>
-          <dt>About</dt>
+          <dt>Type</dt>
           <dd>
             <input
                     type="text"
-                    id="kind"
-                    name="kind"
+                    id="type"
+                    name="type"
                     class="input wid_ty4"
-                    th:value="${revisionData[0].kind}"
-                    readonly
-            >
-          </dd>
-        </dl>
-      </div>
-    </div>
-    <br>
-    <div class="list_wrap1">
-      <div>
-        <dl class="form_list6">
-          <dt>Coverage Channel</dt>
-          <dd>
-            <input
-                    type="text"
-                    id="coverage"
-                    name="coverage"
-                    class="input wid_ty4"
-                    th:value="${revisionData[0].coverage}"
-                    readonly
-            >
-          </dd>
-          <dt>Coverage Location</dt>
-          <dd>
-            <input
-                    type="text"
-                    id="location"
-                    name="location"
-                    class="input wid_ty4"
-                    th:value="${revisionData[0].location}"
-                    readonly
-            >
-          </dd>
-          <dt>Coverage Subsidiary</dt>
-          <dd>
-            <input
-                    type="text"
-                    id="subsidiary"
-                    name="subsidiary"
-                    class="input wid_ty4"
-                    th:value="${revisionData[0].subsidiary}"
+                    th:value="${revisionData[0].type}"
                     readonly
             >
           </dd>
@@ -158,7 +118,7 @@
     <br> <br>
     <ul class="form_list8">
       <li>
-        <button type="button" class="btn_l back" onclick="backButton()">Back to Revision List</button>
+        <button type="button" class="btn_l back" onclick="backButton()">Back to Revision Notice</button>
     </ul>
 
   </form>
@@ -170,7 +130,7 @@
 
 <script th:inline="javascript">
   function backButton() {
-    window.location.href = "/myPage/revisionList";
+    window.location.href = "/myPage/revisionNotice";
   }
 </script>
 

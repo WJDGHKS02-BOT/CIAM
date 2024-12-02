@@ -1,7 +1,5 @@
 package com.samsung.ciam.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samsung.ciam.models.*;
 import com.samsung.ciam.repositories.*;
 import jakarta.persistence.EntityManager;
@@ -10,7 +8,6 @@ import jakarta.persistence.Query;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.history.RevisionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.ModelAndView;
@@ -24,10 +21,10 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class RevisionListService {
+public class RevisionNoticeService {
 
     @Autowired
-    private RevisionListRepository revisionListRepository;
+    private RevisionNoticeRepository revisionNoticeRepository;
 
     @Autowired
     private ChannelRepository channelRepository;
@@ -39,7 +36,7 @@ public class RevisionListService {
     private EntityManager entityManager;
 
 
-    public ModelAndView revisionList(HttpServletRequest request, HttpSession session) {
+    public ModelAndView revisionNotice(HttpServletRequest request, HttpSession session) {
 
         ModelAndView modelAndView = new ModelAndView("myPage");
 
@@ -48,48 +45,47 @@ public class RevisionListService {
         channels = channelRepository.findAll();
         modelAndView.addObject("channels", channels);
 
-        modelAndView.addObject("content", "fragments/myPage/revisionList");
-        modelAndView.addObject("menu", "revisionList");
+        modelAndView.addObject("content", "fragments/myPage/revisionNotice");
+        modelAndView.addObject("menu", "revisionNotice");
         modelAndView.addObject("role", session.getAttribute("btp_myrole"));
 
         return modelAndView;
     }
 
 
-    public Map<String, Object> getRevisionList(Map<String, String> allParams, HttpSession session) {
+    public Map<String, Object> getRevisionNotice(Map<String, String> allParams, HttpSession session) {
 
         Map<String, Object> gridData = new HashMap<>();
 
-        StringBuilder queryBuilder = new StringBuilder("SELECT id, revision_title, revision_contents, language_id, status, kind, ");
-            queryBuilder.append( "TO_CHAR(apply_at, 'YYYY-MM-DD HH24:MI:SS') as apply_at, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at, TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at, ");
-            queryBuilder.append("coverage, location, subsidiary ");
-            queryBuilder.append("FROM revision_list rl ");
-            queryBuilder.append("WHERE 1=1 ");
+        StringBuilder queryBuilder = new StringBuilder("SELECT id, revision_title, revision_contents, language_id, status, type, ");
+        queryBuilder.append( "TO_CHAR(apply_at, 'YYYY-MM-DD HH24:MI:SS') as apply_at, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at, TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at, ");
+        queryBuilder.append("channel, subsidiary ");
+        queryBuilder.append("FROM revision_notice rn ");
+        queryBuilder.append("WHERE 1=1 ");
 
-            // 동적 조건 추가
-            if (allParams.get("startDate") != null) {
-                queryBuilder.append("AND (rl.apply_at >= TO_TIMESTAMP(:startDate, 'YYYY-MM-DD HH24:MI:SS') ");
-                queryBuilder.append("OR rl.created_at >= TO_TIMESTAMP(:startDate, 'YYYY-MM-DD HH24:MI:SS')) ");
-            }
+        // 동적 조건 추가
+        if (allParams.get("startDate") != null) {
+            queryBuilder.append("AND rn.created_at >= TO_TIMESTAMP(:startDate, 'YYYY-MM-DD HH24:MI:SS') ");
+        }
 
-            if (allParams.get("endDate") != null) {
-                queryBuilder.append("AND (rl.apply_at <= TO_TIMESTAMP(:endDate, 'YYYY-MM-DD HH24:MI:SS') ");
-                queryBuilder.append("OR rl.created_at <= TO_TIMESTAMP(:endDate, 'YYYY-MM-DD HH24:MI:SS')) ");
-            }
-            if (!"all".equals(allParams.get("status"))) {
-                queryBuilder.append("AND rl.status = :status ");
-            }
-            if (!"all".equals(allParams.get("kind"))) {
-                queryBuilder.append("AND rl.kind = :kind ");
-            }
-            if (!"all".equals(allParams.get("coverage"))) {
-                queryBuilder.append("AND rl.coverage = :coverage ");
-            }
-            if (allParams.get("revisionsearch") != null && !allParams.get("revisionsearch").isEmpty()) {
-                queryBuilder.append("AND rl.revision_title LIKE :revisionsearch or rl.revision_contents LIKE :revisionsearch ");
-            }
+        if (allParams.get("endDate") != null) {
+            queryBuilder.append("AND rn.created_at <= TO_TIMESTAMP(:endDate, 'YYYY-MM-DD HH24:MI:SS') ");
+        }
+        if (!"all".equals(allParams.get("status"))) {
+            queryBuilder.append("AND rn.status = :status ");
+        }
+        if (!"all".equals(allParams.get("type"))) {
+            queryBuilder.append("AND rn.type = :type ");
+        }
+        if (!"all".equals(allParams.get("channel"))) {
+            allParams.put("channel", "%" + allParams.get("channel") + "%" );
+            queryBuilder.append("AND rn.channel LIKE :channel ");
+        }
+        if (allParams.get("revisionsearch") != null && !allParams.get("revisionsearch").isEmpty()) {
+            queryBuilder.append("AND (rn.revision_title LIKE :revisionsearch or rn.revision_contents LIKE :revisionsearch) ");
+        }
 
-            queryBuilder.append("ORDER BY created_at DESC");
+        queryBuilder.append("ORDER BY created_at DESC");
 
         Query query = entityManager.createNativeQuery(queryBuilder.toString());
 
@@ -109,34 +105,33 @@ public class RevisionListService {
         if (!"all".equals(allParams.get("status"))) {
             query.setParameter("status", allParams.get("status"));
         }
-        if (!"all".equals(allParams.get("kind"))) {
-            query.setParameter("kind", allParams.get("kind"));
+        if (!"all".equals(allParams.get("type"))) {
+            query.setParameter("type", allParams.get("type"));
         }
-        if (!"all".equals(allParams.get("coverage"))) {
-            query.setParameter("coverage", allParams.get("coverage"));
+        if (!"all".equals(allParams.get("channel"))) {
+            query.setParameter("channel", allParams.get("channel"));
         }
         if (allParams.get("revisionsearch") != null && !allParams.get("revisionsearch").isEmpty()) {
             query.setParameter("revisionsearch", "%" + allParams.get("revisionsearch") + "%"); // 이메일 검색시 LIKE로 처리
         }
 
-        List<Object[]> revisionsList = query.getResultList();
+        List<Object[]> revisionsNotice = query.getResultList();
 
         List<Map<String, Object>> revisionData = new ArrayList<>();
 
-        for (Object[] revisions : revisionsList) {
+        for (Object[] revisions : revisionsNotice) {
             Map<String, Object> rowData = new HashMap<>();
             rowData.put("id", revisions[0]);
             rowData.put("revision_title", revisions[1]);
             rowData.put("revision_contents", revisions[2]);
             rowData.put("language_id", revisions[3]);
             rowData.put("status", revisions[4]);
-            rowData.put("kind", revisions[5]);
+            rowData.put("type", revisions[5]);
             rowData.put("apply_at", revisions[6]);
             rowData.put("created_at", revisions[7]);
             rowData.put("updated_at", revisions[8]);
-            rowData.put("coverage", revisions[9]);
-            rowData.put("location", revisions[10]);
-            rowData.put("subsidiary", revisions[11]);
+            rowData.put("channel", revisions[9]);
+            rowData.put("subsidiary", revisions[10]);
             revisionData.add(rowData);
         }
 
@@ -226,38 +221,37 @@ public class RevisionListService {
 
     //아래 파트는 JPA를 사용해 DB를 조회한 방식
 
-    public RedirectView revisionListDetail(Map<String, String> payload, HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
+    public RedirectView revisionNoticeDetail(Map<String, String> payload, HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
 
         String id = payload.get("id");
         Long revisionId = Long.parseLong(id);
-        List<Object[]> revisionsList = revisionListRepository.findRevisionById(revisionId);
-        
+        List<Object[]> revisionsNotice = revisionNoticeRepository.findRevisionById(revisionId);
+
         List<Map<String, Object>> revisionData = new ArrayList<>();
-        for (Object[] revisions : revisionsList) {
+        for (Object[] revisions : revisionsNotice) {
             Map<String, Object> rowData = new HashMap<>();
             rowData.put("id", revisions[0]);
             rowData.put("revision_title", revisions[1]);
             rowData.put("revision_contents", revisions[2]);
             rowData.put("language_id", revisions[3]);
             rowData.put("status", revisions[4]);
-            rowData.put("kind", revisions[5]);
+            rowData.put("type", revisions[5]);
             rowData.put("apply_at", revisions[6]);
             rowData.put("created_at", revisions[7]);
             rowData.put("updated_at", revisions[8]);
-            rowData.put("coverage", revisions[9]);
-            rowData.put("location", revisions[10]);
-            rowData.put("subsidiary", revisions[11]);
+            rowData.put("channel", revisions[9]);
+            rowData.put("subsidiary", revisions[10]);
             revisionData.add(rowData);
         }
 
         // 세션에 저장
         session.setAttribute("revisionDetailData", revisionData);
 
-        return new RedirectView("/myPage/revisionListDetail");
+        return new RedirectView("/myPage/revisionNoticeDetail");
     }
 
 
-        public ModelAndView revisionListDetail(Map<String, Object> payload, HttpServletRequest request, HttpSession session, Model model) {
+    public ModelAndView revisionNoticeDetail(Map<String, Object> payload, HttpServletRequest request, HttpSession session, Model model) {
         List<Map<String, Object>> revisionData = (List<Map<String, Object>>) session.getAttribute("revisionDetailData");
 
         if (revisionData != null) {
@@ -268,8 +262,8 @@ public class RevisionListService {
         ModelAndView modelAndView = new ModelAndView("myPage");
 
         modelAndView.addObject("payload", payload);
-        modelAndView.addObject("content", "fragments/myPage/revisionListDetail");
-        modelAndView.addObject("menu", "revisionList");
+        modelAndView.addObject("content", "fragments/myPage/revisionNoticeDetail");
+        modelAndView.addObject("menu", "revisionNotice");
 
         return modelAndView;
     }

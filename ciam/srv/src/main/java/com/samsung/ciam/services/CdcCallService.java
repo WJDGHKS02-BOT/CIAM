@@ -78,10 +78,6 @@ public class CdcCallService {
                 consentContentList = consentContentRepository.listConsentContentStatusIdPublished();
             }
 
-//            AtomicInteger counter = new AtomicInteger(0); // 카운트 변수 초기화
-//            AtomicInteger counter2 = new AtomicInteger(0); // 카운트 변수 초기화
-
-            // ConsentContentIds 생성
 //            List<Long> consentContentIds = consentContentList.stream()
 //                    .map(ConsentContent::getConsentId)
 //                    .distinct()
@@ -89,60 +85,16 @@ public class CdcCallService {
 //                    .filter(Objects::nonNull)
 //                    .collect(Collectors.toList());
 //
-//            // UID-ConsentId 매핑 및 메일 발송
-//            consentContentIds.stream()
-//                    .flatMap(id -> userAgreedConsentsRepository.selectDistinctUidsByConsentContentId(id).stream()
-//                            .filter(uid -> consentContentList.stream()
-//                                    .noneMatch(consentContent ->
-//                                            consentContent.getConsentId().equals(consentRepository.selectConsentIdByConsentContentId(id)) &&
-//                                                    userAgreedConsentsRepository.existsByUidAndConsentContentId(uid, consentContent.getId())
-//                                    )
-//                            )
-//                            .map(uid -> new AbstractMap.SimpleEntry<>(uid, id))
-//                    )
-//                    .collect(Collectors.toMap(
-//                            AbstractMap.SimpleEntry::getKey,
-//                            AbstractMap.SimpleEntry::getValue,
-//                            (existing, replacement) -> existing
-//                    ))
-//                    .forEach((uid, consentId) -> {
-//                        try {
-//                            //int currentCount = counter.incrementAndGet();
-//
-//                            Consent consent = consentRepository.selectCoverageById(consentId);
-//                            JsonNode cdcUser = cdcTraitService.getCdcUser(uid, 0);
-//
-//                            boolean isValidUser = cdcUser.has("errorCode")
-//                                    && cdcUser.get("errorCode").asInt() == 0
-//                                    && "active".equals(cdcUser.path("data").path("userStatus").asText(""));
-//
-//                            if (isValidUser) {
-//                                //int currentCount2 = counter2.incrementAndGet();
-//                                Map<String, Object> paramArr = new HashMap<>();
-//                                if ("privacy".equals(consent.getTypeId())) {
-//                                    paramArr.put("template", "TEMPLET-013");
-//                                    paramArr.put("channel", consent.getCoverage());
-//                                    paramArr.put("CIAM Admin", consent.getCoverage());
-//                                } else if ("terms".equals(consent.getTypeId())) {
-//                                    paramArr.put("template", "TEMPLET-014");
-//                                    paramArr.put("channel", consent.getCoverage());
-//                                    paramArr.put("CIAM Admin", consent.getCoverage());
-//                                } else {
-//                                    log.warn("Unknown consent type for UID: {}, type: {}", uid, consent.getTypeId());
-//                                    return;
-//                                }
-//                                paramArr.put("cdc_uid", uid);
-//
-//                                //mailService.sendMail(paramArr);
-//                                log.info("Mail Sent to UID: {} via template: {}", uid, paramArr.get("template"));
-//                            } else {
-//                                log.warn("Skipping mail for UID: {} due to invalid user status or errorCode.", uid);
-//                            }
-//                        } catch (Exception e) {
-//                            log.error("Failed to send mail for UID: {}", uid, e);
-//                        }
-//                    });
-            
+//            // 비동기 호출로 메일 발송 처리
+//            cdcTraitService.sendMailsAsync(
+//                    consentContentIds,
+//                    consentContentList,
+//                    consentRepository,
+//                    userAgreedConsentsRepository,
+//                    mailService,
+//                    cdcTraitService
+//            );
+
             int cnt = consentContentList.size();
             for (int i=0;i<consentContentList.size();i++) {
                 Long id = consentContentList.get(i).getId();

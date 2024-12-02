@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="https://www.thymeleaf.org">
-<th:block th:fragment="revisionList">
-    <div th:unless="${channelHeader['myRole'] == 'General User'}">
+<th:block th:fragment="revisionNotice">
+    <div th:unless="${channelHeader['myRole'] == 'General User' || channelHeader['myRole'] == 'Partner Admin'}">
         <link rel="stylesheet" href="/theme/assets/css/custom/ag_grid.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-        <h2>Revision List</h2>
+        <h2>Revision Notice</h2>
         <div class="content_ty4">
 
             <div class="list_wrap1">
@@ -29,13 +29,15 @@
                         <dd>
                             <select name="status" id="status" class="select wid_ty4">
                                 <option value="all">ALL</option>
-                                <option value="applying">Applying</option>
+                                <option value="applied">Applied</option>
                                 <option value="scheduled">Scheduled</option>
+                                <option value="inprogress">Inprogress</option>
+                                <option value="pending">Pending</option>
                             </select>
                         </dd>
-                        <dt>About</dt>
+                        <dt>Type</dt>
                         <dd>
-                            <select name="kind" id="kind" class="select wid_ty4">
+                            <select name="type" id="type" class="select wid_ty4">
                                 <option value="all">ALL</option>
                                 <option value="Channel Updating">Channel Updating</option>
                                 <option value="New Function">New Function</option>
@@ -52,13 +54,10 @@
                     <dl class="form_list6">
                         <dt>Channel</dt>
                         <dd>
-                            <select name="coverage" id="coverage" class="select wid_ty4">
+                            <select name="channel" id="channel" class="select wid_ty4">
                                 <option value="all">ALL</option>
-                                <option th:each="curChannel: ${channels}"
-                                        th:if="${curChannel != null}"
-                                        th:value="${curChannel.channelName}"
-                                        th:utext="${curChannel.channelDisplayName}"
-                                        th:selected="${curChannel.channelName == session_channel}">
+                                <option th:text="${channelHeader['channelDisplayName']}"
+                                        th:value="${channelHeader['channelName']}">
                                 </option>
                             </select>
                         </dd>
@@ -67,7 +66,7 @@
                             <input type="text" id="revisionsearch" name="revisionsearch" class="input wid_ty4" placeholder="Search for a title or content of a revision">
                         </dd>
                         <dt class="form_list6">
-                            <button type="button" class="btn_s search wid_ty5" onclick="searchRevisionList()">Search</button>
+                            <button type="button" class="btn_s search wid_ty5" onclick="searchRevisionNotice()">Search</button>
                         </dt>
                     </dl>
                 </div>
@@ -75,7 +74,7 @@
 
             <div class="mar_ty1">
                 <!-- 그리드 영역 -->
-                <div id="revisionListResult" class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center" style="height: auto;">
+                <div id="revisionNoticeResult" class="pc_grid_wrap ag-theme-quartz custom_ag_grid no-background header-cell-center" style="height: auto;">
                 </div>
             </div>
 
@@ -85,9 +84,9 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script th:inline="javascript">
-        const revisionListResultElement = document.querySelector('#revisionListResult');
+        const revisionNoticeResultElement = document.querySelector('#revisionNoticeResult');
 
-        let oRevisionListResultGrid = null;
+        let oRevisionNoticeResultGrid = null;
         let aHeader, aResultsData, mobileDisplaySize = 4;
         let startIdx = 0, endIdx = mobileDisplaySize;
         let columnDefs = [];
@@ -129,36 +128,47 @@
             endIdx = mobileDisplaySize;
 
             // for PC
-            if(!!oRevisionListResultGrid){
-                oRevisionListResultGrid.destroy();
+            if(!!oRevisionNoticeResultGrid){
+                oRevisionNoticeResultGrid.destroy();
             }
 
-            oRevisionListResultGrid = agGrid.createGrid(revisionListResultElement, initailGridOptions);
+            oRevisionNoticeResultGrid = agGrid.createGrid(revisionNoticeResultElement, initailGridOptions);
 
-            searchRevisionList();
+            searchRevisionNotice();
         }
 
-        function searchRevisionList() {
+        function searchRevisionNotice() {
             let params = {
                 startDate: document.getElementById('startDate').value || null,
                 endDate: document.getElementById('endDate').value || null,
                 status: document.getElementById('status').value,
-                kind: document.getElementById('kind').value,
-                coverage: document.getElementById('coverage').value,
+                type: document.getElementById('type').value,
+                channel: document.getElementById('channel').value,
                 revisionsearch: document.getElementById('revisionsearch').value
             };
 
             $.ajax({
-                url: "/myPage/revisionListSearch",
+                url: "/myPage/revisionNoticeSearch",
                 type: "POST",
                 data: JSON.stringify(params),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
-                success: function(oResult){
+                success: function(oResult) {
                     console.log(oResult);
-                    renderResultTable(oResult);
+
+                    //현재 admin이 접속한 채널 이름을 Channel 검색목록에서 가져왔는데 channelDisplayName과 channelName중 뭐가 적절할지 몰라서 일단 둘 다 가져옴
+                    const currentChannelDisplayName = /*[[${channelHeader['channelDisplayName']}]]*/ "";
+                    const currentChannelName = /*[[${channelHeader['channelName']}]]*/ "";
+
+                    //필터를 통해 ALL이거나 channelName 또는 channelDisplayName와 일치할 때만 가져오도록
+                    const filteredResults = oResult.result.filter(item => {
+                        const itemChannel = item.channel || "";
+                        return itemChannel === "ALL" || itemChannel.includes(currentChannelDisplayName) || itemChannel.includes(currentChannelName);
+                    });
+
+                    renderResultTable({ result: filteredResults });
                 },
-                error: function(e){
+                error: function(e) {
                     console.log(e);
                     const message = "데이터 통신중 에러발생";
                 }
@@ -176,7 +186,7 @@
         function onViewClick(data) {
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = '/myPage/revisionListDetail';
+            form.action = '/myPage/revisionNoticeDetail';
 
             // 데이터를 form의 hidden 필드로 추가
             form.appendChild(createHiddenInput('id', data.id));
@@ -190,12 +200,17 @@
 
             const columnDefs = [
                 {
-                    headerName: 'Coverage',
-                    field: 'coverage',  // revisions[11]에 해당
+                    headerName: 'Channel',
+                    field: 'channel',
                     width: 100,
                     cellStyle: { textAlign: 'center' },
                     headerClass: 'ag-header-cell-center',
                     unSortIcon: true,
+                    cellRenderer: function(params) {
+                        const currentChannelDisplayName = /*[[${channelHeader['channelDisplayName']}]]*/ "";
+                        // ALL이면 그대로 표시, 아니면 currentChannelDisplayName 표시
+                        return params.value === "ALL" ? "ALL" : currentChannelDisplayName;
+                    }
                 },
                 {
                     headerName: 'ID',
@@ -208,24 +223,8 @@
                     hide: true  // 필드를 숨김
                 },
                 {
-                    headerName: 'Upload Date',
-                    field: 'created_at',  // revisions[6]에 해당
-                    width: 150,
-                    cellStyle: { textAlign: 'center' },
-                    headerClass: 'ag-header-cell-center',
-                    unSortIcon: true,
-                },
-                {
-                    headerName: 'Apply Date',
-                    field: 'apply_at',  // revisions[7]에 해당
-                    width: 150,
-                    cellStyle: { textAlign: 'center' },
-                    headerClass: 'ag-header-cell-center',
-                    unSortIcon: true,
-                },
-                {
-                    headerName: 'About',
-                    field: 'kind',  // revisions[5]에 해당
+                    headerName: 'Type',
+                    field: 'type',  // revisions[5]에 해당
                     width: 150,
                     cellStyle: { textAlign: 'center' },
                     headerClass: 'ag-header-cell-center',
@@ -250,11 +249,6 @@
                     hide: true  // 필드를 숨김
                 },
                 {
-                    headerName: 'Location',
-                    field: 'location',  // 숨김 필드로 location 추가// revisions[9]에 해당
-                    hide: true  // 필드를 숨김
-                },
-                {
                     headerName: 'Subsidiary',
                     field: 'subsidiary',  // 숨김 필드로 subsidiary 추가 // revisions[10]에 해당
                     hide: true  // 필드를 숨김
@@ -265,6 +259,22 @@
                     width: 120,
                     cellStyle: { textAlign: 'center' },
                     headerClass: 'ag-header-cell-center'
+                },
+                {
+                    headerName: 'Created Date',
+                    field: 'created_at',  // revisions[7]에 해당
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
+                },
+                {
+                    headerName: 'Apply Date',
+                    field: 'apply_at',  // revisions[6]에 해당
+                    width: 150,
+                    cellStyle: { textAlign: 'center' },
+                    headerClass: 'ag-header-cell-center',
+                    unSortIcon: true,
                 },
                 {
                     headerName: 'Detail',
@@ -287,10 +297,10 @@
                 }
             ];
 
-            oRevisionListResultGrid.setGridOption("columnDefs", columnDefs);
-            oRevisionListResultGrid.setGridOption("rowData", aResultsData);
-            oRevisionListResultGrid.sizeColumnsToFit();
-            oRevisionListResultGrid.setGridOption("loading", false);
+            oRevisionNoticeResultGrid.setGridOption("columnDefs", columnDefs);
+            oRevisionNoticeResultGrid.setGridOption("rowData", aResultsData);
+            oRevisionNoticeResultGrid.sizeColumnsToFit();
+            oRevisionNoticeResultGrid.setGridOption("loading", false);
         }
     </script>
 
