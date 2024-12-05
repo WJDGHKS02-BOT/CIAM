@@ -1,0 +1,21 @@
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>테스트 프록시</title>
+  </head>
+  <script th:inline="javascript">
+    window.serverData = {
+      GIGYA_API_KEY: [[${apiKey}]],
+      GIGYA_PARENT_KEYS: [[${parentKeys}]],
+      GIGYA_INSTANCE_URL: [[${gigyaInstanceURL}]],
+      SAMSUNG_INSTANCE_URL: [[${samsungInstanceURL}]],
+      LOGIN_URL: [[${loginURL}]],
+      LOGOUT_URL: [[${logoutURL}]],
+      HOST_URL: [[${hostUrl}]],
+      CHANNEL: [[${channel}]],
+    }
+  </script>
+  <body>
+    <div id="page-root"></div>
+    <script th:src="@{/dist/signInProxy-bundle.js(v=${#dates.createNow().getTime()})}"></script>
+  </body>
+</html>

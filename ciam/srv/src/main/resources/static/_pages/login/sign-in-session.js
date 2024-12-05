@@ -13,6 +13,7 @@ class SignInSession {
       'sctToken',
       'UID',
       'userInfo',
+      'reloaded'
     ];
   }
 

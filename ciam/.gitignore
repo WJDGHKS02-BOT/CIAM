@@ -34,3 +34,8 @@ hs_err*
 .vscode
 .idea
 .reloadtrigger
+
+**/dist/*
+.env
+.env.production
+.env.development

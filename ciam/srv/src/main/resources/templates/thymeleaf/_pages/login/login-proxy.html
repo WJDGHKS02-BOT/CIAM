@@ -13,6 +13,12 @@
     <script src="/_apis/is-update-consent.js"></script>
     <script src="/_components/spinner/loading-spinner.js"></script>
 
+    <script th:inline="javascript" type="module" th:src="@{/_pages/login-proxy/user-authenticator/authenticator-manager.js?v=(${scriptVersion})}"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_pages/login-proxy/login-proxy-config.js?v=(${scriptVersion})}"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_pages/login-proxy/login-proxy-loader.js?v=(${scriptVersion})}"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_scripts/states/process-manager/process-manager.js?v=(${scriptVersion})}"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/accounts.js?v=(${scriptVersion})}"></script>
+
     <script th:inline="javascript">
       const GIGYA_API_KEY = [[${apiKey}]];
       const GIGYA_PARENT_KEYS = [[${parentKeys}]];
@@ -24,11 +30,6 @@
       const CHANNEL = [[${channel}]];
     </script>
 
-    <script type="module" src="/_pages/login-proxy/user-authenticator/authenticator-manager.js?v=1.0.0"></script>
-    <script type="module" src="/_pages/login-proxy/login-proxy-config.js?v=1.0.0"></script>
-    <script type="module" src="/_pages/login-proxy/login-proxy-loader.js?v=1.0.0"></script>
-    <script type="module" src="/_scripts/states/process-manager/process-manager.js?v=1.0.0"></script>
-    <script type="module" src="/_apis/gigya/accounts.js?v=1.0.0"></script>
     <script>
       document.addEventListener('DOMContentLoaded', async () => {
         try {

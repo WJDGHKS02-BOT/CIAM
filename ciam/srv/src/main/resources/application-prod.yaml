@@ -102,6 +102,10 @@ gigya:
       apiKey: "4_G3ULdOXkB_qif3aUw1i7ig"
       secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
       userKey: "AMFsvJ/Kme19"
+    jcext:
+      apiKey: "4_7GzWZZeNzjrwueZQ_6cpEw"
+      secretKey: "Lgygi02Fn1vMzE4TO4M+DTxtnFNzkIuR"
+      userKey: "AMFsvJ/Kme19"
 
 loginPage:
   channels:
@@ -129,6 +133,10 @@ loginPage:
       landing-page: http://tnp.secbuy.com/supplier/jsp/taps/comm/supplier_main.jsp
     gmapmx:
       landing-page: https://gmapp.samsungmobile.com
+    jcext:
+      landing-page: https://jira.secext.samsung.net/servicedesk/customer/portals
+    ecims:
+      landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
 
 acsUrl:
   channels:
@@ -240,3 +248,6 @@ redirectChannelLoginPageURL:
 
 samsungInstanceURL: "https://ciam.apimanagement.ap12.hana.ondemand.com"
 gigyaInstanceURL: "https://accounts.au1.gigya.com"
+
+captcha:
+  sitekey: "6Ldu9CwpAAAAAF1GPeSMAGSs6rND5gmr0-unZGpp"

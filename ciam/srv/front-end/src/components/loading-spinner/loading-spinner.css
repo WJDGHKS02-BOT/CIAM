@@ -1,0 +1,39 @@
+.loading-spinner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 9999;
+
+  > .loading-spinner__wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: transparent;
+    color: var(--color-white);
+
+    > .loading-spinner__title {
+      font: var(--samsung-700-32);
+      margin-bottom: 8px;
+    }
+
+    > .loading-spinner__description {
+      font: var(--samsung-700-20);
+    }
+  }
+}
+
+.loading-spinner.show {
+  display: block;
+}
+
+.loading-spinner.hidden {
+  display: none;
+}

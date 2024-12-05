@@ -1767,11 +1767,16 @@ public class RegistrationService {
         modelAndView.addObject("mobileHeader", searchService.getColumnInfoList());
         modelAndView.addObject("channel",param);
         modelAndView.addObject("channelCompanyType",(String) session.getAttribute("channelCompanyType"));
+        modelAndView.addObject("convertAccountId", session.getAttribute("convertAccountId") != null ? session.getAttribute("convertAccountId") : "");
         Map<String, Object> companyObject = new HashMap<>();
         companyObject.put("channelString", channel.getExternalId());
 
         Object companyObj = session.getAttribute("companyObject");
-        if (companyObj != null && companyObj instanceof Map) {
+
+        if(session.getAttribute("convertYn")!=null && "Y".equals((String) session.getAttribute("convertYn"))) {
+            regCompanyData = (Map<String, Object>) session.getAttribute("convertObject");
+        }
+        else if (companyObj != null && companyObj instanceof Map) {
             Map<String, String> companyMap = (Map<String, String>) companyObj;
             regCompanyData.put("bpid", companyMap.getOrDefault("bpid", ""));
             regCompanyData.put("source", companyMap.getOrDefault("source", ""));
@@ -2079,6 +2084,7 @@ public class RegistrationService {
 
         modelAndView.addObject("accountObject", accountObject);
         modelAndView.addObject("ssoAccessYn",(String) session.getAttribute("ssoAccessYn"));
+        modelAndView.addObject("ciamConvertYn",(String) session.getAttribute("ciamConvertYn"));
 
         return modelAndView;
     }
@@ -3467,7 +3473,7 @@ public class RegistrationService {
                             String companyId = CDCUser.path("data").path("accountID").asText("");
                             String accountId = (String) session.getAttribute("convertAccountId");
                             if (companyId != null && accountId != null && !companyId.isEmpty() && !accountId.isEmpty() && !Objects.equals(companyId, accountId)) {
-                                redirectAttributes.addFlashAttribute("showErrorMsg", "CIAM accountID does not match convert accountID.");
+                                redirectAttributes.addFlashAttribute("showErrorMsg", "The company information doesn't match. Please contact the SBA Admin.");
                                 return new RedirectView(request.getHeader("Referer"));
                             } else if (companyId != null && !companyId.isEmpty() && (accountId == null || accountId.isEmpty())) {
                                 // accountId가 비어있고 companyId는 비어있지 않을 경우 처리

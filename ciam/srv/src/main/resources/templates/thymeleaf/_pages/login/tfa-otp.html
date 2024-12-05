@@ -23,19 +23,18 @@
     <script src="/_apis/_instance/samsung-instance.js"></script>
     <script src="/_pages/redirect.js"></script>
 
-    <script th:inline="javascript" th:src="@{/_apis/gigya/gigya-add-event-handlers.js?(${scriptVersion})}"></script>
-    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/accounts.js?(${scriptVersion})}"></script>
-    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/socialize.js?(${scriptVersion})}"></script>
-
     <script src="/_apis/samsung/samsung.js"></script>
     <script src="/_apis/gigya/continueSSO.js"></script>
-    <script src="/_apis/localStorage.js"></script>
     <script src="/_apis/_instance/setupBaseURL.js"></script>
 
     <script src="/_pages/login/sign-in-session.js"></script>
     <script src="/_components/message/login-response-messages/login-page-response-messages.js"></script>
     <script src="/_apis/is-update-consent.js"></script>
     <script src="/_components/form/login-form/add-login-form-event.js"></script>
+
+    <script th:inline="javascript" th:src="@{/_apis/gigya/gigya-add-event-handlers.js?(${scriptVersion})}"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/accounts.js?(${scriptVersion})}"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/socialize.js?(${scriptVersion})}"></script>
 
     <script th:inline="javascript">
       const samsungInstanceURL = [[${samsungInstanceURL}]];
@@ -45,7 +44,9 @@
       const HOST_URL = [[${hostUrl}]];
       const CHANNEL = [[${channel}]];
       let isRegisteredQR;
+    </script>
 
+    <script th:inline="javascript">
       async function handleSubmitForm() {
         showLoadingSpinner();
 

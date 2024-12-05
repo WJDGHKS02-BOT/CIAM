@@ -39,12 +39,21 @@ public class LoginController {
   @ModelAttribute("scriptVersion")
   public Map<String, String> scriptVersion(HttpSession session) {
     Map<String, String> scriptVersion = new HashMap<String, String>();
-    scriptVersion.put("version", "1.0.0");
+    scriptVersion.put("version", "1.0.1");
 
 
     return scriptVersion;
   }
 
+  @ModelAttribute("captchaSiteKey")
+  public Map<String, String> captchaSiteKey(HttpSession session) {
+    Map<String, String> captchaSiteKey = new HashMap<String, String>();
+    String siteKey = BeansUtil.getApplicationProperty("captcha.sitekey");
+
+    captchaSiteKey.put("key", siteKey);
+
+    return captchaSiteKey;
+  }
   /*
    * 1. 메소드명: addLocaleToModel
    * 2. 클래스명: LoginController
@@ -618,5 +627,37 @@ public class LoginController {
     model.addAttribute("acsUrl", acsUrl);
 
     return "_pages/login/login-error";
+  }
+
+
+  /*
+   테스트코드
+   */
+  @GetMapping("/test/login-proxy")
+  public String testLoginProxy(HttpServletRequest request,
+                               @RequestParam Map<String, String> params,
+                               Model model
+  ) {
+    String scheme = request.getScheme(); // http 또는 https
+    String serverName = request.getServerName(); // localhost 또는 도메인명
+    int serverPort = request.getServerPort(); // 8080 같은 포트 번호
+    String hostURL = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
+
+    String channel = params.get("channel");
+    String spName = params.get("spName");
+
+    String loginURL = hostURL + "/sign-in?channel=" + channel + "&spName=" + spName;
+    String logoutURL = hostURL + "/signin/" + channel + "/logout?spName=" + spName;
+
+    model.addAttribute("channel", channel);
+    model.addAttribute("loginURL", loginURL);
+    model.addAttribute("logoutURL", logoutURL);
+    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
+    model.addAttribute("parentKeys", BeansUtil.getAllApiKeyForChannel("btp"));
+    model.addAttribute("hostUrl", BeansUtil.getHostURL());
+    model.addAttribute("samsungInstanceURL", BeansUtil.getSamsungInstanceURL());
+    model.addAttribute("gigyaInstanceURL", BeansUtil.getGigyaInstanceURL());
+
+    return "_pages/login/sign-in-proxy";
   }
 }

@@ -14,7 +14,6 @@
       th:src="|https://cdns.gigya.com/js/gigya.js?apikey=${apiKey}|"
     ></script>
 
-
     <script src="/_components/input/field-input-box.js"></script>
     <script src="/_components/spinner/loading-spinner.js"></script>
     <script src="/_scripts/debounce.js"></script>
@@ -25,13 +24,8 @@
     <script src="/_apis/_instance/samsung-instance.js"></script>
     <script type="module" src="/_pages/redirect.js"></script>
 
-    <script th:inline="javascript" th:src="@{/_apis/gigya/gigya-add-event-handlers.js?(${scriptVersion})}"></script>
-    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/accounts.js?(${scriptVersion})}"></script>
-    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/socialize.js?(${scriptVersion})}"></script>
-
     <script src="/_apis/gigya/continueSSO.js"></script>
     <script src="/_apis/samsung/samsung.js"></script>
-    <script src="/_apis/localStorage.js"></script>
     <script src="/_apis/_instance/setupBaseURL.js"></script>
 
     <script src="/_pages/login/sign-in-session.js"></script>
@@ -39,9 +33,9 @@
     <script src="/_components/form/login-form/add-login-form-event.js"></script>
     <script src="/_apis/is-update-consent.js"></script>
 
-<!--    <script src="/_apis/gigya/gigya-add-event-handlers.js?v=1.0.0"></script>-->
-<!--    <script type="module" src="/_apis/gigya/accounts.js?v=1.0.0" ></script>-->
-<!--    <script type="module" src="/_apis/gigya/socialize.js?v=1.0.0" ></script>-->
+    <script th:inline="javascript" th:src="@{/_apis/gigya/gigya-add-event-handlers.js?(${scriptVersion})}"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/accounts.js?(${scriptVersion})}"></script>
+    <script th:inline="javascript" type="module" th:src="@{/_apis/gigya/socialize.js?(${scriptVersion})}"></script>
 
     <script th:inline="javascript">
       const samsungInstanceURL = [[${samsungInstanceURL}]];
@@ -50,7 +44,9 @@
       const GIGYA_PARENT_KEYS = [[${parentKeys}]];
       const HOST_URL = [[${hostUrl}]];
       const CHANNEL = [[${channel}]];
+    </script>
 
+    <script th:inline="javascript">
       async function handleSubmitForm() {
         try {
           showLoadingSpinner();
@@ -67,17 +63,27 @@
       }
 
       document.addEventListener('DOMContentLoaded', function () {
+        // 'channel'이 'tnp'일 때만 새로고침 로직 실행
+        if (CHANNEL === 'tnp' && !signInSession.reloaded) {
+          signInSession.reloaded = true;
+
+          const url = new URL(window.location.href);
+          url.searchParams.delete('t');
+          url.searchParams.set('t', String(Date.now()));
+
+          return window.location.href = url.toString();
+        }
+
         showLoadingSpinner();
         setupBaseURL({
           gigyaURL: gigyaInstanceURL,
           samsungURL: samsungInstanceURL
-        })
+        });
 
         initializeLoginForm();
         updateSamsungEmployeeLoginButtonVisibility(CHANNEL);
-
         hideLoadingSpinner();
-      })
+      });
 
       function initializeLoginForm () {
         const form = document.querySelector('.form');
@@ -138,7 +144,7 @@
         samsungEmployeeLoginButton.style.display = channelsToHideButton.includes(currentChannel) ? 'none' : 'block';
       }
 
-      // TODO: FIDO 수정 예정
+      // // TODO: FIDO 수정 예정
       // async function fidoLogin() {
       //   const email = document.querySelector('input[name="field-email"]').value;
       //
@@ -148,7 +154,6 @@
       //   const getMethodsRes = await accounts.auth.getMethods(createTokenRes.aToken, email);
       //
       //   if (getMethodsRes.methods.includes('passkeyRegister')) {
-      //     // await accounts.auth.fido.initRegisterCredentials();
       //     await accounts.auth.fido.register(createTokenRes.aToken);
       //   } else {
       //     await accounts.auth.fido.login();
@@ -262,7 +267,6 @@
           >
             Samsung Employee Login
           </button>
-
 <!--          <button-->
 <!--              type="button"-->
 <!--              class="samsung-employee-login-link button button-size&#45;&#45;m button-theme&#45;&#45;lined-blue"-->

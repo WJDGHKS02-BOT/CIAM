@@ -152,7 +152,7 @@ loginPage:
     gmapmx:
       landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
     jcext:
-      landing-page: https://jira-stg.secext.samsung.net/login.jsp
+      landing-page: https://jira-stg.secext.samsung.net/servicedesk/customer/portals
     ecims:
       landing-page: https://www.sec-toolmate.com/smartpro/login.jsp
 
@@ -259,3 +259,6 @@ redirectChannelLoginPageURL:
 
 samsungInstanceURL: "https://samsung-b2b.apimanagement.ap12.hana.ondemand.com"
 gigyaInstanceURL: "https://accounts.au1.gigya.com"
+
+captcha:
+  sitekey: "6LeaBcYoAAAAAJMYErqr68NjSmNAnaajTAUl3WSi"
