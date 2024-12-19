@@ -624,7 +624,8 @@ public class ApprovalListService {
                     redirectAttributes.addFlashAttribute("responseErrorCode", 0);   // 성공코드 반환
 
                 } catch (Exception e) {
-                    log.error("Error approvalListPendingSubmit processing failed", e);
+                    log.error("Error approvalListPendingSubmit processing failed: {}", e.getMessage(), e);
+                    //throw new RuntimeException("Error approvalListPendingSubmit processing failed: " + e.getMessage(), e);
                 }
             }else if(statusUpdate.equals("rejected") ){ // 반려일때 
                 log.info("registrationApproval: Reject!!!" );

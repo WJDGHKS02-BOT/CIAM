@@ -108,8 +108,8 @@ public class WFCreateService {
             log.warn("WF_ID real:?? {}", wf_id);
 
             // 세션에서 UID와 이메일 정보 가져오기
-            String UID = (String) session.getAttribute("cdc_uid");
-            String cdc_email = (String) session.getAttribute("cdc_email");
+//            String UID = (String) session.getAttribute("cdc_uid");
+//            String cdc_email = (String) session.getAttribute("cdc_email");
             String workflow_code = StringUtil.getStringValue(wfData.get("workflow_code"), "W01");
             String channel =    StringUtil.getStringValue(wfData.get("channel"), "");
             String currentRole =StringUtil.getStringValue(wfData.get("currentRole"), "General User");
@@ -137,12 +137,15 @@ public class WFCreateService {
             String target_channel =   StringUtil.getStringValue(wfData.get("target_channel"), "");
             String target_channeltype =   StringUtil.getStringValue(wfData.get("target_channeltype"), "");
 
-            if(UID == null || UID.length()<1){
-                UID = requestor_uid;
-            }
-            if(cdc_email == null || cdc_email.length()<1){
-                cdc_email = requestor_email;
-            }
+            String UID = requestor_uid;
+            String cdc_email = requestor_email;
+
+//            if(UID == null || UID.length()<1){
+//                UID = requestor_uid;
+//            }
+//            if(cdc_email == null || cdc_email.length()<1){
+//                cdc_email = requestor_email;
+//            }
             
             int stage = 1; // 기본 결재 단계 초기화 -> 최대 Stage
             int wf_max_level = 1; // 최대 결재 레벨

@@ -1,8 +1,8 @@
-import { useLoadingStore } from '@/states';
+import { useLoadingSpinnerStore } from '@/states';
 import loadingSpinner from '@assets/img/loading-spinner.svg';
 
-const LoadingSpinner = () => {
-  const { isLoading, message } = useLoadingStore();
+export const LoadingSpinner = () => {
+  const { isLoading, message } = useLoadingSpinnerStore();
 
   if (!isLoading) return null;
 

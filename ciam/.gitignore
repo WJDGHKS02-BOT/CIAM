@@ -39,3 +39,5 @@ hs_err*
 .env
 .env.production
 .env.development
+
+application-secret-*.yaml

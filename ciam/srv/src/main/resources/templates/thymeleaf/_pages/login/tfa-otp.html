@@ -21,7 +21,7 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/_apis/_instance/gigya-instance.js"></script>
     <script src="/_apis/_instance/samsung-instance.js"></script>
-    <script src="/_pages/redirect.js"></script>
+    <script type="module" src="/_pages/redirect.js"></script>
 
     <script src="/_apis/samsung/samsung.js"></script>
     <script src="/_apis/gigya/continueSSO.js"></script>
@@ -43,7 +43,7 @@
       const GIGYA_PARENT_KEYS = [[${parentKeys}]];
       const HOST_URL = [[${hostUrl}]];
       const CHANNEL = [[${channel}]];
-      let isRegisteredQR;
+      let isRegisteredQR = true;
     </script>
 
     <script th:inline="javascript">
@@ -109,6 +109,7 @@
         const titleUnRegistered = document.querySelector('#title-unregistered');
         const subTitleRegistered = document.querySelector('#sub-title-registered');
         const subTitleUnRegistered = document.querySelector('#sub-title-unregistered');
+        const messageBlock = document.querySelector('.message-block');
 
         if(isRegisteredQR) {
           titleRegistered.style.display = 'block';
@@ -119,6 +120,7 @@
 
           secretKeyLabelElement.style.display = 'none';
           qr.style.display = 'none';
+          messageBlock.style.display = 'flex';
 
           await accounts.tfa.initTFA({provider: 'gigyaTotp', isSetGigyaAssertion: true});
         } else {
@@ -129,6 +131,8 @@
           titleUnRegistered.style.display = 'block';
           subTitleUnRegistered.style.display = 'block';
           qr.style.display = 'block';
+          messageBlock.style.display = 'none';
+
 
           await samsung.initTotpTfaRegistration();
           await accounts.tfa.initTFA({provider: 'gigyaEmail', isSetGigyaAssertion: false});
@@ -179,6 +183,18 @@
         margin: 24px auto 48px auto;
       }
 
+      .message-block {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 60px;
+        border-radius: 4px;
+        margin-bottom: 28px;
+        column-gap: 4px;
+        font: var(--samsung-700-14);
+        background: var(--color-bg-light-blue);
+      }
+
       @media screen and (max-width: 768px) {
         .title {
           margin-top: 80px;
@@ -204,6 +220,9 @@
            th:utext="#{tfa-otp-setup-page.subTitle}">Please scan the QR code below to log in</p>
 
         <form class="form">
+          <div class="message-block" style="display: none">
+            <p th:text="#{tfa-otp-setup-page.message-block}">This account is using the authenticator OTP </p>
+          </div>
           <img class="qr" src="/theme/assets/image/common/qr_img.png" alt="qr image">
           <th:block th:replace="_components/input/field-input-box :: field-input-box(
             fieldType='text',
@@ -235,8 +254,6 @@
           <th:block
               th:replace="_pages/login/components/login-page-response-messages :: login-page-response-messages"
           ></th:block>
-
-          <th:block th:replace="_pages/login/components/captcha :: captcha"></th:block>
 
           <button id="formSubmitButton"
                   class="button button-size--m button-theme--blue"

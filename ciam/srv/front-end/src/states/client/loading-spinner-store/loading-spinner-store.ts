@@ -5,18 +5,23 @@ const DEFAULT_MESSAGE = {
   description: 'This may take a few more minutes to process your request.',
 } as const;
 
-interface LoadingStore {
+type State = {
   isLoading: boolean;
   message?: {
     title?: string;
     description?: string;
   };
+};
+
+type Action = {
   showLoading: (message?: { title?: string; description?: string }) => void;
   showDefaultLoading: () => void;
   hideLoading: () => void;
-}
+};
 
-export const useLoadingStore = create<LoadingStore>((set) => ({
+export type LoadingSpinnerStore = State & Action;
+
+export const useLoadingSpinnerStore = create<LoadingSpinnerStore>((set) => ({
   isLoading: false,
   message: undefined,
   showLoading: (message) => set({ isLoading: true, message }),

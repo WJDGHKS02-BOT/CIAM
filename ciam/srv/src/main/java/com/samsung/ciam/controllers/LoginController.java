@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
@@ -204,6 +205,38 @@ public class LoginController {
     model.addAttribute("hostUrl", BeansUtil.getHostURL());
     model.addAttribute("samsungInstanceURL", BeansUtil.getSamsungInstanceURL());
     model.addAttribute("gigyaInstanceURL", BeansUtil.getGigyaInstanceURL());
+
+    return "_pages/login/sign-in";
+  }
+
+  // 삼성 MFA 인증 사용할 경우 POST 방식으로 Redirect 시킴  
+  @PostMapping("/sign-in")
+  public String newSignInPost(HttpServletRequest request,
+                              @RequestParam Map<String, String> params,
+                              Model model
+  ) {
+    String scheme = request.getScheme(); // http 또는 https
+    String serverName = request.getServerName(); // localhost 또는 도메인명
+    int serverPort = request.getServerPort(); // 8080 같은 포트 번호
+
+    String hostURL = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
+
+    String samlContext = params.get("samlContext");
+    String spName = params.get("spName");
+    String channel = params.get("channel");
+
+    String loginURL = hostURL + "/sign-in?channel=" + channel + "&spName=" + spName;
+    String logoutURL = hostURL + "/signin/" + channel + "/logout?spName=" + spName;
+
+    model.addAttribute("channel", channel);
+    model.addAttribute("loginURL", loginURL);
+    model.addAttribute("logoutURL", logoutURL);
+    model.addAttribute("apiKey", BeansUtil.getApiKeyForChannel(channel));
+    model.addAttribute("parentKeys", BeansUtil.getAllApiKeyForChannel("btp"));
+    model.addAttribute("hostUrl", BeansUtil.getHostURL());
+    model.addAttribute("samsungInstanceURL", BeansUtil.getSamsungInstanceURL());
+    model.addAttribute("gigyaInstanceURL", BeansUtil.getGigyaInstanceURL());
+    model.addAttribute("isMfaSuccess", true);
 
     return "_pages/login/sign-in";
   }

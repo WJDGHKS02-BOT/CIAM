@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 8081",
-    "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production"
   },
   "dependencies": {
     "autoprefixer": "^10.4.20",
@@ -17,6 +18,7 @@
     "postcss": "^8.4.49",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.0.2",
     "zustand": "^5.0.2"
   },
   "devDependencies": {

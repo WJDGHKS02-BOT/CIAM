@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Log List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background-color: #f9f9f9; /* 부드러운 배경 색상 */
+        }
+
+        .container {
+            max-width: 1400px; /* 더 넓게 조정 */
+            margin: 0 auto; /* 중앙 정렬 */
+            background: #fff; /* 테이블 배경 흰색 */
+            border-radius: 8px; /* 부드러운 모서리 */
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+        }
+
+        h1 {
+            text-align: left;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap; /* 화면 크기에 따라 정렬 조정 */
+        }
+
+        .filter-section label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px;
+            text-align: left;
+            word-wrap: break-word;
+            white-space: normal;
+            font-size: 14px;
+            color: #333;
+        }
+
+        th:nth-child(2), td:nth-child(2) {
+            max-width: 500px; /* 에러문구 열 너비 제한 */
+            word-break: break-word;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1; /* 호버 시 부드러운 색상 */
+        }
+
+        .button-section {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            cursor: pointer;
+            color: #555;
+            transition: all 0.2s ease;
+        }
+
+        .pagination button.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .pagination button:hover:not(.active) {
+            background-color: #f1f1f1;
+        }
+
+        .pagination button.disabled {
+            cursor: not-allowed;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Error Log 조회</h1>
+    <div class="filter-section">
+        <label for="from-date">날짜 From:</label>
+        <input type="date" id="from-date">
+
+        <label for="to-date">날짜 To:</label>
+        <input type="date" id="to-date">
+
+        <label for="error-message">Error Message:</label>
+        <select id="error-message">
+            <option value=""></option>
+            <option th:each="errorMes: ${errorMessage}"
+                    th:if="${errorMes != null}"
+                    th:value="${errorMes.value}"
+                    th:utext="${errorMes.name}">
+            </option>
+        </select>
+
+        <label for="completion-flag">처리 여부:</label>
+        <select id="completion-flag">
+            <option value="ALL">ALL</option>
+            <option value="false" selected>미처리</option>
+            <option value="true">처리 완료</option>
+        </select>
+
+        <button onclick="filterLogs(0)">검색</button>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th class="checkbox-header"><input type="checkbox" id="select-all" onclick="toggleSelectAll()"></th>
+            <th>ID</th>
+            <th>에러문구</th>
+            <th>Uid</th>
+            <th>Email</th>
+            <th>Method Name</th>
+            <th>발생일자</th>
+            <th>처리 여부</th>
+            <th>처리 완료 날짜</th>
+        </tr>
+        </thead>
+        <tbody id="log-table-body">
+        <!-- AJAX를 통해 데이터 추가 -->
+        </tbody>
+    </table>
+
+    <!-- 페이징 버튼 -->
+    <div class="pagination" id="pagination"></div>
+
+    <div class="button-section">
+        <button onclick="updateCompletion()">완료 처리</button>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    const itemsPerPage = 10; // 한 페이지에 표시할 항목 수
+    let totalItems = 0; // 총 데이터 개수
+
+    // 날짜 기본 값 설정
+    window.onload = function () {
+        const today = new Date();
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(today.getDate() - 7);
+
+        // 날짜 형식을 YYYY-MM-DD로 설정
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        document.getElementById('from-date').value = formatDate(sevenDaysAgo);
+        document.getElementById('to-date').value = formatDate(today);
+
+        document.getElementById('error-message').value = "contact";
+
+        filterLogs(0); // 초기 로드 시 첫 페이지 데이터 조회
+    };
+
+    function toggleSelectAll() {
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        const selectAll = document.getElementById('select-all');
+        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    }
+
+    function updateCompletion() {
+        const selectedIds = [];
+        document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
+            selectedIds.push(cb.value);
+        });
+
+        if (selectedIds.length === 0) {
+            alert('선택된 항목이 없습니다.');
+            return;
+        }
+
+        fetch('/updateCompletion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: selectedIds })
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('처리가 성공적으로 완료되었습니다.');
+                    window.location.reload();
+                } else {
+                    alert('완료 처리에 실패했습니다.');
+                }
+            })
+            .catch(error => console.error(error));
+    }
+
+    function filterLogs(page) {
+        const startDate = document.getElementById('from-date').value;
+        const endDate = document.getElementById('to-date').value;
+        const errorMessage = document.getElementById('error-message').value;
+        const completionFlag = document.getElementById('completion-flag').value;
+
+        $.ajax({
+            url: '/errorLogListSearch',
+            type: 'GET',
+            data: {
+                startDate: startDate || null,
+                endDate: endDate || null,
+                errorMessage: errorMessage || null,
+                completionFlag: completionFlag
+            },
+            success: function (data) {
+                const tbody = document.getElementById('log-table-body');
+                tbody.innerHTML = '';
+
+                totalItems = data.length; // 총 데이터 개수 설정
+
+                // 페이지별 데이터 계산
+                const startIndex = page * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+                const pageData = data.slice(startIndex, endIndex);
+
+                if (pageData.length > 0) {
+                    pageData.forEach(log => {
+                        const formattedCreatedAt = formatDateTime(log.createdAt);
+                        const formattedCompletionAt = formatDateTime(log.completionAt);
+                        const completionStatus = log.completionFlag ? '처리 완료' : '미처리';
+
+                        const row = `<tr>
+                            <td><input type="checkbox" class="row-checkbox" value="${log.id}"></td>
+                            <td>${log.id}</td>
+                            <td>${log.message}</td>
+                            <td>${log.uid}</td>
+                            <td>${log.email}</td>
+                            <td>${log.methodName}</td>
+                            <td>${formattedCreatedAt}</td>
+                            <td>${completionStatus}</td>
+                            <td>${formattedCompletionAt}</td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+
+                    // 페이징 처리
+                    const totalPages = Math.ceil(totalItems / itemsPerPage);
+                    updatePagination(page, totalPages);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">조회된 데이터가 없습니다.</td></tr>';
+                    updatePagination(0, 0); // 데이터가 없을 때 페이징 초기화
+                }
+            },
+            error: function () {
+                alert('검색 중 오류가 발생했습니다.');
+            }
+        });
+    }
+
+    function formatDateTime(datetime) {
+        if (!datetime) return '';
+        const date = new Date(datetime);
+        if (isNaN(date)) return '';
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    function updatePagination(currentPage, totalPages) {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        if (totalPages === 0) {
+            return; // 페이지가 없을 경우 페이징 표시 안 함
+        }
+
+        const maxPagesToShow = 10; // 한 번에 표시할 최대 페이지 번호
+        const startPage = Math.floor(currentPage / maxPagesToShow) * maxPagesToShow; // 시작 페이지 계산
+        const endPage = Math.min(startPage + maxPagesToShow, totalPages); // 끝 페이지 계산
+
+        // 이전 페이지 그룹 버튼
+        if (startPage > 0) {
+            pagination.innerHTML += `<button onclick="filterLogs(${startPage - 1})">&laquo;</button>`;
+        }
+
+        // 페이지 번호 버튼
+        for (let i = startPage; i < endPage; i++) {
+            pagination.innerHTML += `<button class="${i === currentPage ? 'active' : ''}" onclick="filterLogs(${i})">${i + 1}</button>`;
+        }
+
+        // 다음 페이지 그룹 버튼
+        if (endPage < totalPages) {
+            pagination.innerHTML += `<button onclick="filterLogs(${endPage})">&raquo;</button>`;
+        }
+    }
+</script>
+</body>
+</html>

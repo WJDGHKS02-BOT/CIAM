@@ -22,10 +22,12 @@
                                     and (country != null and !#strings.isEmpty(country))}">
                                 <option value="" th:text="#{selfregisteration.selectOption}"></option>
                                 <option th:each="location : ${secCountries}"
+                                        th:name="${location.countryCode}"
                                         th:if="${#bools.isTrue(location)}"
                                         th:value="${location.id}"
                                         th:utext="${location.country}"
-                                        th:selected="${#strings.toString(location.id) == country}">
+                                        th:selected="${#strings.toString(location.id) == country}"
+                                        >
                                 </option>
                                 <option th:if="${channel == 'toolmate'}" value="other">Other</option>
                             </select>
@@ -88,6 +90,115 @@
         </form>
 <!--        <th:block th:replace="~{${adCheckModal}}"></th:block>-->
         <!-- ***************************************************************************************************************************** -->
+
+        <div id="consent-modal" style="display: none;">
+            <div id="consentContent">l</div>
+            <div class="consent-button-container">
+                <button th:utext="#{selfregisteration.consent.disagree}" type="button" id="consent-button-x" class="consent-button btn_m btn_white">Disagree</button>
+                <button th:utext="#{selfregisteration.consent.agree}" type="button" id="consent-button-o" class="consent-button btn_m">Agree</button>
+            </div>
+        </div>
+        <style>
+          #consent-modal {
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* 검정색 배경에 50% 투명도 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+          }
+
+            #consentContent {
+              display: flex;
+              flex-direction: column;
+              background-color: white;
+              padding: 20px;
+              border-radius: 5px;
+              position: relative;
+              width: 50%;
+              max-width: 50%; /* 필요에 따라 조정 */
+              height: 50%;
+              overflow-y: scroll;
+            }
+
+            .consent-button-container {
+              display: flex;
+              justify-content: space-between;
+              gap: 10px;
+              margin-top: 10px;
+              width: 50%;
+            }
+
+            .consent-button {
+              width: 100%;
+              border-radius: 4px;
+            }
+        </style>
+        <script th:inline="javascript">
+            const agreeTermsCheckButton = document.querySelector('.check');
+            const consentModal = document.getElementById('consent-modal');
+            const consentButtonX = document.querySelector('#consent-button-x');
+            const consentButtonO = document.querySelector('#consent-button-o');
+            const agreeTerms = document.getElementById('agreeTerms');
+            const countryElement = document.getElementById("country");
+            const secCountries = /*[[${secCountries}]]*/ [];
+
+            function getConsent (code) {
+                return $.ajax({
+                    url: "/consent/getVersionList",
+                    type: "POST",
+                    data: JSON.stringify({ countries: code, coverage: 'common', language: code === 'KR' ? 'ko' : 'en', typeId: 'privacy' }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: (oResult) => $.ajax({
+                        url: "/consent/getConsentContent",
+                        type: "POST",
+                        data: JSON.stringify({
+                            id: oResult[0].id,
+                        }),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: (res) => {
+                            $("#consentContent").html(res.content);
+                            consentModal.style.display = 'flex';
+                        },
+                    })
+                  },
+                );
+            }
+
+            agreeTermsCheckButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log(secCountries);
+                const selectedCountry = secCountries.filter(countryInfo => {
+                    if(String(countryInfo.id) === countryElement.value) {
+                        return countryInfo.countryCode;
+                    }
+                });
+
+                if (!country.value) {
+                    return alert('Please select country');
+                }
+                getConsent(selectedCountry[0].countryCode);
+            })
+            consentButtonO.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('click O button');
+                consentModal.style.display = 'none';
+                agreeTerms.setAttribute('checked', 'checked');
+            })
+            consentButtonX.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('click X button');
+                consentModal.style.display = 'none';
+                agreeTerms.removeAttribute('checked');
+            })
+        </script>
 
         <script th:inline="javascript">
             // const email = document.getElementById("email");

@@ -2,6 +2,7 @@ package com.samsung.ciam.common.core.component;
 
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
@@ -69,7 +70,10 @@ public class SlackAppender extends AppenderBase<ILoggingEvent> {
                         className,
                         lineNumber);
 
-                String payload = String.format("{\"text\": \"%s\"}", message);
+                ObjectMapper objectMapper = new ObjectMapper();
+                String escapedMessage = objectMapper.writeValueAsString(message);
+
+                String payload = String.format("{\"text\": %s}", escapedMessage);
 
                 // Slack Webhook에 HTTP 요청 전송
                 HttpRequest request = HttpRequest.newBuilder()

@@ -22,7 +22,7 @@ export class UserValidator {
   }
 
   async handlePasswordReset() {
-    const res = await accounts.resetPassword({loginID: this.userInfo.profile.email});
+    const res = await accounts.resetPassword({ loginID: this.userInfo.profile.email });
 
     if (res) return location.assign(`/approval-status-error?approvalStatus=pending`);
     else alert('비밀번호 재설정 이메일 발송에 실패했습니다. 다시 시도해주세요.');

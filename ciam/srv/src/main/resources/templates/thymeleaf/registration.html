@@ -104,6 +104,9 @@
                           content: none;
                       }
                   }
+                  #errorMsgContent > li {
+                      white-space: pre-wrap;
+                  }
               </style>
               <ul class="list_ty1 mar1" id="adSSOModalText">
                 <li th:utext="#{registration.alertText01}">If you are already a ADSSO user, click on 'ADSSO'.<br>If you are not a ADSSO user, click on 'General'.</li>
@@ -202,7 +205,7 @@
                 const showErrorMsg = nonSeesionShowErrorMsg || sessionShowErrorMsg;
                 console.log("Error: showErrorMsg", showErrorMsg);
                 let tempElement = document.createElement('div');
-                tempElement.innerHTML = showErrorMsg;
+                tempElement.textContent = showErrorMsg;
 
                 let decodedJson = tempElement.textContent;
                 let stringArray= '';

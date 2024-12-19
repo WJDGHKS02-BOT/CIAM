@@ -6,6 +6,8 @@ spring:
         http-only: true
       tracking-modes: cookie
       timeout: 60m
+  config:
+    import: application-secret-dev.yaml
   main:
     allow-bean-definition-overriding: true
   web:

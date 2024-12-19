@@ -1,7 +1,9 @@
 package com.samsung.ciam.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "error_log")
@@ -36,10 +38,18 @@ public class ErrorLog {
     private String type;  // 에러 유형 필드 추가
 
     @Column(name = "created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     @Column(name = "email")
     private String email;
+
+    @Column(name = "completion_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime completionAt;
+
+    @Column(name = "completion_flag")
+    private Boolean completionFlag;
 
     public ErrorLog() {}
 
@@ -53,7 +63,7 @@ public class ErrorLog {
         this.className = className;
         this.type = type;
         this.email = email;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
     // Getters and Setters for all fields
@@ -143,5 +153,21 @@ public class ErrorLog {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public LocalDateTime getCompletionAt() {
+        return completionAt;
+    }
+
+    public void setCompletionAt(LocalDateTime completionAt) {
+        this.completionAt = completionAt;
+    }
+
+    public Boolean getCompletionFlag() {
+        return completionFlag;
+    }
+
+    public void setCompletionFlag(Boolean completionFlag) {
+        this.completionFlag = completionFlag;
     }
 }

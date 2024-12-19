@@ -62,9 +62,23 @@
         }
       }
 
-      document.addEventListener('DOMContentLoaded', function () {
-        // 'channel'이 'tnp'일 때만 새로고침 로직 실행
-        if (CHANNEL === 'tnp' && !signInSession.reloaded) {
+      document.addEventListener('DOMContentLoaded', async function () {
+        const isMfaSuccess = [[${isMfaSuccess}]];
+        // MFA 인증 체크, POST 방식으로 해당 페이지에 입장 시(Samsung MFA 성공 시) isMfaSuccess 가 true 로 넘어옴
+        if (isMfaSuccess) {
+          localStorage.removeItem('mfa');
+          localStorage.removeItem('jwt');
+          const data = JSON.parse(localStorage.getItem('mfaData'));
+          return await gigya.socialize.notifyLogin({
+            dontHandleScreenSet: true,
+            siteUID: data.UID,
+            UIDSig: data.UIDSignature,
+            UIDTimestamp: data.signatureTimestamp,
+          })
+        }
+
+        // 강제 새로고침
+        if (!signInSession.reloaded) {
           signInSession.reloaded = true;
 
           const url = new URL(window.location.href);
@@ -143,24 +157,7 @@
 
         samsungEmployeeLoginButton.style.display = channelsToHideButton.includes(currentChannel) ? 'none' : 'block';
       }
-
-      // // TODO: FIDO 수정 예정
-      // async function fidoLogin() {
-      //   const email = document.querySelector('input[name="field-email"]').value;
-      //
-      //   await accounts.isAvailableLoginID(email);
-      //
-      //   const createTokenRes = await accounts.identifier.createToken(email);
-      //   const getMethodsRes = await accounts.auth.getMethods(createTokenRes.aToken, email);
-      //
-      //   if (getMethodsRes.methods.includes('passkeyRegister')) {
-      //     await accounts.auth.fido.register(createTokenRes.aToken);
-      //   } else {
-      //     await accounts.auth.fido.login();
-      //   }
-      // }
     </script>
-
     <style>
       .main {
         align-items: center;
@@ -267,14 +264,6 @@
           >
             Samsung Employee Login
           </button>
-<!--          <button-->
-<!--              type="button"-->
-<!--              class="samsung-employee-login-link button button-size&#45;&#45;m button-theme&#45;&#45;lined-blue"-->
-<!--              onclick="fidoLogin()"-->
-<!--              th:utext="#{login-page.form.link.fido}"-->
-<!--          >-->
-<!--            Samsung Employee Login-->
-<!--          </button>-->
         </form>
       </th:block>
     </th:block>

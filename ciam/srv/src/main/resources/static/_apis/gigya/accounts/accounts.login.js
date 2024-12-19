@@ -1,6 +1,6 @@
-import {Redirect} from '../../../_pages/redirect.js';
+import { Redirect } from '../../../_pages/redirect.js';
 
-async function accounts_login({email, password, captchaToken}) {
+async function accounts_login({ email, password, captchaToken }) {
   const API_END_POINT = '/accounts.login';
   const API_PARAMS = {
     loginID: email,
@@ -10,7 +10,7 @@ async function accounts_login({email, password, captchaToken}) {
       captchaToken: captchaToken,
       captchaType: 'reCaptchaV2',
     }),
-  }
+  };
   const ERROR_CODES = {
     LOGIN_SUCCESS: 0,
     PENDING_REGISTRATION: 206001,
@@ -33,10 +33,31 @@ async function accounts_login({email, password, captchaToken}) {
     }
   }
 
+  async function mfaLogin(uid, email) {
+    const response = await axios.post('/api/mfa/request', {
+      uid,
+      displayUid: email,
+      returnUrl: location.href,
+      email: email,
+      isBioOnly: false,
+    });
+
+    const jwtResponse = response.data;
+    const jwt = jwtResponse.split('jwtTokenRequest=')[1];
+    localStorage.setItem('jwt', jwt);
+    return window.location.assign(jwtResponse);
+  }
+
   async function handleResponse(res) {
     try {
       switch (res.errorCode) {
         case ERROR_CODES.LOGIN_SUCCESS:
+          // TODO: 삼성 MFA 쓰는 채널들 분기처리로 바꿔야함
+          if (CHANNEL === 'sba') {
+            localStorage.setItem('mfaData', JSON.stringify(res));
+            return await mfaLogin(res.UID, res.profile.email);
+          }
+
           return await gigya.socialize.notifyLogin({
             dontHandleScreenSet: true,
             siteUID: res.UID,
@@ -49,10 +70,10 @@ async function accounts_login({email, password, captchaToken}) {
         case ERROR_CODES.PENDING_TFA_REGISTRATION:
           try {
             signInSession.regToken = res.regToken;
-            const {data: userTfaSettings} = await samsung.getUserTfaSettings();
+            const { data: userTfaSettings } = await samsung.getUserTfaSettings();
             return userTfaSettings.tfaMethods.gigyaTotp
-                ? Redirect.tfaOtp()
-                : Redirect.tfaEmail();
+              ? Redirect.tfaOtp()
+              : Redirect.tfaEmail();
           } catch (error) {
             console.error('Failed to get TFA settings:', error);
             return showLoginPageResponseMessages('tfa.SETTINGS_ERROR');

@@ -135,9 +135,9 @@
         <div class="list_wrap1">
             <div>
                 <dl class="form_list6">
-                    <dt>Subsidiary<span class="required">*</span></dt>
+                    <dt>Subsidiary</dt>
                     <dd>
-                        <select name="subsidiary" id="subsidiary" class="select wid_ty4" required>
+                        <select name="subsidiary" id="subsidiary" class="select wid_ty4">
                             <option value=""></option>
                             <option th:each="curSubsidiary: ${subsidiary}"
                                     th:if="${curSubsidiary != null}"
@@ -152,9 +152,9 @@
         <div class="list_wrap1">
             <div>
                 <dl class="form_list6">
-                    <dt>Division<span class="required">*</span></dt>
+                    <dt>Division</dt>
                     <dd>
-                        <select name="division" id="division" class="select wid_ty4" required>
+                        <select name="division" id="division" class="select wid_ty4">
                             <option value=""></option>
                             <option th:each="division: ${divisions}"
                                     th:if="${division != null}"

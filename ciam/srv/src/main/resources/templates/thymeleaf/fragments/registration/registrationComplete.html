@@ -2,7 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0"
+          name="viewport">
     <title th:text="#{selfregisteration.completeTitle}"></title>
 </head>
 <body>
@@ -25,19 +26,22 @@
 
     // 서버에 세션 삭제 요청을 보냄
     function deleteSession() {
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/registration/delete-session', true); // 서버에서 세션을 삭제하는 엔드포인트로 요청
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.send();
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/registration/delete-session', true); // 서버에서 세션을 삭제하는 엔드포인트로 요청
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.send();
     }
 
-    var channel = /*[[${channel}]]*/ "default";
-    var loginPage = /*[[${loginPage}]]*/ "/";
+    var channel = /*[[${channel}]]*/ 'default';
+    var loginPage = /*[[${loginPage}]]*/ '/';
     window.onload = function() {
-        setTimeout(function() {
-            deleteSession(); // 세션 삭제 요청
-            window.location.href = loginPage;
-        }, 6000); // 1 second
+      if (loginPage === '/') return;
+      else {
+        return setTimeout(function() {
+          deleteSession(); // 세션 삭제 요청
+          window.location.href = loginPage;
+        }, 6000);
+      } // 6 second
     };
     /*]]>*/
 </script>

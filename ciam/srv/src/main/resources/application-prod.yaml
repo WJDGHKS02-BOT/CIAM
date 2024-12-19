@@ -6,6 +6,8 @@ spring:
         http-only: true
       tracking-modes: cookie
       timeout: 60m
+  config:
+    import: application-secret-prod.yaml
   main:
     allow-bean-definition-overriding: true
   web:
@@ -149,15 +151,15 @@ acsUrl:
     sba:
       url: https://samsung.csod.com/samldefault.aspx?ouid=18
     partnerhub:
-      url: https://sec-b2b--fs.sandbox.my.site.com/globalpartnertest/s/home
+      url: https://partnerhub.samsung.com/s/home
     edo:
-      url: https://sec-b2b--fs.sandbox.my.site.com/eu/it/
+      url: https://partnerportal.samsung.com/euvforcesite/login?so=00D28000001Kd0d
     mmp:
-      url: https://sec-b2b--fs.sandbox.my.site.com/MMP/s/login/
+      url: https://magicinfo.support.samsung.com/login?so=00D28000001Kd0d
     e2e:
-      url: https://sec-b2b--fs.sandbox.my.site.com/enterprisecustomer/s/login/
+      url: https://prosvc.support.samsung.com/
     ets:
-      url: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/s/login/
+      url: https://ets.support.samsung.com/login?so=00D28000001Kd0d
     tnp:
       url: https://tnp.secbuy.com/supplier/jsp/taps/supp/supp_login/index_adsso.jsp
     gmapmx:

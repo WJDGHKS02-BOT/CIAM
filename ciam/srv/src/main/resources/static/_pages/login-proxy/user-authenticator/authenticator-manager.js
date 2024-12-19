@@ -1,11 +1,11 @@
 import {
   setupGigyaEventListeners,
-  setupGigyaServiceReady
-} from "../login-proxy-gigya-service-ready.js";
-import {ChannelManager} from '../user-authenticator/channel-manager.js';
-import {UserValidator} from '../user-authenticator/user-validator.js';
+  setupGigyaServiceReady,
+} from '../login-proxy-gigya-service-ready.js';
+import { ChannelManager } from '../user-authenticator/channel-manager.js';
+import { UserValidator } from '../user-authenticator/user-validator.js';
 
-import {Redirect} from '../../redirect.js';
+import { Redirect } from '../../redirect.js';
 
 export class AuthenticationManager {
   constructor(gigyaLoader) {
@@ -18,6 +18,16 @@ export class AuthenticationManager {
     setupGigyaServiceReady(async () => {
       this.isGigyaReady = true;
       await this.initGigyaEvents();
+    });
+  }
+
+  async updateLastLogin() {
+    if (CHANNEL === 'btp') {
+      return;
+    }
+    
+    return await accounts.setAccountInfo({
+      lastLogin: new Date().toISOString(),
     });
   }
 
@@ -37,7 +47,7 @@ export class AuthenticationManager {
       onNoSession: async () => {
         new SignInSession().clearSession();
         return await this._gigyaLoader.loadGigyaSamlJS();
-      }
+      },
     };
 
     await setupGigyaEventListeners(this.isGigyaReady, handlers);
@@ -52,6 +62,8 @@ export class AuthenticationManager {
       await this.handleUserStatus();
       debugger;
       await this.checkConsentUpdate();
+      debugger;
+      await this.updateLastLogin();
       debugger;
       await this._gigyaLoader.loadGigyaSamlJS();
     } catch (error) {
@@ -100,7 +112,7 @@ export class AuthenticationManager {
   // 약관 업데이트가 필요한 사용자 인지 확인
   async checkConsentUpdate() {
     const isRequiredUpdateConsent = await isUpdateConsent({
-      UID: this.userInfo.UID
+      UID: this.userInfo.UID,
     }) === 'Y';
 
     if (isRequiredUpdateConsent) {

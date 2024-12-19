@@ -26,6 +26,7 @@
       "@assets/*": ["assets/*"],
       "@components/*": ["components/*"],
       "@constants/*": ["constants/*"],
+      "@features/*": ["features/*"],
       "@pages/*": ["pages/*"],
       "@states/*": ["states/*"],
       "@styles/*": ["styles/*"],

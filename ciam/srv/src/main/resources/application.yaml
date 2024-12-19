@@ -2,7 +2,7 @@
 spring:
   profiles:
     group:
-      local: local_env
+      local: local_env, secret-dev
 ---
 spring:
   main:
@@ -17,14 +17,14 @@ spring:
   datasource:
     embedded-database-connection: none
     driver-class-name: org.postgresql.Driver
-#   기존 개발 DB
+    #   기존 개발 DB
     url: jdbc:postgresql://postgres-8027951d-9d5e-4e9a-9df5-f7c27e527c8b.cu2h3ll9ayju.ap-northeast-2.rds.amazonaws.com:1625/xniXqDOdrvZo
     username: a4a77124550f
     password: c1ed569d02c942ec
-#   Java Test DB
-#    url: jdbc:postgresql://postgres-5e4a2791-0ac8-4552-8bda-11d73d1cacfe.cu2h3ll9ayju.ap-northeast-2.rds.amazonaws.com:1775/kGArOcNEXAOs
-#    username: d0c5f77e181f
-#    password: 330f299c3cd5ea06522367a05ca4afb3
+  #   Java Test DB
+  #    url: jdbc:postgresql://postgres-5e4a2791-0ac8-4552-8bda-11d73d1cacfe.cu2h3ll9ayju.ap-northeast-2.rds.amazonaws.com:1775/kGArOcNEXAOs
+  #    username: d0c5f77e181f
+  #    password: 330f299c3cd5ea06522367a05ca4afb3
   jpa:
     database: postgresql
     open-in-view: false
@@ -106,7 +106,7 @@ loginPage:
 
 
 encrypt:
-  appKey:  kOpHl0VGrA1LZtcIgx02dtZtynl7RPO7dKZ17G/90cg
+  appKey: kOpHl0VGrA1LZtcIgx02dtZtynl7RPO7dKZ17G/90cg
 
 cds:
   data-source.auto-config.enabled: false
@@ -130,10 +130,10 @@ spring:
   datasource:
     embedded-database-connection: none
     driver-class-name: org.postgresql.Driver
-#   기존 개발 DB    
-#    url: jdbc:postgresql://localhost:1625/xniXqDOdrvZo
-#    username: a4a77124550f
-#    password: c1ed569d02c942ec
+    #   기존 개발 DB
+    #    url: jdbc:postgresql://localhost:1625/xniXqDOdrvZo
+    #    username: a4a77124550f
+    #    password: c1ed569d02c942ec
     url: jdbc:postgresql://localhost:1775/kGArOcNEXAOs
     username: d0c5f77e181f
     password: 330f299c3cd5ea06522367a05ca4afb3
@@ -215,7 +215,7 @@ loginPage:
       landing-page: https://sec-b2b--fs.sandbox.my.site.com/mobilecustomer/s/login/
 
 encrypt:
-  appKey:  kOpHl0VGrA1LZtcIgx02dtZtynl7RPO7dKZ17G/90cg
+  appKey: kOpHl0VGrA1LZtcIgx02dtZtynl7RPO7dKZ17G/90cg
 
 # server:
 #   port: 8080

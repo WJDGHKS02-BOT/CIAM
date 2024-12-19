@@ -14,4 +14,7 @@ public interface CisCountryRepository extends JpaRepository<CisCountry, Long> {
 
     @Query("SELECT c FROM CisCountry c WHERE c.countryCode IN :countryCodes ORDER BY c.nameEn ASC")
     List<CisCountry> selectCountriesByCodes(@Param("countryCodes") List<String> countryCodes);
+
+    @Query("SELECT c.nameEn FROM CisCountry c WHERE c.countryCode = :countryCode")
+    String findNameEnByCountryCode(@Param("countryCode") String countryCode);
 }

@@ -3,5 +3,8 @@
     "version": "1.0.0",
     "description": "CIAM CAP Project",
     "license": "ISC",
-    "repository": "none"
+    "repository": "none",
+    "dependencies": {
+        "ciam": "file:"
+    }
 }
